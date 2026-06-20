@@ -8,183 +8,108 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-html, body {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: #000;
-}
+html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
-/* ════════════════════════════════
+/* ═══════════════════════════
    LOADER
-════════════════════════════════ */
+═══════════════════════════ */
 #loader {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background: #fff;
   overflow: hidden;
 }
 
-#loader-bg {
-  display: none;
-}
-
-/* Ink blobs — behind center, dark green */
-#loader-blobs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
-  opacity: 0;
-  animation: blobPop 0.45s cubic-bezier(0.34,1.4,0.64,1) forwards;
-  /* Ink texture: slightly lighter core */
-  box-shadow: inset 0 0 30px rgba(0,40,10,0.6);
-}
-
-@keyframes blobPop {
-  0%   { opacity:0; transform:scale(0) rotate(var(--r)); }
-  70%  { opacity:0.9; transform:scale(1.08) rotate(var(--r)); }
-  100% { opacity:0.85; transform:scale(1) rotate(var(--r)); }
-}
-
-.drip {
-  position: absolute;
-  border-radius: 0 0 50% 50%;
-  opacity: 0;
-  animation: dripAnim 1s ease-in forwards;
-}
-
-@keyframes dripAnim {
-  0%   { opacity:0; height:0; }
-  20%  { opacity:0.8; }
-  100% { opacity:0.8; height:var(--dh); }
-}
-
-/* ── SVG à fill ── */
-#loader-center {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-#letter-svg {
-  width: clamp(160px, 30vw, 260px);
-  height: clamp(180px, 34vw, 300px);
-  filter: drop-shadow(0 0 24px rgba(34,197,94,0.4));
-}
-
+/* % counter */
 #pct-label {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
   font-family: 'Inter', sans-serif;
-  font-size: clamp(13px, 2vw, 16px);
-  font-weight: 500;
-  letter-spacing: 4px;
-  color: rgba(0,0,0,0.4);
+  font-size: clamp(14px, 2.5vw, 20px);
+  font-weight: 600;
+  letter-spacing: 5px;
+  color: rgba(0,0,0,0.25);
+  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
-/* ── Word assembly after 100% ── */
-#word-assembly {
+/* Paint streams container */
+#paint {
   position: absolute;
   inset: 0;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
+  z-index: 5;
   pointer-events: none;
 }
 
-.word-logo {
-  display: flex;
-  align-items: baseline;
-  gap: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(52px, 11vw, 120px);
-  font-weight: 800;
-  letter-spacing: -2px;
-}
-
-.wl-a {
-  color: #22c55e;
-  position: relative;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  text-shadow: 0 0 20px rgba(34,197,94,0.5);
-}
-
-.wl-tick {
+/* Each stream falls from top */
+.stream {
   position: absolute;
-  top: -0.08em;
-  left: 50%;
-  transform: translateX(-46%);
-  width: 0.44em;
-  height: auto;
-  overflow: visible;
-  filter: drop-shadow(0 0 5px rgba(34,197,94,0.7));
+  top: -60px;
+  transform-origin: top center;
+  border-radius: 0 0 45% 45% / 0 0 60% 60%;
+  animation: fall var(--dur) cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--delay) both;
 }
 
-.wl-tick path {
-  stroke: #22c55e;
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  stroke-dasharray: 60;
-  stroke-dashoffset: 60;
+@keyframes fall {
+  0%   { height: 0px;          opacity: 1; width: var(--w); }
+  40%  { height: 40vh;         opacity: 1; width: calc(var(--w) * 1.15); }
+  100% { height: calc(100vh + 80px); opacity: 1; width: calc(var(--w) * 1.4); }
 }
 
-/* bank24 black with white glow in assembly too */
-.wl-bank {
-  color: #000;
-  text-shadow:
-    0 0 2px rgba(255,255,255,0.95),
-    0 0 12px rgba(255,255,255,0.7),
-    0 0 28px rgba(255,255,255,0.3);
+/* Spread pools at bottom */
+.pool {
+  position: absolute;
+  bottom: -30px;
+  height: 0;
+  border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+  animation: pool-grow var(--pdur) ease-out var(--pdelay) both;
 }
 
-.wl-char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(16px);
+@keyframes pool-grow {
+  0%   { height: 0;   width: var(--pw); opacity:1; }
+  100% { height: 20vh; width: calc(var(--pw) * 2.5); opacity:1; }
 }
 
-/* ════════════════════════════════
-   SPLASH
-════════════════════════════════ */
+/* Splash drips */
+.splash-drip {
+  position: absolute;
+  border-radius: 50%;
+  animation: drip-fly var(--sd) ease-out var(--sdelay) both;
+}
+
+@keyframes drip-fly {
+  0%   { transform: translate(0,0) scale(1); opacity:1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(var(--ds)); opacity:0.7; }
+}
+
+/* ═══════════════════════════
+   SPLASH TRANSITION
+═══════════════════════════ */
 #splash {
   position: fixed;
   inset: 0;
   z-index: 8888;
   pointer-events: none;
+  background: #020602;
   clip-path: circle(0% at 50% 50%);
-  background: #000;
 }
 
 #splash.go {
-  animation: splashGo 0.85s cubic-bezier(0.55,0,0.1,1) forwards;
+  animation: splashGo 0.8s cubic-bezier(0.55,0,0.1,1) forwards;
 }
 
 @keyframes splashGo {
   to { clip-path: circle(150% at 50% 50%); }
 }
 
-/* ════════════════════════════════
+/* ═══════════════════════════
    MAIN PAGE
-════════════════════════════════ */
+═══════════════════════════ */
 #main {
   position: fixed;
   inset: 0;
@@ -197,7 +122,7 @@ html, body {
 
 #main.on { opacity: 1; }
 
-/* ── Section 1 ── */
+/* Section 1 */
 #s1 {
   min-height: 100vh;
   display: flex;
@@ -207,36 +132,29 @@ html, body {
   padding: 80px 24px 60px;
   position: relative;
   overflow: hidden;
-
-  /* Background matching reference photo — dark black-green rays */
   background:
-    radial-gradient(ellipse 65% 85% at 2% 98%,  rgba(0,100,22,0.6)  0%, transparent 52%),
+    radial-gradient(ellipse 65% 85% at 2%  98%, rgba(0,100,22,0.6)  0%, transparent 52%),
     radial-gradient(ellipse 55% 75% at 98% 2%,  rgba(0,80,18,0.5)   0%, transparent 52%),
     radial-gradient(ellipse 45% 65% at 98% 98%, rgba(0,60,12,0.35)  0%, transparent 48%),
     radial-gradient(ellipse 35% 55% at 2%  2%,  rgba(0,50,10,0.3)   0%, transparent 48%),
-    radial-gradient(ellipse 30% 40% at 50% 50%, rgba(0,30,6,0.2)    0%, transparent 60%),
     #020602;
 }
 
-/* Subtle diagonal light streaks */
 #s1::before {
-  content: '';
-  position: absolute;
-  inset: 0;
+  content:'';
+  position:absolute; inset:0;
   background:
     linear-gradient(135deg, rgba(0,120,28,0.08) 0%, transparent 40%),
     linear-gradient(315deg, rgba(0,90,18,0.06) 0%, transparent 40%);
-  pointer-events: none;
+  pointer-events:none;
 }
 
-/* Breathing green core */
 #s1::after {
-  content: '';
-  position: absolute;
-  inset: -20%;
+  content:'';
+  position:absolute; inset:-20%;
   background: radial-gradient(ellipse 30% 30% at 50% 50%, rgba(26,122,60,0.07) 0%, transparent 70%);
   animation: breathe 5s ease-in-out infinite;
-  pointer-events: none;
+  pointer-events:none;
 }
 
 @keyframes breathe {
@@ -244,13 +162,12 @@ html, body {
   50%      { transform:scale(1.1); opacity:1; }
 }
 
-/* ── Main Logo ── */
+/* Logo */
 .main-logo {
   position: relative;
   z-index: 2;
   display: inline-flex;
   align-items: baseline;
-  gap: 0;
   font-family: 'Inter', sans-serif;
   font-size: clamp(56px, 12vw, 140px);
   font-weight: 800;
@@ -259,46 +176,16 @@ html, body {
   user-select: none;
 }
 
-/* White radial spot BEHIND the logo text */
 .logo-glow {
   position: absolute;
   top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 130%;
-  height: 160%;
+  transform: translate(-50%,-50%);
+  width: 130%; height: 160%;
   background: radial-gradient(ellipse 55% 55% at 50% 50%,
-    rgba(255,255,255,0.18) 0%,
-    rgba(255,255,255,0.07) 40%,
-    transparent 70%);
+    rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 40%, transparent 70%);
   pointer-events: none;
   z-index: -1;
   border-radius: 50%;
-}
-
-/* Tagline */
-.tagline {
-  position: relative;
-  z-index: 2;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(12px, 1.6vw, 16px);
-  font-weight: 300;
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.45);
-  margin-top: 10px;
-  cursor: default;
-  transition: color 0.3s, text-shadow 0.3s;
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.tagline:hover {
-  color: rgba(255,255,255,0.8);
-  text-shadow: 0 0 16px rgba(255,255,255,0.2);
-}
-
-.tagline.in {
-  animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.45s forwards;
 }
 
 .ml-a-wrap {
@@ -308,7 +195,6 @@ html, body {
   align-items: center;
 }
 
-/* SVG checkmark tick above the a — like reference logo */
 .ml-tick {
   position: absolute;
   top: -0.08em;
@@ -331,62 +217,64 @@ html, body {
 }
 
 @keyframes tickFloat {
-  0%,100% { transform: translateY(0px) rotate(0deg); }
-  25%     { transform: translateY(-4px) rotate(-4deg); }
-  50%     { transform: translateY(-2px) rotate(3deg); }
-  75%     { transform: translateY(-5px) rotate(-2deg); }
+  0%,100% { transform:translateY(0px) rotate(0deg); }
+  25%     { transform:translateY(-4px) rotate(-4deg); }
+  50%     { transform:translateY(-2px) rotate(3deg); }
+  75%     { transform:translateY(-5px) rotate(-2deg); }
 }
 
-/* à — bright green */
 .ml-a-letter {
-  display: inline-block;
   color: #22c55e;
-  text-shadow:
-    0 0 20px rgba(34,197,94,0.55),
-    0 0 50px rgba(34,197,94,0.25);
-  transition: text-shadow 0.3s ease;
+  text-shadow: 0 0 20px rgba(34,197,94,0.55), 0 0 50px rgba(34,197,94,0.25);
+  transition: text-shadow 0.3s;
 }
 
-/* bank — black with white under-glow so it's visible on dark bg */
 .ml-bank {
   color: #000;
-  display: inline-block;
   text-shadow:
     0 0 2px rgba(255,255,255,0.95),
     0 0 12px rgba(255,255,255,0.7),
     0 0 30px rgba(255,255,255,0.35);
-  transition: text-shadow 0.3s ease;
+  transition: text-shadow 0.3s;
 }
 
-/* Hover glow — subtle white boost */
 .main-logo:hover .ml-a-letter {
-  text-shadow:
-    0 0 25px rgba(34,197,94,0.8),
-    0 0 60px rgba(34,197,94,0.4),
-    0 0 2px rgba(255,255,255,0.3);
+  text-shadow: 0 0 25px rgba(34,197,94,0.8), 0 0 60px rgba(34,197,94,0.4);
 }
 
 .main-logo:hover .ml-bank {
-  text-shadow:
-    0 0 2px rgba(255,255,255,1),
-    0 0 20px rgba(255,255,255,0.9),
-    0 0 50px rgba(255,255,255,0.5);
+  text-shadow: 0 0 2px #fff, 0 0 20px rgba(255,255,255,0.9), 0 0 50px rgba(255,255,255,0.5);
 }
 
-.main-logo:hover .ml-tick path {
-  stroke: #4ade80;
-  filter: drop-shadow(0 0 5px rgba(74,222,128,0.9));
+/* Tagline */
+.tagline {
+  position: relative; z-index: 2;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(12px, 1.6vw, 16px);
+  font-weight: 300;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-top: 10px;
+  cursor: default;
+  transition: color 0.3s, text-shadow 0.3s;
+  opacity: 0; transform: translateY(10px);
 }
 
-/* ── Subtitle ── */
+.tagline:hover { color:rgba(255,255,255,0.8); text-shadow:0 0 16px rgba(255,255,255,0.2); }
+.tagline.in { animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.45s forwards; }
+
+/* Subtitle */
 .subtitle-block {
-  position: relative;
-  z-index: 2;
+  position: relative; z-index: 2;
   max-width: 740px;
   text-align: center;
   margin-top: 52px;
   padding: 0 16px;
+  opacity: 0; transform: translateY(24px);
 }
+
+.subtitle-block.in { animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.3s forwards; }
 
 .subtitle-text {
   font-family: 'Space Grotesk', sans-serif;
@@ -394,94 +282,61 @@ html, body {
   font-weight: 300;
   color: rgba(255,255,255,0.75);
   line-height: 1.8;
-  letter-spacing: 0.2px;
   cursor: default;
   transition: color 0.35s, text-shadow 0.35s;
 }
 
 .subtitle-text:hover {
   color: rgba(255,255,255,1);
-  text-shadow:
-    0 0 18px rgba(255,255,255,0.22),
-    0 0 40px rgba(255,255,255,0.1);
+  text-shadow: 0 0 18px rgba(255,255,255,0.22), 0 0 40px rgba(255,255,255,0.1);
 }
 
-.subtitle-text .hl {
-  color: #4ade80;
-  font-weight: 500;
-  transition: text-shadow 0.35s;
-}
-
-.subtitle-text:hover .hl {
-  text-shadow: 0 0 14px rgba(74,222,128,0.6), 0 0 30px rgba(74,222,128,0.25);
-}
+.subtitle-text .hl { color:#4ade80; font-weight:500; transition:text-shadow 0.35s; }
+.subtitle-text:hover .hl { text-shadow:0 0 14px rgba(74,222,128,0.6); }
 
 .divider {
-  width: 48px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(34,197,94,0.5), transparent);
-  margin: 28px auto;
+  width:48px; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(34,197,94,0.5),transparent);
+  margin:28px auto;
 }
 
 .author {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(11px, 1.4vw, 14px);
-  font-weight: 400;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.3);
-  cursor: default;
-  transition: color 0.3s, text-shadow 0.3s;
+  font-family:'Inter',sans-serif;
+  font-size:clamp(11px,1.4vw,14px);
+  font-weight:400; letter-spacing:3px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.3);
+  cursor:default;
+  transition:color 0.3s, text-shadow 0.3s;
 }
 
-.author:hover {
-  color: rgba(255,255,255,0.65);
-  text-shadow: 0 0 16px rgba(255,255,255,0.18);
-}
+.author:hover { color:rgba(255,255,255,0.65); text-shadow:0 0 16px rgba(255,255,255,0.18); }
 
-/* Reveal animations */
-.main-logo, .subtitle-block {
-  opacity: 0;
-  transform: translateY(24px);
-}
+/* Reveal */
+.main-logo { opacity:0; transform:translateY(24px); }
+.main-logo.in { animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s forwards; }
 
-.main-logo.in {
-  animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
-}
-
-.subtitle-block.in {
-  animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
-}
-
-@keyframes riseIn {
-  to { opacity:1; transform:translateY(0); }
-}
+@keyframes riseIn { to { opacity:1; transform:translateY(0); } }
 
 /* Scroll hint */
 .scroll-hint {
-  position: absolute;
-  bottom: 28px; left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  opacity: 0;
-  animation: fadeH 1s ease 1.2s forwards;
+  position:absolute; bottom:28px; left:50%;
+  transform:translateX(-50%); z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  opacity:0; animation:fadeH 1s ease 1.2s forwards;
 }
 
 @keyframes fadeH { to { opacity:0.3; } }
 
 .scroll-hint span {
-  font-family:'Inter',sans-serif;
-  font-size:9px; letter-spacing:4px;
-  color:#22c55e; text-transform:uppercase;
+  font-family:'Inter',sans-serif; font-size:9px;
+  letter-spacing:4px; color:#22c55e; text-transform:uppercase;
 }
 
 .sh-line {
   width:1px; height:28px;
   background:linear-gradient(to bottom,rgba(34,197,94,0.8),transparent);
-  animation: shPulse 1.6s ease-in-out infinite;
+  animation:shPulse 1.6s ease-in-out infinite;
 }
 
 @keyframes shPulse {
@@ -489,85 +344,23 @@ html, body {
   50%      { transform:scaleY(0.5) translateY(6px); opacity:0.4; }
 }
 
-/* ── Section 2 (empty) ── */
-#s2 {
-  min-height: 100vh;
-  background: #020602;
-}
+#s2 { min-height:100vh; background:#020602; }
 </style>
 </head>
 <body>
 
 <div id="splash"></div>
 
-<!-- ═══ LOADER ═══ -->
+<!-- LOADER -->
 <div id="loader">
-  <div id="loader-bg"></div>
-  <div id="loader-blobs"></div>
-
-  <!-- Filling à SVG -->
-  <div id="loader-center">
-    <svg id="letter-svg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- Clip that rises from bottom -->
-        <clipPath id="rise">
-          <rect id="riseRect" x="-10" y="230" width="220" height="0"/>
-        </clipPath>
-        <!-- Glow filter -->
-        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="4" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-
-      <!-- Outline à (always visible) — dark stroke on white bg -->
-      <text
-        x="100" y="205"
-        text-anchor="middle"
-        font-family="Inter, sans-serif"
-        font-size="210"
-        font-weight="800"
-        fill="none"
-        stroke="rgba(34,197,94,0.35)"
-        stroke-width="1.5">à</text>
-
-      <!-- Filled à (revealed bottom→top) -->
-      <g clip-path="url(#rise)" filter="url(#glow)">
-        <text
-          x="100" y="205"
-          text-anchor="middle"
-          font-family="Inter, sans-serif"
-          font-size="210"
-          font-weight="800"
-          fill="#22c55e">à</text>
-      </g>
-    </svg>
-
-    <div id="pct-label">0%</div>
-  </div>
-
-  <!-- Word assembly overlay -->
-  <div id="word-assembly">
-    <div class="word-logo">
-      <span class="wl-a">
-        <svg class="wl-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
-          <path id="wl-tick-path" d="M4 12 L12 20 L32 4"/>
-        </svg>
-        <span>a</span>
-      </span>
-      <span class="wl-bank">
-        <span class="wl-char">b</span><span class="wl-char">a</span><span class="wl-char">n</span><span class="wl-char">k</span>
-      </span>
-    </div>
-  </div>
+  <div id="paint"></div>
+  <div id="pct-label">0%</div>
 </div>
 
-<!-- ═══ MAIN ═══ -->
+<!-- MAIN -->
 <div id="main">
   <section id="s1">
-
     <div class="main-logo" id="main-logo">
-      <!-- White glow spot behind the whole logo -->
       <div class="logo-glow"></div>
       <span class="ml-a-wrap">
         <svg class="ml-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
@@ -595,143 +388,126 @@ html, body {
       <div class="sh-line"></div>
     </div>
   </section>
-
   <section id="s2"></section>
 </div>
 
 <script>
 (function(){
-  // ── constants ──
-  const STEPS    = 200;
-  const INTERVAL = 5000 / STEPS; // 5s total
+  const paintEl  = document.getElementById('paint');
+  const pctLabel = document.getElementById('pct-label');
+  const splash   = document.getElementById('splash');
+  const mainEl   = document.getElementById('main');
+  const mainLogo = document.getElementById('main-logo');
+  const subBlock = document.getElementById('sub-block');
+  const taglineEl= document.getElementById('tagline');
+  const loaderEl = document.getElementById('loader');
 
-  // ── elements ──
-  const riseRect   = document.getElementById('riseRect');
-  const pctLabel   = document.getElementById('pct-label');
-  const blobsEl    = document.getElementById('loader-blobs');
-  const loaderCtr  = document.getElementById('loader-center');
-  const wordEl     = document.getElementById('word-assembly');
-  const wlTickPath = document.getElementById('wl-tick-path');
-  const splash     = document.getElementById('splash');
-  const mainEl     = document.getElementById('main');
-  const mainLogo   = document.getElementById('main-logo');
-  const subBlock   = document.getElementById('sub-block');
-  const loaderEl   = document.getElementById('loader');
-  const taglineEl  = document.getElementById('tagline');
-
-  // hide word-logo before animation
-  const wlLogo = wordEl.querySelector('.word-logo');
-  wlLogo.style.opacity = '0';
-
-  let step = 0, lastMilestone = -1;
+  const COLORS = [
+    '#000e03','#001408','#001a06','#000a02',
+    '#002010','#001005','#001808','#000802',
+    '#002508','#001204','#000f04','#001a0a',
+  ];
 
   function rnd(a,b){ return Math.random()*(b-a)+a; }
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
-  const BLOB_COLORS = [
-    '#000a02','#001205','#001a06','#000d03',
-    '#001508','#002008','#000800','#001003',
-    '#002510','#000500','#001a08','#000e04',
-  ];
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const TOTAL = 5000; // ms
 
-  // Grid-based coverage: divide screen into cells, fill each cell
-  function spawnBlobs(count){
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const cx = vw/2, cy = vh/2;
-    const safeR = Math.min(vw,vh)*0.2; // protect the à letter only
+  // ── Build paint streams ──
+  // We pre-build all streams with CSS animations staggered over 5s
+  // So browser handles it natively — zero JS frame-by-frame = no freeze
 
-    for(let i=0;i<count;i++){
-      let x,y,t=0;
-      do { x=rnd(-40,vw+40); y=rnd(-40,vh+40); t++; }
-      while(t<30 && Math.hypot(x-cx,y-cy)<safeR);
+  const STREAM_COUNT = 22;
+  const streams = [];
 
-      // Large overlapping blobs for full coverage
-      const s = rnd(120, 320);
-      const c = pick(BLOB_COLORS);
-      const r = rnd(-90,90)+'deg';
-      const b = document.createElement('div');
-      b.className = 'blob';
-      b.style.cssText = `
-        left:${x - s*0.2}px;top:${y - s*0.2}px;
-        width:${s}px;height:${s*rnd(0.6,1.4)}px;
-        background:${c};--r:${r};
-        border-radius:${rnd(30,65)}% ${rnd(35,65)}% ${rnd(30,70)}% ${rnd(35,60)}%/
-                      ${rnd(35,65)}% ${rnd(30,60)}% ${rnd(40,70)}% ${rnd(30,65)}%;
-        animation-delay:${rnd(0,0.08)}s;
-      `;
-      blobsEl.appendChild(b);
-    }
+  for(let i = 0; i < STREAM_COUNT; i++){
+    const el = document.createElement('div');
+    el.className = 'stream';
+
+    const x     = rnd(-30, vw + 30);
+    const w     = rnd(60, vw * 0.22);
+    const dur   = rnd(1.8, 3.5);   // how long stream takes to fall
+    const delay = rnd(0, 3.2);     // stagger start across 5s
+
+    el.style.cssText = `
+      left: ${x - w/2}px;
+      --w: ${w}px;
+      --dur: ${dur}s;
+      --delay: ${delay}s;
+      background: ${pick(COLORS)};
+    `;
+    paintEl.appendChild(el);
+    streams.push({ delay, dur, x, w });
   }
 
-  // Fill corners and edges first to guarantee full coverage
-  function spawnEdgeBlobs(){
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const corners = [
-      [-40,-40],[vw*0.5,-40],[vw+40,-40],
-      [-40,vh*0.5],[vw+40,vh*0.5],
-      [-40,vh+40],[vw*0.5,vh+40],[vw+40,vh+40],
-      [vw*0.25,-40],[vw*0.75,-40],
-      [vw*0.25,vh+40],[vw*0.75,vh+40],
-    ];
-    corners.forEach(([x,y])=>{
-      const s=rnd(180,350), c=pick(BLOB_COLORS), r=rnd(-90,90)+'deg';
-      const b=document.createElement('div');
-      b.className='blob';
-      b.style.cssText=`left:${x}px;top:${y}px;width:${s}px;height:${s*rnd(0.7,1.3)}px;background:${c};--r:${r};border-radius:${rnd(30,65)}% ${rnd(35,65)}% ${rnd(30,70)}% ${rnd(35,60)}%/${rnd(35,65)}% ${rnd(30,60)}% ${rnd(40,70)}% ${rnd(30,65)}%;animation-delay:${rnd(0,0.05)}s;`;
-      blobsEl.appendChild(b);
-    });
+  // ── Bottom pools (paint spreading at floor) ──
+  const POOL_COUNT = 14;
+  for(let i = 0; i < POOL_COUNT; i++){
+    const el = document.createElement('div');
+    el.className = 'pool';
+    const pw    = rnd(80, vw * 0.3);
+    const px    = rnd(-40, vw + 40);
+    const pdelay= rnd(1.5, 4.0);
+    const pdur  = rnd(1.0, 2.5);
+
+    el.style.cssText = `
+      left: ${px - pw/2}px;
+      --pw: ${pw}px;
+      --pdelay: ${pdelay}s;
+      --pdur: ${pdur}s;
+      background: ${pick(COLORS)};
+    `;
+    paintEl.appendChild(el);
   }
 
-  // à fills to 100% when overall progress = 65%
-  function setFill(pct){
-    const filled = 240 * Math.min(pct/65, 1);
-    riseRect.setAttribute('y', 230 - filled);
-    riseRect.setAttribute('height', filled + 10);
+  // ── Splash drips flying off streams ──
+  for(let i = 0; i < 30; i++){
+    const el = document.createElement('div');
+    el.className = 'splash-drip';
+    const size   = rnd(6, 28);
+    const sx     = rnd(0, vw);
+    const sy     = rnd(vh*0.3, vh);
+    const delay  = rnd(1.2, 4.5);
+    const dx     = rnd(-120, 120);
+    const dy     = rnd(-80, 60);
+    const ds     = rnd(0.3, 1.2);
+
+    el.style.cssText = `
+      left: ${sx}px; top: ${sy}px;
+      width: ${size}px; height: ${size}px;
+      background: ${pick(COLORS)};
+      border-radius: 50%;
+      --sd: ${rnd(0.5,1.2)}s;
+      --sdelay: ${delay}s;
+      --dx: ${dx}px;
+      --dy: ${dy}px;
+      --ds: ${ds};
+    `;
+    paintEl.appendChild(el);
   }
 
-  // Immediately cover edges/corners
-  spawnEdgeBlobs();
-  spawnBlobs(8);
+  // ── % counter purely via setInterval ──
+  const STEPS    = 200;
+  const INTERVAL = TOTAL / STEPS;
+  let   step     = 0;
 
   const timer = setInterval(()=>{
     step++;
     const pct = Math.min(Math.round((step/STEPS)*100), 100);
-    pctLabel.textContent = pct+'%';
-    setFill(pct);
-    const m = Math.floor(pct/5);
-    if(m > lastMilestone){
-      lastMilestone = m;
-      // More blobs each wave, ensure full coverage
-      spawnBlobs(6 + Math.floor(pct/10));
+    pctLabel.textContent = pct + '%';
+    if(pct >= 100){
+      clearInterval(timer);
+      // Small pause so last streams finish falling visually, then splash
+      setTimeout(doSplash, 300);
     }
-    if(pct >= 100){ clearInterval(timer); onComplete(); }
   }, INTERVAL);
 
-  function onComplete(){
-    setFill(100);
-    pctLabel.textContent = '100%';
-
-    // Instantly hide à, instantly show word with bounce — no delay
-    loaderCtr.style.display = 'none';
-
-    wordEl.style.opacity = '1';
-    if(wlTickPath){
-      const len = wlTickPath.getTotalLength() || 60;
-      wlTickPath.style.strokeDasharray  = len;
-      wlTickPath.style.strokeDashoffset = 0;
-    }
-    wlLogo.style.transform  = 'scale(0.5)';
-    wlLogo.style.transition = 'transform 0.5s cubic-bezier(0.34,1.6,0.64,1), opacity 0.15s ease';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      wlLogo.style.transform = 'scale(1)';
-      wlLogo.style.opacity   = '1';
-    }));
-
-    // Splash after word settles
-    setTimeout(doSplash, 600);
-  }
-
   function doSplash(){
+    // Hide % label
+    pctLabel.style.display = 'none';
+    // Reveal main and expand dark splash circle
     mainEl.classList.add('on');
     splash.classList.add('go');
     splash.addEventListener('animationend', ()=>{
@@ -740,7 +516,7 @@ html, body {
       mainLogo.classList.add('in');
       if(taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
-    }, {once:true});
+    }, { once: true });
   }
 
 })();
