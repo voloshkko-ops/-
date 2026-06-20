@@ -23,7 +23,7 @@ html, body {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #000;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -31,22 +31,8 @@ html, body {
   overflow: hidden;
 }
 
-/* Green ray background — same vibe as reference photo */
 #loader-bg {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 80% at 0% 100%, rgba(0,90,20,0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 70% at 100% 0%,  rgba(0,70,15,0.45) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 60% at 100% 100%,rgba(0,50,10,0.3) 0%, transparent 50%),
-    radial-gradient(ellipse 30% 50% at 0% 0%,    rgba(0,40,8,0.25)  0%, transparent 50%),
-    #000;
-  animation: rayPulse 6s ease-in-out infinite alternate;
-}
-
-@keyframes rayPulse {
-  0%   { opacity: 0.85; }
-  100% { opacity: 1; }
+  display: none;
 }
 
 /* Ink blobs — behind center, dark green */
@@ -105,7 +91,7 @@ html, body {
   font-size: clamp(13px, 2vw, 16px);
   font-weight: 500;
   letter-spacing: 4px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(0,0,0,0.4);
 }
 
 /* ── Word assembly after 100% ── */
@@ -533,7 +519,7 @@ html, body {
         </filter>
       </defs>
 
-      <!-- Outline à (always visible) -->
+      <!-- Outline à (always visible) — dark stroke on white bg -->
       <text
         x="100" y="205"
         text-anchor="middle"
@@ -541,7 +527,7 @@ html, body {
         font-size="210"
         font-weight="800"
         fill="none"
-        stroke="rgba(34,197,94,0.18)"
+        stroke="rgba(34,197,94,0.35)"
         stroke-width="1.5">à</text>
 
       <!-- Filled à (revealed bottom→top) -->
@@ -630,95 +616,77 @@ html, body {
   const loaderEl  = document.getElementById('loader');
 
   let step = 0, lastMilestone = -1;
+  // word-logo starts invisible for pop animation
+  const wlLogo = document.querySelector('.word-logo');
+  if(wlLogo){ wlLogo.style.opacity='0'; }
 
   function rnd(a,b){ return Math.random()*(b-a)+a; }
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
+  // Very dark colors only — won't blend with bright green à
   const BLOB_COLORS = [
-    '#001a05','#002a08','#003810','#004d14',
-    '#001205','#002210','#003008','#001a03',
-    '#004020','#000d02','#002d0a','#001508',
-    // bright green accents
-    '#0a6622','#0d7a28','#117a30','#0f6b24',
+    '#000a02','#001205','#001a06','#000d03',
+    '#001508','#002008','#000800','#001003',
+    '#002510','#000500','#001a08','#000e04',
   ];
 
   function spawnBlobs(count){
     const vw = window.innerWidth, vh = window.innerHeight;
     const cx = vw/2, cy = vh/2;
-    const safeR = Math.min(vw,vh)*0.22; // keep center clear
+    const safeR = Math.min(vw,vh)*0.28;
 
     for(let i=0;i<count;i++){
-      // random position, avoid center circle
       let x,y,tries=0;
       do {
-        x = rnd(0,vw); y = rnd(0,vh);
+        x = rnd(-20, vw+20);
+        y = rnd(-20, vh+20);
         tries++;
-      } while(tries<20 && Math.hypot(x-cx,y-cy)<safeR);
+      } while(tries<25 && Math.hypot(x-cx,y-cy)<safeR);
 
-      const size = rnd(30,120);
-      const color= pick(BLOB_COLORS);
-      const rot  = rnd(-70,70)+'deg';
+      const size  = rnd(60,200);
+      const color = pick(BLOB_COLORS);
+      const rot   = rnd(-80,80)+'deg';
 
       const b = document.createElement('div');
       b.className='blob';
       b.style.cssText=`
         left:${x}px;top:${y}px;
-        width:${size}px;height:${size*rnd(0.55,1.15)}px;
+        width:${size}px;height:${size*rnd(0.5,1.2)}px;
         background:${color};
         --r:${rot};
         border-radius:${rnd(30,65)}% ${rnd(35,65)}% ${rnd(30,70)}% ${rnd(35,60)}% /
                       ${rnd(35,65)}% ${rnd(30,60)}% ${rnd(40,70)}% ${rnd(30,65)}%;
-        animation-delay:${rnd(0,0.15)}s;
+        animation-delay:${rnd(0,0.1)}s;
       `;
       blobsEl.appendChild(b);
     }
   }
 
-  // Animate the SVG fill rect (rise from bottom)
-  function setFill(pct){
+  // à fills fast — reaches 100% at ~65% of total duration
+  function setFill(rawPct){
+    const pct = Math.min(rawPct / 0.65, 100); // fills by the time overall=65%
     const totalH = 240;
     const filled = totalH * (pct/100);
-    const y = 230 - filled;
-    riseRect.setAttribute('y', y);
+    riseRect.setAttribute('y',  230 - filled);
     riseRect.setAttribute('height', filled + 10);
   }
 
-  // Tick animation for word assembly
-  function animateTick(cb){
-    if(!wlTickPath) return cb&&cb();
-    const len = wlTickPath.getTotalLength();
-    wlTickPath.style.strokeDasharray  = len;
-    wlTickPath.style.strokeDashoffset = len;
-    wlTickPath.style.transition='stroke-dashoffset 0.5s ease';
-    setTimeout(()=>{
-      wlTickPath.style.strokeDashoffset=0;
-      setTimeout(cb,500);
-    },50);
-  }
+  // Main timer — total 5s, blobs run all 5s, à done at ~3.2s
+  const TOTAL_DURATION = 5000;
+  const STEPS          = 200;
+  const INTERVAL       = TOTAL_DURATION / STEPS;
 
-  function animateChars(cb){
-    const chars = document.querySelectorAll('.wl-char');
-    chars.forEach((c,i)=>{
-      setTimeout(()=>{
-        c.style.transition='opacity 0.2s, transform 0.3s cubic-bezier(0.22,1,0.36,1)';
-        c.style.opacity=1;
-        c.style.transform='translateY(0)';
-      }, i*60);
-    });
-    setTimeout(cb, chars.length*60+300);
-  }
-
-  // Main timer
   const timer = setInterval(()=>{
     step++;
     const pct = Math.min(Math.round((step/STEPS)*100), 100);
     pctLabel.textContent = pct+'%';
     setFill(pct);
 
-    const m = Math.floor(pct/7);
+    // Blobs spread throughout entire duration
+    const m = Math.floor(pct/6);
     if(m>lastMilestone){
       lastMilestone=m;
-      spawnBlobs(3 + Math.floor(pct/18));
+      spawnBlobs(4 + Math.floor(pct/14));
     }
 
     if(pct>=100){
@@ -728,26 +696,35 @@ html, body {
   }, INTERVAL);
 
   function onComplete(){
-    // NO more blobs after 100% — only what's already on screen
     pctLabel.textContent='100%';
     setFill(100);
 
-    // Show word assembly
+    // Flash loader center out, pop logo instantly, then splash
     setTimeout(()=>{
+      document.getElementById('loader-center').style.transition='opacity 0.2s';
       document.getElementById('loader-center').style.opacity='0';
-      document.getElementById('loader-center').style.transition='opacity 0.3s';
 
-      wordEl.style.transition='opacity 0.3s';
+      // Show word-assembly with a pop (scale bounce)
       wordEl.style.opacity='1';
       wordEl.style.pointerEvents='auto';
+      const wl = wordEl.querySelector('.word-logo');
+      wl.style.transform='scale(0.6)';
+      wl.style.opacity='0';
+      wl.style.transition='transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease';
+      // Draw tick instantly
+      if(wlTickPath){
+        const len = wlTickPath.getTotalLength()||60;
+        wlTickPath.style.strokeDasharray  = len;
+        wlTickPath.style.strokeDashoffset = 0;
+      }
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        wl.style.transform='scale(1)';
+        wl.style.opacity='1';
+      }));
 
-      animateTick(()=>{
-        animateChars(()=>{
-          // Pause, then splash out
-          setTimeout(doSplash, 600);
-        });
-      });
-    }, 300);
+      // Short pause, then splash
+      setTimeout(doSplash, 700);
+    }, 150);
   }
 
   function doSplash(){
