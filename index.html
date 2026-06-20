@@ -207,7 +207,137 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .sh-line{width:1px;height:28px;background:linear-gradient(to bottom,rgba(34,197,94,.8),transparent);animation:shPulse 1.6s ease-in-out infinite;}
 @keyframes shPulse{0%,100%{transform:scaleY(1);opacity:1;}50%{transform:scaleY(.5) translateY(6px);opacity:.4;}}
 
-#s2{min-height:100vh;background:#020602;}
+/* ── SECTION 2: RATING ── */
+#s2 {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 65% 85% at 98% 2%,  rgba(0,100,22,0.5)  0%, transparent 52%),
+    radial-gradient(ellipse 55% 75% at 2%  98%, rgba(0,80,18,0.4)   0%, transparent 52%),
+    #020602;
+  padding: 80px 24px 80px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.rating-title {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(18px, 3vw, 32px);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 10px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.rating-title.vis { opacity: 1; transform: translateY(0); }
+
+.rating-subtitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(11px, 1.4vw, 14px);
+  font-weight: 300; letter-spacing: 4px;
+  color: rgba(255,255,255,.3);
+  text-transform: uppercase; margin-bottom: 36px;
+  opacity: 0; transition: opacity .6s ease .2s;
+}
+.rating-subtitle.vis { opacity: 1; }
+
+/* Filter tabs */
+.rating-filters {
+  display: flex; gap: 10px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center;
+  opacity: 0; transition: opacity .5s ease .3s;
+}
+.rating-filters.vis { opacity: 1; }
+
+.rf-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(10px,1.2vw,12px);
+  font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; border: none;
+  padding: 8px 20px; border-radius: 40px; cursor: pointer;
+  transition: transform .2s, box-shadow .2s, opacity .2s;
+  outline: none;
+}
+.rf-btn:hover { transform: translateY(-2px); }
+.rf-btn.active { box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+.rf-btn.rf-all  { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); }
+.rf-btn.rf-all.active  { background: rgba(255,255,255,.15); color: #fff; }
+.rf-btn.rf-high { background: rgba(34,197,94,.15); color: #22c55e; }
+.rf-btn.rf-high.active { background: rgba(34,197,94,.28); }
+.rf-btn.rf-mid  { background: rgba(234,179,8,.12); color: #eab308; }
+.rf-btn.rf-mid.active  { background: rgba(234,179,8,.25); }
+.rf-btn.rf-low  { background: rgba(239,68,68,.12); color: #ef4444; }
+.rf-btn.rf-low.active  { background: rgba(239,68,68,.25); }
+
+/* Chart wrapper */
+.rating-chart {
+  width: 100%; max-width: 860px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.bar-row {
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0; transform: translateX(-18px);
+  transition: opacity .35s ease, transform .35s ease, filter .25s;
+  cursor: pointer;
+}
+.bar-row.vis { opacity: 1; transform: translateX(0); }
+.bar-row.dimmed { opacity: .18; filter: grayscale(.6); }
+.bar-row:hover:not(.dimmed) { filter: brightness(1.15); }
+
+.bar-name {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(10px, 1.2vw, 12px);
+  font-weight: 500; color: rgba(255,255,255,.75);
+  width: 200px; min-width: 130px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex-shrink: 0; text-align: right;
+}
+
+.bar-track {
+  flex: 1; height: 22px;
+  background: rgba(255,255,255,.05);
+  border-radius: 11px; overflow: hidden; position: relative;
+}
+.bar-fill {
+  height: 100%; border-radius: 11px;
+  width: 0%; transition: width 1s cubic-bezier(.22,1,.36,1);
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute; top: 3px; left: 6px; right: 20%; height: 6px;
+  background: rgba(255,255,255,.18); border-radius: 3px;
+}
+
+.bar-fill.high { background: linear-gradient(90deg,#16a34a,#22c55e); box-shadow: 0 0 10px rgba(34,197,94,.3); }
+.bar-fill.mid  { background: linear-gradient(90deg,#a16207,#eab308); box-shadow: 0 0 10px rgba(234,179,8,.25); }
+.bar-fill.low  { background: linear-gradient(90deg,#b91c1c,#ef4444); box-shadow: 0 0 10px rgba(239,68,68,.25); }
+
+.bar-val {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(10px, 1.2vw, 12px);
+  font-weight: 700; width: 52px; text-align: left; flex-shrink: 0;
+}
+.bar-val.high { color: #22c55e; }
+.bar-val.mid  { color: #eab308; }
+.bar-val.low  { color: #ef4444; }
+
+/* Legend */
+.rating-legend {
+  display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap; justify-content: center;
+  opacity: 0; transition: opacity .5s ease .5s;
+}
+.rating-legend.vis { opacity: 1; }
+.rl-item {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Inter', sans-serif; font-size: 11px;
+  letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.45);
+}
+.rl-dot { width: 10px; height: 10px; border-radius: 50%; }
+.rl-dot.high { background: #22c55e; }
+.rl-dot.mid  { background: #eab308; }
+.rl-dot.low  { background: #ef4444; }
 </style>
 </head>
 <body>
@@ -251,7 +381,25 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     </div>
     <div class="scroll-hint"><span>scroll</span><div class="sh-line"></div></div>
   </section>
-  <section id="s2"></section>
+  <section id="s2">
+    <h2 class="rating-title" id="rt">Загальний рейтинг співробітників</h2>
+    <p class="rating-subtitle" id="rs">SL ASA · цільовий показник 65%</p>
+
+    <div class="rating-filters" id="rf">
+      <button class="rf-btn rf-all active"  data-f="all">Всі</button>
+      <button class="rf-btn rf-high"        data-f="high">Найкращий показник</button>
+      <button class="rf-btn rf-mid"         data-f="mid">Середній показник</button>
+      <button class="rf-btn rf-low"         data-f="low">Низький показник</button>
+    </div>
+
+    <div class="rating-chart" id="rchart"></div>
+
+    <div class="rating-legend" id="rleg">
+      <div class="rl-item"><div class="rl-dot high"></div>≥ 85% — найкращий</div>
+      <div class="rl-item"><div class="rl-dot mid"></div>65–84% — середній</div>
+      <div class="rl-item"><div class="rl-dot low"></div>&lt; 65% — низький</div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -296,6 +444,112 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       splash.style.display = 'none';
     }, { once: true });
   }
+})();
+
+/* ── RATING CHART ── */
+(function(){
+  const DATA = [
+    {n:'Головко Альона Володимирівна',       v:91.24},
+    {n:'Литвинова Анна Олександрівна',        v:59.20},
+    {n:'Бутнарь Віолета Миколаївна',          v:84.96},
+    {n:'Рикус Галина Миколаївна',             v:89.86},
+    {n:'Єнс Ірина Валеріївна',               v:84.55},
+    {n:'Михайлець Марина Олександрівна',      v:95.09},
+    {n:'Сапленко Володимир Артурович',        v:66.47},
+    {n:'Асмолков Святослав Олегович',         v:92.31},
+    {n:'Семенюк Вікторія Леонідівна',         v:99.49},
+    {n:'Табачун Анастасія Юріївна',           v:97.63},
+    {n:'Карпенко Яна Юріївна',               v:84.21},
+    {n:'Мірошниченко Тетяна Сергіївна',       v:92.90},
+    {n:'Діхан Микола Ростиславович',          v:64.83},
+    {n:'Петрова Валерія Андріївна',           v:89.78},
+    {n:'Саєнко Карина Андріївна',             v:100.00},
+    {n:'Шокарева Вікторія Віталіївна',        v:95.89},
+    {n:'Христієвська Єлизавета Віталіївна',   v:79.50},
+    {n:'Автомчук Софія Володимирівна',        v:66.36},
+    {n:'Назаренко Ростислав Дмитрович',       v:92.78},
+    {n:'Приймаченко Анастасія Андріївна',     v:79.87},
+    {n:'Козарчук Поліна Андріївна',           v:96.65},
+    {n:'Діденко Максим Сергійович',           v:57.39},
+    {n:'Семенець Микола Миколайович',         v:80.18},
+    {n:'Горбуленко Ксенія Іллівна',           v:94.10},
+    {n:'Соколова Катерина Романівна',         v:71.56},
+    {n:'Андрусишин Марія Романівна',          v:83.48},
+    {n:'Зубчевський Річард В\'ячеславович',   v:69.85},
+    {n:'Тищеков Вероніка Олексіївна',         v:95.58},
+    {n:'Сирота Георгій Андрійович',           v:55.23},
+    {n:'Таранець Богдан Вікторович',          v:85.62},
+    {n:'Більгановська Катерина Валеріївна',   v:73.33},
+    {n:'Костик Вікторія Віталіївна',          v:90.75},
+    {n:'Конюхова Ксенія Валеріївна',          v:90.53},
+    {n:'Діденко Вікторія Вікторівна',         v:96.83},
+    {n:'Воложина Юлія Валентинівна',          v:86.22},
+    {n:'Алексєєва-Косик Данія Антонівна',     v:71.63},
+    {n:'Галина Валеріївна',                   v:84.11},
+    {n:'Сокол Анастасія Сергіївна',           v:84.25},
+    {n:'Мосейчук Володимир Михайлович',       v:81.91},
+    {n:'Шанюк Вікторія Станіславівна',        v:41.72},
+  ].sort((a,b) => b.v - a.v);
+
+  function tier(v){ return v >= 85 ? 'high' : v >= 65 ? 'mid' : 'low'; }
+
+  const chart = document.getElementById('rchart');
+  const rows  = [];
+
+  DATA.forEach((emp, i) => {
+    const t = tier(emp.v);
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.dataset.tier = t;
+    row.innerHTML = `
+      <div class="bar-name" title="${emp.n}">${emp.n}</div>
+      <div class="bar-track">
+        <div class="bar-fill ${t}" style="width:0%" data-pct="${emp.v}"></div>
+      </div>
+      <div class="bar-val ${t}">${emp.v.toFixed(1)}%</div>`;
+    chart.appendChild(row);
+    rows.push(row);
+  });
+
+  // Filter buttons
+  let activeFilter = 'all';
+  document.querySelectorAll('.rf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.rf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.f;
+      rows.forEach(r => {
+        const match = activeFilter === 'all' || r.dataset.tier === activeFilter;
+        r.classList.toggle('dimmed', !match);
+      });
+    });
+  });
+
+  // Intersection observer — animate bars in when s2 scrolls into view
+  const targets = [
+    document.getElementById('rt'),
+    document.getElementById('rs'),
+    document.getElementById('rf'),
+    document.getElementById('rleg'),
+  ];
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(!e.isIntersecting) return;
+      targets.forEach(t => t && t.classList.add('vis'));
+      // Stagger bars
+      rows.forEach((r, i) => {
+        setTimeout(() => {
+          r.classList.add('vis');
+          const fill = r.querySelector('.bar-fill');
+          setTimeout(() => { fill.style.width = fill.dataset.pct + '%'; }, 40);
+        }, i * 40);
+      });
+      obs.disconnect();
+    });
+  }, { threshold: 0.08 });
+
+  obs.observe(document.getElementById('s2'));
 })();
 </script>
 </body>
