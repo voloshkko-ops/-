@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>àbank24</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --green: #1a7a3c;
+    --green-bright: #22c55e;
+    --black: #050a05;
+    --dark-green: #0a1a0f;
+    --darker: #040d07;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ─── LOADER ─── */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #loader-center {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #percent-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  #percent {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(64px, 12vw, 120px);
+    font-weight: 600;
+    color: #050a05;
+    letter-spacing: -2px;
+    line-height: 1;
+    mix-blend-mode: multiply;
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s;
+  }
+
+  #loader-bar {
+    width: 200px;
+    height: 2px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+
+  #loader-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #1a7a3c, #22c55e);
+    border-radius: 2px;
+    transition: width 0.05s linear;
+  }
+
+  /* Paint blobs container */
+  #blobs {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 40% 60% 70% 30% / 50% 40% 60% 50%;
+    opacity: 0;
+    animation: blobIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    filter: blur(0px);
+  }
+
+  @keyframes blobIn {
+    0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+    60%  { opacity: 1; transform: scale(1.1) rotate(var(--rot)); }
+    100% { opacity: 1; transform: scale(1) rotate(var(--rot)); }
+  }
+
+  /* Drip effect */
+  .drip {
+    position: absolute;
+    width: 6px;
+    border-radius: 3px 3px 50% 50%;
+    opacity: 0;
+    animation: dripDown 1.2s ease-in forwards;
+    transform-origin: top center;
+  }
+
+  @keyframes dripDown {
+    0%   { opacity: 0; height: 0px; }
+    20%  { opacity: 1; }
+    100% { opacity: 1; height: var(--drip-h); }
+  }
+
+  /* ─── SPLASH TRANSITION ─── */
+  #splash-cover {
+    position: fixed;
+    inset: 0;
+    background: #050a05;
+    z-index: 8888;
+    pointer-events: none;
+    opacity: 0;
+    clip-path: circle(0% at 50% 50%);
+    transition: none;
+  }
+
+  #splash-cover.expanding {
+    animation: splashExpand 0.9s cubic-bezier(0.55, 0, 0.1, 1) forwards;
+  }
+
+  @keyframes splashExpand {
+    0%   { opacity: 1; clip-path: circle(0% at 50% 50%); }
+    100% { opacity: 1; clip-path: circle(150% at 50% 50%); }
+  }
+
+  /* ─── MAIN PAGE ─── */
+  #main {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    background: var(--darker);
+  }
+
+  #main.visible {
+    opacity: 1;
+  }
+
+  /* Section 1 */
+  #section-1 {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 60px 24px;
+    background: radial-gradient(ellipse 80% 70% at 50% 50%, #0d2818 0%, #040d07 60%, #020806 100%);
+    overflow: hidden;
+  }
+
+  /* Subtle grid texture */
+  #section-1::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* Corner glow */
+  #section-1::after {
+    content: '';
+    position: absolute;
+    top: -200px; left: -200px; right: -200px; bottom: -200px;
+    background: radial-gradient(ellipse 40% 40% at 50% 50%, rgba(26,122,60,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.05); }
+  }
+
+  /* ─── LOGO ─── */
+  .logo-wrap {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(72px, 14vw, 180px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -3px;
+    /* White glow to separate from dark bg */
+    filter: drop-shadow(0 0 30px rgba(255,255,255,0.18)) drop-shadow(0 0 80px rgba(255,255,255,0.08));
+    user-select: none;
+  }
+
+  .logo-a {
+    color: #22c55e;
+    display: inline-block;
+    position: relative;
+    /* Extra green glow for à */
+    text-shadow:
+      0 0 20px rgba(34,197,94,0.6),
+      0 0 60px rgba(34,197,94,0.3),
+      0 0 120px rgba(34,197,94,0.15);
+  }
+
+  /* Animated grave accent */
+  .logo-a .accent {
+    display: inline-block;
+    transform-origin: center bottom;
+    animation: accentDance 3s ease-in-out infinite;
+  }
+
+  @keyframes accentDance {
+    0%   { transform: rotate(0deg) translateY(0px) scale(1); }
+    15%  { transform: rotate(-8deg) translateY(-4px) scale(1.15); }
+    30%  { transform: rotate(5deg) translateY(-2px) scale(0.95); }
+    45%  { transform: rotate(-4deg) translateY(-6px) scale(1.1); }
+    60%  { transform: rotate(6deg) translateY(-1px) scale(1.05); }
+    75%  { transform: rotate(-3deg) translateY(-3px) scale(1.08); }
+    90%  { transform: rotate(2deg) translateY(-1px) scale(1.02); }
+    100% { transform: rotate(0deg) translateY(0px) scale(1); }
+  }
+
+  .logo-bank {
+    color: #050a05;
+    display: inline-block;
+    /* Make black visible on dark bg via strong white outline glow */
+    text-shadow:
+      0 0 2px #fff,
+      0 0 8px rgba(255,255,255,0.9),
+      0 0 20px rgba(255,255,255,0.5),
+      0 0 40px rgba(255,255,255,0.2);
+  }
+
+  /* ─── SUBTITLE TEXT ─── */
+  .subtitle-wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 780px;
+    text-align: center;
+    margin-top: 56px;
+    padding: 0 16px;
+  }
+
+  .subtitle-main {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(14px, 2vw, 18px);
+    font-weight: 300;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.75;
+    letter-spacing: 0.3px;
+  }
+
+  .subtitle-main .highlight {
+    color: #22c55e;
+    font-weight: 500;
+  }
+
+  .subtitle-author {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(14px, 1.8vw, 17px);
+    font-weight: 400;
+    color: rgba(255,255,255,0.4);
+    margin-top: 28px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+
+  /* Divider line */
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34,197,94,0.6), transparent);
+    margin: 28px auto 0;
+  }
+
+  /* Scroll hint */
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeInHint 1s ease 1s forwards;
+  }
+
+  @keyframes fadeInHint {
+    to { opacity: 0.35; }
+  }
+
+  .scroll-hint span {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #22c55e;
+    text-transform: uppercase;
+  }
+
+  .scroll-arrow {
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, rgba(34,197,94,0.8), transparent);
+    animation: scrollPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { transform: scaleY(1) translateY(0); opacity: 1; }
+    50%       { transform: scaleY(0.6) translateY(6px); opacity: 0.5; }
+  }
+
+  /* ─── SECTION 2 (empty) ─── */
+  #section-2 {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #020806 0%, #040d07 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ─── ENTRANCE ANIMATION for main content ─── */
+  .logo-wrap, .subtitle-wrap {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .logo-wrap.revealed {
+    animation: slideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+  }
+
+  .subtitle-wrap.revealed {
+    animation: slideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .logo-text { letter-spacing: -1px; }
+    .subtitle-main { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SPLASH COVER (dark circle that expands) -->
+<div id="splash-cover"></div>
+
+<!-- ═══ LOADER ═══ -->
+<div id="loader">
+  <div id="blobs"></div>
+  <div id="loader-center">
+    <div id="percent-wrap">
+      <span id="percent">0%</span>
+    </div>
+    <div id="loader-bar"><div id="loader-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- ═══ MAIN PAGE (hidden until load complete) ═══ -->
+<div id="main">
+
+  <!-- Section 1 -->
+  <section id="section-1">
+    <div class="logo-wrap" id="logo-wrap">
+      <div class="logo-text">
+        <span class="logo-a"><span class="accent">`</span>a</span><span class="logo-bank">bank24</span>
+      </div>
+    </div>
+
+    <div class="subtitle-wrap" id="subtitle-wrap">
+      <p class="subtitle-main">
+        Шукаємо тих, хто <span class="highlight">«поза зоною комфорту»</span>:<br>
+        Потрібно прорахувати <span class="highlight">% SL ASA</span> для всієї команди за період.
+        Фінальна мета&nbsp;— сформувати список <span class="highlight">(ПІБ&nbsp;+&nbsp;LDAP)</span> операторів,
+        які не дотягнули до таргету в&nbsp;<span class="highlight">65%</span>.
+      </p>
+      <div class="divider"></div>
+      <p class="subtitle-author">Підготувала Волошко Ульяна</p>
+    </div>
+
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- Section 2 (empty) -->
+  <section id="section-2"></section>
+
+</div>
+
+<script>
+(function () {
+  const loader      = document.getElementById('loader');
+  const blobsEl     = document.getElementById('blobs');
+  const percentEl   = document.getElementById('percent');
+  const barFill     = document.getElementById('loader-bar-fill');
+  const splashCover = document.getElementById('splash-cover');
+  const mainEl      = document.getElementById('main');
+  const logoWrap    = document.getElementById('logo-wrap');
+  const subWrap     = document.getElementById('subtitle-wrap');
+
+  const COLORS = [
+    '#050a05', '#0a1a0f', '#0d2818', '#1a7a3c',
+    '#051205', '#071a0a', '#0f2d14', '#0a0a05',
+    '#030d06', '#152b0f', '#000500', '#081508',
+  ];
+
+  const DURATION = 5000; // ms
+  const STEPS    = 200;
+  const INTERVAL = DURATION / STEPS;
+
+  let current = 0;
+  let lastBlobAt = -1;
+
+  function rnd(min, max) { return Math.random() * (max - min) + min; }
+  function pick(arr)     { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function addBlob(count) {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    for (let i = 0; i < count; i++) {
+      // Blob
+      const el = document.createElement('div');
+      el.className = 'blob';
+
+      const size  = rnd(40, 160);
+      const x     = rnd(0, vw - size);
+      const y     = rnd(0, vh - size);
+      const rot   = rnd(-60, 60) + 'deg';
+      const color = pick(COLORS);
+
+      el.style.cssText = `
+        left: ${x}px; top: ${y}px;
+        width: ${size}px; height: ${size * rnd(0.6, 1.1)}px;
+        background: ${color};
+        --rot: ${rot};
+        border-radius: ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}% /
+                       ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}%;
+        animation-delay: ${rnd(0, 0.2)}s;
+      `;
+      blobsEl.appendChild(el);
+
+      // Drip from bottom of some blobs
+      if (Math.random() > 0.5) {
+        const drip = document.createElement('div');
+        drip.className = 'drip';
+        const dh = rnd(20, 90);
+        drip.style.cssText = `
+          left: ${x + size * rnd(0.2, 0.8)}px;
+          top: ${y + size * 0.7}px;
+          width: ${rnd(4, 10)}px;
+          background: ${color};
+          --drip-h: ${dh}px;
+          animation-delay: ${rnd(0.1, 0.4)}s;
+        `;
+        blobsEl.appendChild(drip);
+      }
+    }
+  }
+
+  function addInitialSplash() {
+    // Big center blobs at the very start
+    addBlob(6);
+  }
+
+  // Start with a couple of blobs
+  addInitialSplash();
+
+  const timer = setInterval(() => {
+    current++;
+    const pct = Math.min(Math.round((current / STEPS) * 100), 100);
+
+    percentEl.textContent = pct + '%';
+    barFill.style.width   = pct + '%';
+
+    // Every ~10% add more paint
+    const milestone = Math.floor(pct / 8);
+    if (milestone > lastBlobAt) {
+      lastBlobAt = milestone;
+      // More blobs as we approach 100
+      const count = 4 + Math.floor(pct / 15);
+      addBlob(count);
+    }
+
+    // Darken % text as blobs take over
+    if (pct > 60) {
+      percentEl.style.color = `hsl(${134}, ${pct - 50}%, ${Math.max(10, 50 - pct * 0.4)}%)`;
+    }
+
+    if (pct >= 100) {
+      clearInterval(timer);
+      finishLoad();
+    }
+  }, INTERVAL);
+
+  function finishLoad() {
+    // Add a final burst of blobs
+    addBlob(30);
+
+    // Short pause, then splash
+    setTimeout(() => {
+      // Reveal main (behind everything)
+      mainEl.classList.add('visible');
+
+      // Dark splash circle expands over loader
+      splashCover.classList.add('expanding');
+
+      splashCover.addEventListener('animationend', () => {
+        // Hide loader completely
+        loader.style.display = 'none';
+        splashCover.style.display = 'none';
+
+        // Animate content in
+        logoWrap.classList.add('revealed');
+        subWrap.classList.add('revealed');
+      }, { once: true });
+    }, 400);
+  }
+})();
+</script>
+</body>
+</html>
