@@ -6,81 +6,112 @@
 <title>àbank</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&family=Space+Grotesk:wght@300;400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
-/* ═══════════════════════════
-   LOADER
-═══════════════════════════ */
+/* ── LOADER ── */
 #loader {
   position: fixed; inset: 0; z-index: 9999;
   background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
 }
 
-#lc {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: max(48px, 9vh);
-  gap: 6px;
-  position: relative;
-  z-index: 2;
-}
-
+/* Big à that morphs into the logo letter */
 #la {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(80px, 16vw, 150px);
+  font-size: clamp(120px, 22vw, 200px);
   font-weight: 800;
   color: #22c55e;
   line-height: 1;
-  letter-spacing: -3px;
-  text-shadow: 0 0 30px rgba(34,197,94,0.8), 0 0 80px rgba(34,197,94,0.3);
+  letter-spacing: -4px;
+  text-shadow: 0 0 40px rgba(34,197,94,0.9), 0 0 100px rgba(34,197,94,0.3);
+  display: block;
+  transition: none;
+}
+
+/* "bank" — hidden during load, fades in at 100% */
+#lb {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(120px, 22vw, 200px);
+  font-weight: 800;
+  color: #000;
+  line-height: 1;
+  letter-spacing: -4px;
+  text-shadow: 0 0 2px rgba(255,255,255,.95), 0 0 14px rgba(255,255,255,.7), 0 0 36px rgba(255,255,255,.35);
+  display: block;
+  opacity: 0;
+  transition: none;
+}
+
+#logo-row {
+  display: flex;
+  align-items: baseline;
+  position: relative;
+}
+
+.logo-glow-loader {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 130%; height: 160%;
+  background: radial-gradient(ellipse 55% 55% at 50% 50%,
+    rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.06) 40%, transparent 70%);
+  pointer-events: none; border-radius: 50%;
+  opacity: 0; transition: none;
 }
 
 #lw {
   font-family: 'Inter', sans-serif;
   font-size: clamp(10px, 1.4vw, 14px);
   font-weight: 500;
-  letter-spacing: 5px;
+  letter-spacing: 6px;
   text-transform: uppercase;
-  color: rgba(34,197,94,0.65);
+  color: rgba(34,197,94,0.55);
+  margin-top: 16px;
 }
 
 #lp {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(14px, 2vw, 18px);
-  font-weight: 700;
-  letter-spacing: 5px;
-  color: #22c55e;
-  text-shadow: 0 0 14px rgba(34,197,94,0.9);
-  margin-top: 2px;
+  font-size: clamp(13px, 1.8vw, 17px);
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: rgba(34,197,94,0.8);
+  margin-top: 6px;
 }
 
-/* Paint drip container — positioned by JS right below text */
-#drip-wrap {
+/* Tick on the à */
+#loader-tick {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  width: min(480px, 88vw);
-  pointer-events: none;
-}
-
-#drip-svg {
-  width: 100%;
+  top: -0.09em; left: 50%;
+  transform: translateX(-46%);
+  width: 0.44em;
   overflow: visible;
-  display: block;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(34,197,94,0.7));
+  opacity: 1;
+}
+#loader-tick path {
+  stroke: #22c55e; stroke-width: 3.5;
+  stroke-linecap: round; stroke-linejoin: round; fill: none;
+  animation: tickFloat 2.6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes tickFloat {
+  0%,100%{ transform: translateY(0) rotate(0deg); }
+  25%    { transform: translateY(-4px) rotate(-4deg); }
+  50%    { transform: translateY(-2px) rotate(3deg); }
+  75%    { transform: translateY(-5px) rotate(-2deg); }
 }
 
-/* ═══════════════════════════
-   SPLASH
-═══════════════════════════ */
+#la-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+/* ── SPLASH ── */
 #splash {
   position: fixed; inset: 0; z-index: 8888;
   pointer-events: none;
@@ -92,9 +123,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 }
 @keyframes splashGo { to { clip-path: circle(150% at 50% 50%); } }
 
-/* ═══════════════════════════
-   MAIN PAGE
-═══════════════════════════ */
+/* ── MAIN ── */
 #main {
   position: fixed; inset: 0; z-index: 1;
   opacity: 0; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
@@ -114,12 +143,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     radial-gradient(ellipse 35% 55% at 2%  2%,  rgba(0,50,10,0.3)   0%, transparent 48%),
     #020602;
 }
-#s1::before {
-  content:''; position:absolute; inset:0; pointer-events:none;
-  background:
-    linear-gradient(135deg, rgba(0,120,28,0.08) 0%, transparent 40%),
-    linear-gradient(315deg, rgba(0,90,18,0.06)  0%, transparent 40%);
-}
 #s1::after {
   content:''; position:absolute; inset:-20%; pointer-events:none;
   background: radial-gradient(ellipse 30% 30% at 50% 50%, rgba(26,122,60,0.07) 0%, transparent 70%);
@@ -134,9 +157,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   font-size: clamp(56px,12vw,140px);
   font-weight: 800; letter-spacing: -2px;
   cursor: default; user-select: none;
-  opacity: 0; transform: translateY(24px);
+  opacity: 0; transform: scale(0.92);
 }
-.main-logo.in { animation: riseIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+.main-logo.in { animation: popIn 0.55s cubic-bezier(0.22,1,0.36,1) forwards; }
+@keyframes popIn { to { opacity:1; transform:scale(1); } }
 
 .logo-glow {
   position: absolute; top:50%; left:50%;
@@ -156,12 +180,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   stroke:#22c55e; stroke-width:3.5;
   stroke-linecap:round; stroke-linejoin:round; fill:none;
   animation: tickFloat 2.6s ease-in-out infinite; transform-origin: 50% 50%;
-}
-@keyframes tickFloat {
-  0%,100%{transform:translateY(0) rotate(0deg);}
-  25%{transform:translateY(-4px) rotate(-4deg);}
-  50%{transform:translateY(-2px) rotate(3deg);}
-  75%{transform:translateY(-5px) rotate(-2deg);}
 }
 .ml-a-letter {
   color:#22c55e;
@@ -186,7 +204,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   opacity:0;transform:translateY(10px);
 }
 .tagline:hover{color:rgba(255,255,255,.8);text-shadow:0 0 16px rgba(255,255,255,.2);}
-.tagline.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) .3s forwards;}
+.tagline.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) .25s forwards;}
 
 .subtitle-block {
   position:relative;z-index:2;
@@ -194,8 +212,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   margin-top:48px;padding:0 16px;
   opacity:0;transform:translateY(24px);
 }
-.subtitle-block.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) .5s forwards;}
-
+.subtitle-block.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) .45s forwards;}
 @keyframes riseIn{to{opacity:1;transform:translateY(0);}}
 
 .subtitle-text{
@@ -219,7 +236,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .scroll-hint{
   position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
   z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;
-  opacity:0;animation:fadeH 1s ease 1.2s forwards;
+  opacity:0;animation:fadeH 1s ease 1s forwards;
 }
 @keyframes fadeH{to{opacity:.3;}}
 .scroll-hint span{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;color:#22c55e;text-transform:uppercase;}
@@ -235,37 +252,18 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 <!-- LOADER -->
 <div id="loader">
-  <div id="lc">
-    <span id="la">à</span>
-    <span id="lw">завантаження</span>
-    <span id="lp">0%</span>
+  <div id="logo-row">
+    <div class="logo-glow-loader" id="loader-glow"></div>
+    <div id="la-wrap">
+      <svg id="loader-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 12 L12 20 L32 4"/>
+      </svg>
+      <span id="la">à</span>
+    </div>
+    <span id="lb">bank</span>
   </div>
-
-  <!-- SVG paint drips — positioned by JS -->
-  <div id="drip-wrap">
-    <svg id="drip-svg" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <filter id="drip-glow" x="-30%" y="-10%" width="160%" height="140%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <linearGradient id="drip-grad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stop-color="#1aaa50"/>
-          <stop offset="35%"  stop-color="#22c55e"/>
-          <stop offset="65%"  stop-color="#22c55e"/>
-          <stop offset="100%" stop-color="#16943f"/>
-        </linearGradient>
-        <!-- highlight shimmer -->
-        <linearGradient id="drip-hi" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stop-color="rgba(255,255,255,0)"/>
-          <stop offset="30%"  stop-color="rgba(255,255,255,0.22)"/>
-          <stop offset="60%"  stop-color="rgba(255,255,255,0.1)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-      </defs>
-      <!-- wave base + drips drawn by JS -->
-    </svg>
-  </div>
+  <span id="lw">завантаження</span>
+  <span id="lp">0%</span>
 </div>
 
 <!-- MAIN -->
@@ -277,7 +275,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
         <svg class="ml-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 12 L12 20 L32 4"/>
         </svg>
-        <span class="ml-a-letter">a</span>
+        <span class="ml-a-letter">à</span>
       </span>
       <span class="ml-bank">bank</span>
     </div>
@@ -305,145 +303,23 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const subBlock  = document.getElementById('sub-block');
   const taglineEl = document.getElementById('tagline');
   const loaderEl  = document.getElementById('loader');
-  const lcEl      = document.getElementById('lc');
-  const dripWrap  = document.getElementById('drip-wrap');
-  const dripSvg   = document.getElementById('drip-svg');
   const lpEl      = document.getElementById('lp');
+  const lbEl      = document.getElementById('lb');
+  const loaderGlow = document.getElementById('loader-glow');
 
-  // SVG viewport width
-  const SVG_W = 480;
-
-  // Drip definitions: x center, width, max height, stagger delay (0-25%)
-  const DRIPS = [
-    { x: 48,  w: 22, maxH: 220, delay: 0  },
-    { x: 108, w: 30, maxH: 280, delay: 8  },
-    { x: 178, w: 18, maxH: 195, delay: 15 },
-    { x: 238, w: 26, maxH: 260, delay: 4  },
-    { x: 298, w: 20, maxH: 240, delay: 20 },
-    { x: 362, w: 28, maxH: 270, delay: 11 },
-    { x: 422, w: 16, maxH: 180, delay: 6  },
-  ];
-
-  // Wave base height (the wavy paint mass at top)
-  const WAVE_H = 52;
-
-  // Build SVG: wave base + drip stems + teardrops
-  dripSvg.setAttribute('viewBox', '0 0 ' + SVG_W + ' 380');
-  dripSvg.setAttribute('height', '380');
-
-  // Wave path (organic wavy bottom edge)
-  const wavePath = document.createElementNS('http://www.w3.org/2000/svg','path');
-  const wp = [
-    'M0,0',
-    'L' + SVG_W + ',0',
-    'L' + SVG_W + ',' + (WAVE_H - 8),
-    'C' + (SVG_W*0.88) + ',' + (WAVE_H+14) + ' ' + (SVG_W*0.78) + ',' + (WAVE_H-10) + ' ' + (SVG_W*0.68) + ',' + (WAVE_H+8),
-    'C' + (SVG_W*0.58) + ',' + (WAVE_H+22) + ' ' + (SVG_W*0.5) + ',' + (WAVE_H-6) + ' ' + (SVG_W*0.42) + ',' + (WAVE_H+12),
-    'C' + (SVG_W*0.32) + ',' + (WAVE_H+26) + ' ' + (SVG_W*0.22) + ',' + (WAVE_H-8) + ' ' + (SVG_W*0.12) + ',' + (WAVE_H+10),
-    'C' + (SVG_W*0.06) + ',' + (WAVE_H+18) + ' 0,' + (WAVE_H+4) + ' 0,' + (WAVE_H+4),
-    'Z'
-  ].join(' ');
-  wavePath.setAttribute('d', wp);
-  wavePath.setAttribute('fill', 'url(#drip-grad)');
-  wavePath.setAttribute('filter', 'url(#drip-glow)');
-  dripSvg.appendChild(wavePath);
-
-  // Wave highlight
-  const waveHi = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  waveHi.setAttribute('x','0'); waveHi.setAttribute('y','0');
-  waveHi.setAttribute('width', SVG_W); waveHi.setAttribute('height', '18');
-  waveHi.setAttribute('fill','url(#drip-hi)');
-  dripSvg.appendChild(waveHi);
-
-  // Create drip elements
-  const stemEls = [];
-  const dropEls = [];
-
-  DRIPS.forEach((d, i) => {
-    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-
-    // Stem rectangle (starts at wave bottom, height=0, grows down)
-    const stem = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    const sx = d.x - d.w/2;
-    stem.setAttribute('x', sx);
-    stem.setAttribute('y', WAVE_H + 12);
-    stem.setAttribute('width', d.w);
-    stem.setAttribute('height', '0');
-    stem.setAttribute('fill', 'url(#drip-grad)');
-    stem.setAttribute('rx', d.w/2);
-
-    // Stem highlight
-    const stemHi = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    stemHi.setAttribute('x', sx + d.w*0.2);
-    stemHi.setAttribute('y', WAVE_H + 12);
-    stemHi.setAttribute('width', d.w * 0.28);
-    stemHi.setAttribute('height', '0');
-    stemHi.setAttribute('fill', 'rgba(255,255,255,0.2)');
-    stemHi.setAttribute('rx', d.w*0.14);
-
-    // Teardrop at bottom of stem
-    const tw = d.w * 2.0;
-    const th = d.w * 2.6;
-    // Teardrop SVG path centered at (d.x, WAVE_H + 12 + currentH + th/2)
-    const drop = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
-    drop.setAttribute('cx', d.x);
-    drop.setAttribute('cy', WAVE_H + 12);
-    drop.setAttribute('rx', tw/2);
-    drop.setAttribute('ry', th/2);
-    drop.setAttribute('fill', 'url(#drip-grad)');
-    drop.setAttribute('opacity', '0');
-
-    // Teardrop highlight
-    const dropHi = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
-    dropHi.setAttribute('cx', d.x - tw*0.12);
-    dropHi.setAttribute('cy', WAVE_H + 12);
-    dropHi.setAttribute('rx', tw*0.18);
-    dropHi.setAttribute('ry', th*0.28);
-    dropHi.setAttribute('fill', 'rgba(255,255,255,0.25)');
-    dropHi.setAttribute('opacity', '0');
-
-    g.appendChild(stem);
-    g.appendChild(stemHi);
-    g.appendChild(drop);
-    g.appendChild(dropHi);
-    dripSvg.appendChild(g);
-
-    stemEls.push({ stem, stemHi, drop, dropHi, d });
-  });
-
-  // Position drip-wrap right below text block
-  function positionDrips() {
-    const r = lcEl.getBoundingClientRect();
-    dripWrap.style.top = (r.bottom + 6) + 'px';
-  }
-  positionDrips();
+  // At 80% reveal "bank" text so it flows in naturally
+  let bankShown = false;
 
   function update(pct) {
     lpEl.textContent = pct + '%';
 
-    stemEls.forEach(({ stem, stemHi, drop, dropHi, d }) => {
-      const p = Math.max(0, pct - d.delay);
-      const t = p / (100 - d.delay);
-      // Ease-in: slow start, faster as it grows (like gravity)
-      const ease = t * t;
-      const h = d.maxH * ease;
-
-      const baseY = WAVE_H + 12;
-
-      stem.setAttribute('height', h);
-      stemHi.setAttribute('height', h);
-      stemHi.setAttribute('y', baseY);
-
-      const tw = d.w * 2.0;
-      const th = d.w * 2.6;
-      const dropCY = baseY + h + th * 0.5;
-
-      drop.setAttribute('cy', dropCY);
-      drop.setAttribute('opacity', h > 8 ? '1' : '0');
-
-      dropHi.setAttribute('cy', dropCY - th*0.1);
-      dropHi.setAttribute('opacity', h > 8 ? '1' : '0');
-    });
+    if (pct >= 80 && !bankShown) {
+      bankShown = true;
+      lbEl.style.transition = 'opacity 0.5s ease';
+      lbEl.style.opacity = '1';
+      loaderGlow.style.transition = 'opacity 0.5s ease';
+      loaderGlow.style.opacity = '1';
+    }
   }
 
   update(0);
@@ -461,13 +337,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }, IV);
 
   function doSplash() {
-    lcEl.style.display     = 'none';
-    dripWrap.style.display = 'none';
+    loaderEl.style.display = 'none';
     mainEl.classList.add('on');
     splash.classList.add('go');
     splash.addEventListener('animationend', () => {
-      loaderEl.style.display = 'none';
-      splash.style.display   = 'none';
+      splash.style.display = 'none';
       mainLogo.classList.add('in');
       if (taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
