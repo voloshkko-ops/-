@@ -353,10 +353,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   animation: bgAFloat linear forwards;
 }
 @keyframes bgAFloat {
-  0%   { opacity: 0;    transform: translateY(0)    scale(1); }
-  15%  { opacity: .06; }
-  80%  { opacity: .06; }
-  100% { opacity: 0;    transform: translateY(-60px) scale(1.05); }
+  0%   { opacity: 0;   transform: translateY(0)    scale(1); }
+  20%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0;   transform: translateY(-50px) scale(1.08); }
 }
 </style>
 </head>
@@ -571,27 +571,40 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   obs.observe(document.getElementById('s2'));
 
-  // Floating à letters every 30s
+  // Floating à letters near each tier zone
   const s2 = document.getElementById('s2');
+
+  // Zone definitions: color + approximate vertical band (% of s2 height)
+  // high rows are top ~40%, mid middle ~40%, low bottom ~20%
+  const ZONES = [
+    { color:'#22c55e', topMin:5,  topMax:42 },
+    { color:'#f97316', topMin:42, topMax:72 },
+    { color:'#ef4444', topMin:72, topMax:92 },
+  ];
+
   function spawnAs() {
-    const count = 2 + Math.floor(Math.random() * 2); // 2 or 3
-    for (let i = 0; i < count; i++) {
-      setTimeout(() => {
-        const el = document.createElement('span');
-        el.className = 'bg-a';
-        el.textContent = 'à';
-        const size = 80 + Math.random() * 120;
-        const dur  = 8 + Math.random() * 6;
-        el.style.cssText = `
-          font-size:${size}px;
-          left:${5 + Math.random()*88}%;
-          top:${5 + Math.random()*85}%;
-          animation-duration:${dur}s;
-        `;
-        s2.appendChild(el);
-        el.addEventListener('animationend', () => el.remove());
-      }, i * 900);
-    }
+    ZONES.forEach((zone, zi) => {
+      const count = 1 + Math.floor(Math.random() * 2); // 1-2 per zone = 3-6 total
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          const el = document.createElement('span');
+          el.className = 'bg-a';
+          el.textContent = 'à';
+          const size = 60 + Math.random() * 100;
+          const dur  = 7 + Math.random() * 5;
+          el.style.cssText = `
+            font-size:${size}px;
+            color:${zone.color};
+            left:${8 + Math.random()*82}%;
+            top:${zone.topMin + Math.random()*(zone.topMax-zone.topMin)}%;
+            animation-duration:${dur}s;
+            text-shadow:0 0 30px ${zone.color};
+          `;
+          s2.appendChild(el);
+          el.addEventListener('animationend', () => el.remove());
+        }, zi * 600 + i * 400);
+      }
+    });
   }
   spawnAs();
   setInterval(spawnAs, 30000);
