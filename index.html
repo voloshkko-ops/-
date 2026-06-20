@@ -16,138 +16,140 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 ═══════════════════════════ */
 #loader {
   position: fixed; inset: 0; z-index: 9999;
-  background: #fff; overflow: hidden;
-}
-
-/* Text block centered horizontally, top-anchored */
-#loader-center {
-  position: absolute;
-  top: max(40px, 8vh);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 30;
+  background: #000;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  pointer-events: none;
-  white-space: nowrap;
+  overflow: hidden;
 }
 
-#loader-a {
+/* Text block at top-center */
+#lc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: max(48px, 9vh);
+  gap: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+#la {
   font-family: 'Inter', sans-serif;
   font-size: clamp(80px, 16vw, 150px);
   font-weight: 800;
   color: #22c55e;
-  line-height: 1; letter-spacing: -3px;
+  line-height: 1;
+  letter-spacing: -3px;
   text-shadow:
-    0 0 20px rgba(34,197,94,0.9),
-    0 0 50px rgba(34,197,94,0.5);
+    0 0 30px rgba(34,197,94,0.8),
+    0 0 80px rgba(34,197,94,0.3);
 }
 
-#loader-word {
+#lw {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(11px, 1.6vw, 15px);
+  font-size: clamp(10px, 1.4vw, 14px);
   font-weight: 500;
   letter-spacing: 5px;
   text-transform: uppercase;
-  color: rgba(34,197,94,0.7);
-  margin-top: 6px;
+  color: rgba(34,197,94,0.65);
 }
 
-#pct-label {
+#lp {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(13px, 2vw, 17px);
-  font-weight: 700; letter-spacing: 6px;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 700;
+  letter-spacing: 5px;
   color: #22c55e;
-  text-shadow: 0 0 12px rgba(34,197,94,0.8);
-  margin-top: 4px;
+  text-shadow: 0 0 14px rgba(34,197,94,0.9);
 }
 
-/* ── Paint drips — fixed below text, stretch to page bottom ── */
+/* Drips row */
 #drips {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 29;
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  /* top set by JS after measuring text block height */
+  gap: 16px;
+  z-index: 3;
 }
 
+/* Each drip: stem + SVG teardrop */
 .drip {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
 }
 
-.drip-body {
-  width: var(--dw);
-  height: 0px; /* grown by JS */
-  border-radius: calc(var(--dw)/2) calc(var(--dw)/2) calc(var(--dw)/3) calc(var(--dw)/3);
-  background: var(--col);
+.stem {
+  width: var(--w);
+  height: 0;           /* grown by JS */
+  border-radius: calc(var(--w)/2) calc(var(--w)/2) 0 0;
+  background: #22c55e;
   position: relative;
-  transition: height 0.06s linear;
-  /* Glossy inner highlight */
+  /* Glossy highlight */
   box-shadow:
-    inset -3px 0 6px rgba(0,0,0,0.15),
-    inset 3px 0 8px rgba(255,255,255,0.35);
+    inset calc(var(--w)*-0.2) 0 calc(var(--w)*0.3) rgba(0,0,0,0.3),
+    inset calc(var(--w)*0.15) 0 calc(var(--w)*0.25) rgba(255,255,255,0.25);
 }
 
-/* shine stripe */
-.drip-body::before {
+.stem::before {
   content: '';
   position: absolute;
-  top: 6px; left: 20%;
-  width: 28%;
-  bottom: 6px;
+  top: 8px;
+  left: 22%;
+  width: 26%;
+  bottom: 4px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.35);
-  filter: blur(1px);
+  background: rgba(255,255,255,0.22);
+  filter: blur(1.5px);
 }
 
-/* teardrop at bottom */
-.drip-drop {
-  width: calc(var(--dw) * 1.35);
-  height: calc(var(--dw) * 1.35);
-  border-radius: 50% 50% 55% 55% / 45% 45% 60% 60%;
-  background: var(--col);
-  margin-top: -2px;
-  opacity: 0; /* shown by JS */
-  transition: opacity 0.3s;
-  box-shadow:
-    inset -2px -2px 5px rgba(0,0,0,0.15),
-    inset 2px 1px 6px rgba(255,255,255,0.3);
+/* Teardrop at bottom — SVG so shape is natural */
+.drop {
+  width: calc(var(--w) * 1.9);
+  height: calc(var(--w) * 2.4);
+  margin-top: -1px;
+  flex-shrink: 0;
+  filter:
+    drop-shadow(calc(var(--w)*-0.15) 0 calc(var(--w)*0.2) rgba(0,0,0,0.35))
+    drop-shadow(calc(var(--w)*0.1) 0 calc(var(--w)*0.15) rgba(255,255,255,0.15));
+  opacity: 0;
+  transition: opacity 0.2s;
 }
+
+.drop path { fill: #22c55e; }
 
 /* ═══════════════════════════
    SPLASH
 ═══════════════════════════ */
 #splash {
-  position:fixed; inset:0; z-index:8888;
-  pointer-events:none; background:#020602;
+  position: fixed; inset: 0; z-index: 8888;
+  pointer-events: none;
+  background: #020602;
   clip-path: circle(0% at 50% 50%);
 }
-#splash.go { animation: splashGo 0.85s cubic-bezier(0.55,0,0.1,1) forwards; }
+#splash.go {
+  animation: splashGo 0.75s cubic-bezier(0.55,0,0.1,1) forwards;
+}
 @keyframes splashGo { to { clip-path: circle(150% at 50% 50%); } }
 
 /* ═══════════════════════════
    MAIN PAGE
 ═══════════════════════════ */
 #main {
-  position:fixed; inset:0; z-index:1;
-  opacity:0; overflow-y:auto; overflow-x:hidden; scroll-behavior:smooth;
+  position: fixed; inset: 0; z-index: 1;
+  opacity: 0; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
 }
-#main.on { opacity:1; }
+#main.on { opacity: 1; }
 
 #s1 {
-  min-height:100vh;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:80px 24px 60px;
-  position:relative; overflow:hidden;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 80px 24px 60px;
+  position: relative; overflow: hidden;
   background:
     radial-gradient(ellipse 65% 85% at 2%  98%, rgba(0,100,22,0.6)  0%, transparent 52%),
     radial-gradient(ellipse 55% 75% at 98% 2%,  rgba(0,80,18,0.5)   0%, transparent 52%),
@@ -158,45 +160,45 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 #s1::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background:
-    linear-gradient(135deg,rgba(0,120,28,0.08) 0%,transparent 40%),
-    linear-gradient(315deg,rgba(0,90,18,0.06)  0%,transparent 40%);
+    linear-gradient(135deg, rgba(0,120,28,0.08) 0%, transparent 40%),
+    linear-gradient(315deg, rgba(0,90,18,0.06)  0%, transparent 40%);
 }
 #s1::after {
   content:''; position:absolute; inset:-20%; pointer-events:none;
-  background:radial-gradient(ellipse 30% 30% at 50% 50%,rgba(26,122,60,0.07) 0%,transparent 70%);
-  animation:breathe 5s ease-in-out infinite;
+  background: radial-gradient(ellipse 30% 30% at 50% 50%, rgba(26,122,60,0.07) 0%, transparent 70%);
+  animation: breathe 5s ease-in-out infinite;
 }
 @keyframes breathe { 0%,100%{transform:scale(1);opacity:.6;} 50%{transform:scale(1.1);opacity:1;} }
 
 .main-logo {
-  position:relative; z-index:2;
-  display:inline-flex; align-items:baseline;
-  font-family:'Inter',sans-serif;
-  font-size:clamp(56px,12vw,140px);
-  font-weight:800; letter-spacing:-2px;
-  cursor:default; user-select:none;
-  opacity:0; transform:translateY(24px);
+  position: relative; z-index: 2;
+  display: inline-flex; align-items: baseline;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(56px,12vw,140px);
+  font-weight: 800; letter-spacing: -2px;
+  cursor: default; user-select: none;
+  opacity: 0; transform: translateY(24px);
 }
-.main-logo.in { animation:riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s forwards; }
+.main-logo.in { animation: riseIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
 
 .logo-glow {
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:130%; height:160%;
-  background:radial-gradient(ellipse 55% 55% at 50% 50%,
-    rgba(255,255,255,0.18) 0%,rgba(255,255,255,0.07) 40%,transparent 70%);
-  pointer-events:none; z-index:-1; border-radius:50%;
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  width: 130%; height: 160%;
+  background: radial-gradient(ellipse 55% 55% at 50% 50%,
+    rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 40%, transparent 70%);
+  pointer-events: none; z-index: -1; border-radius: 50%;
 }
 .ml-a-wrap { position:relative; display:inline-flex; flex-direction:column; align-items:center; }
 .ml-tick {
   position:absolute; top:-0.08em; left:50%; transform:translateX(-46%);
   width:0.44em; overflow:visible; pointer-events:none;
-  filter:drop-shadow(0 0 6px rgba(34,197,94,0.7));
+  filter: drop-shadow(0 0 6px rgba(34,197,94,0.7));
 }
 .ml-tick path {
   stroke:#22c55e; stroke-width:3.5;
   stroke-linecap:round; stroke-linejoin:round; fill:none;
-  animation:tickFloat 2.6s ease-in-out infinite; transform-origin:50% 50%;
+  animation: tickFloat 2.6s ease-in-out infinite; transform-origin: 50% 50%;
 }
 @keyframes tickFloat {
   0%,100%{transform:translateY(0) rotate(0deg);}
@@ -218,56 +220,56 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .main-logo:hover .ml-bank { text-shadow:0 0 2px #fff,0 0 20px rgba(255,255,255,.9),0 0 50px rgba(255,255,255,.5); }
 
 .tagline {
-  position:relative; z-index:2;
+  position:relative;z-index:2;
   font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(12px,1.6vw,16px); font-weight:300;
-  letter-spacing:5px; text-transform:uppercase;
-  color:rgba(255,255,255,.4); margin-top:10px;
-  cursor:default; transition:color .3s,text-shadow .3s;
-  opacity:0; transform:translateY(10px);
+  font-size:clamp(12px,1.6vw,16px);font-weight:300;
+  letter-spacing:5px;text-transform:uppercase;
+  color:rgba(255,255,255,.4);margin-top:10px;
+  cursor:default;transition:color .3s,text-shadow .3s;
+  opacity:0;transform:translateY(10px);
 }
-.tagline:hover { color:rgba(255,255,255,.8); text-shadow:0 0 16px rgba(255,255,255,.2); }
-.tagline.in { animation:riseIn .85s cubic-bezier(.22,1,.36,1) .35s forwards; }
+.tagline:hover{color:rgba(255,255,255,.8);text-shadow:0 0 16px rgba(255,255,255,.2);}
+.tagline.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) .3s forwards;}
 
 .subtitle-block {
-  position:relative; z-index:2;
-  max-width:740px; text-align:center;
-  margin-top:52px; padding:0 16px;
-  opacity:0; transform:translateY(24px);
+  position:relative;z-index:2;
+  max-width:740px;text-align:center;
+  margin-top:48px;padding:0 16px;
+  opacity:0;transform:translateY(24px);
 }
-.subtitle-block.in { animation:riseIn .85s cubic-bezier(.22,1,.36,1) .55s forwards; }
+.subtitle-block.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) .5s forwards;}
 
-@keyframes riseIn { to { opacity:1; transform:translateY(0); } }
+@keyframes riseIn{to{opacity:1;transform:translateY(0);}}
 
-.subtitle-text {
+.subtitle-text{
   font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(13px,1.8vw,17px); font-weight:300;
-  color:rgba(255,255,255,.75); line-height:1.8;
-  cursor:default; transition:color .35s,text-shadow .35s;
+  font-size:clamp(13px,1.8vw,17px);font-weight:300;
+  color:rgba(255,255,255,.75);line-height:1.8;
+  cursor:default;transition:color .35s,text-shadow .35s;
 }
-.subtitle-text:hover { color:rgba(255,255,255,1); text-shadow:0 0 18px rgba(255,255,255,.22),0 0 40px rgba(255,255,255,.1); }
-.subtitle-text .hl { color:#4ade80; font-weight:500; transition:text-shadow .35s; }
-.subtitle-text:hover .hl { text-shadow:0 0 14px rgba(74,222,128,.6); }
+.subtitle-text:hover{color:rgba(255,255,255,1);text-shadow:0 0 18px rgba(255,255,255,.22);}
+.subtitle-text .hl{color:#4ade80;font-weight:500;}
+.subtitle-text:hover .hl{text-shadow:0 0 14px rgba(74,222,128,.6);}
 
-.divider { width:48px; height:1px; background:linear-gradient(90deg,transparent,rgba(34,197,94,.5),transparent); margin:28px auto; }
-.author {
-  font-family:'Inter',sans-serif; font-size:clamp(11px,1.4vw,14px);
-  font-weight:400; letter-spacing:3px; text-transform:uppercase;
-  color:rgba(255,255,255,.3); cursor:default; transition:color .3s,text-shadow .3s;
+.divider{width:48px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,197,94,.5),transparent);margin:28px auto;}
+.author{
+  font-family:'Inter',sans-serif;font-size:clamp(11px,1.4vw,14px);
+  font-weight:400;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,255,.3);cursor:default;transition:color .3s,text-shadow .3s;
 }
-.author:hover { color:rgba(255,255,255,.65); text-shadow:0 0 16px rgba(255,255,255,.18); }
+.author:hover{color:rgba(255,255,255,.65);text-shadow:0 0 16px rgba(255,255,255,.18);}
 
-.scroll-hint {
-  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
-  z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px;
-  opacity:0; animation:fadeH 1s ease 1.4s forwards;
+.scroll-hint{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;
+  opacity:0;animation:fadeH 1s ease 1.2s forwards;
 }
-@keyframes fadeH { to { opacity:.3; } }
-.scroll-hint span { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; color:#22c55e; text-transform:uppercase; }
-.sh-line { width:1px; height:28px; background:linear-gradient(to bottom,rgba(34,197,94,.8),transparent); animation:shPulse 1.6s ease-in-out infinite; }
-@keyframes shPulse { 0%,100%{transform:scaleY(1);opacity:1;} 50%{transform:scaleY(.5) translateY(6px);opacity:.4;} }
+@keyframes fadeH{to{opacity:.3;}}
+.scroll-hint span{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;color:#22c55e;text-transform:uppercase;}
+.sh-line{width:1px;height:28px;background:linear-gradient(to bottom,rgba(34,197,94,.8),transparent);animation:shPulse 1.6s ease-in-out infinite;}
+@keyframes shPulse{0%,100%{transform:scaleY(1);opacity:1;}50%{transform:scaleY(.5) translateY(6px);opacity:.4;}}
 
-#s2 { min-height:100vh; background:#020602; }
+#s2{min-height:100vh;background:#020602;}
 </style>
 </head>
 <body>
@@ -276,20 +278,50 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 <!-- LOADER -->
 <div id="loader">
-  <div id="loader-center">
-    <span id="loader-a">à</span>
-    <span id="loader-word">завантаження</span>
-    <span id="pct-label">0%</span>
+  <div id="lc">
+    <span id="la">à</span>
+    <span id="lw">завантаження</span>
+    <span id="lp">0%</span>
   </div>
 
-  <!-- Drips anchored below text, stretch to bottom -->
+  <!-- Drips: positioned by JS right under the text block -->
   <div id="drips">
-    <div class="drip" style="--col:#0a1a0a; --dw:22px"><div class="drip-body" id="db0"></div><div class="drip-drop" id="dd0"></div></div>
-    <div class="drip" style="--col:#22c55e; --dw:26px"><div class="drip-body" id="db1"></div><div class="drip-drop" id="dd1"></div></div>
-    <div class="drip" style="--col:#ffffff; --dw:24px"><div class="drip-body" id="db2"></div><div class="drip-drop" id="dd2"></div></div>
-    <div class="drip" style="--col:#111111; --dw:20px"><div class="drip-body" id="db3"></div><div class="drip-drop" id="dd3"></div></div>
-    <div class="drip" style="--col:#1a5c1a; --dw:23px"><div class="drip-body" id="db4"></div><div class="drip-drop" id="dd4"></div></div>
-    <div class="drip" style="--col:#000000; --dw:18px"><div class="drip-body" id="db5"></div><div class="drip-drop" id="dd5"></div></div>
+    <!-- 5 drips, widths vary for natural look -->
+    <div class="drip" style="--w:18px">
+      <div class="stem" id="s0"></div>
+      <svg class="drop" id="d0" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
+        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="drip" style="--w:24px">
+      <div class="stem" id="s1"></div>
+      <svg class="drop" id="d1" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
+        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="drip" style="--w:20px">
+      <div class="stem" id="s2"></div>
+      <svg class="drop" id="d2" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
+        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="drip" style="--w:16px">
+      <div class="stem" id="s3"></div>
+      <svg class="drop" id="d3" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
+        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="drip" style="--w:22px">
+      <div class="stem" id="s4"></div>
+      <svg class="drop" id="d4" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
+        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
   </div>
 </div>
 
@@ -317,84 +349,81 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       <div class="divider"></div>
       <p class="author">Підготувала Волошко Ульяна</p>
     </div>
-    <div class="scroll-hint">
-      <span>scroll</span><div class="sh-line"></div>
-    </div>
+    <div class="scroll-hint"><span>scroll</span><div class="sh-line"></div></div>
   </section>
   <section id="s2"></section>
 </div>
 
 <script>
 (function(){
-  const pctLabel  = document.getElementById('pct-label');
   const splash    = document.getElementById('splash');
   const mainEl    = document.getElementById('main');
   const mainLogo  = document.getElementById('main-logo');
   const subBlock  = document.getElementById('sub-block');
   const taglineEl = document.getElementById('tagline');
   const loaderEl  = document.getElementById('loader');
-  const loaderCtr = document.getElementById('loader-center');
+  const lcEl      = document.getElementById('lc');
   const dripsEl   = document.getElementById('drips');
+  const lpEl      = document.getElementById('lp');
 
-  const N = 6;
-  const bodies = Array.from({length:N}, (_,i) => document.getElementById('db'+i));
-  const drops  = Array.from({length:N}, (_,i) => document.getElementById('dd'+i));
+  const N      = 5;
+  const stems  = Array.from({length:N}, (_,i)=>document.getElementById('s'+i));
+  const drops  = Array.from({length:N}, (_,i)=>document.getElementById('d'+i));
 
-  // Stagger: each drip starts flowing at a slightly different % (0–20%)
-  const STAGGER = [0, 8, 4, 14, 6, 10];
+  // Each drip starts flowing at a different % for natural stagger
+  const STAGGER = [0, 10, 5, 18, 8];
 
-  // Position drips container right below the text block
-  function positionDrips() {
-    const ctrRect  = loaderCtr.getBoundingClientRect();
-    const top      = ctrRect.bottom + 12;
+  // Position drips right below text block, stretching to bottom
+  function init() {
+    const r   = lcEl.getBoundingClientRect();
+    const top = r.bottom + 8;
     dripsEl.style.top = top + 'px';
-    return top;
+    return window.innerHeight - top;
   }
 
-  const dripsTop = positionDrips();
-  const maxH     = window.innerHeight - dripsTop - 2; // stretch to bottom edge
+  const maxH = init();
 
-  function updateDrips(pct) {
-    bodies.forEach((b, i) => {
+  function update(pct) {
+    lpEl.textContent = pct + '%';
+    stems.forEach((s, i) => {
       const p = Math.max(0, pct - STAGGER[i]);
-      // Ease-in: slow start, accelerates
+      // Ease: starts slow, speeds up mid-way (natural gravity)
       const t = p / 100;
-      const h = maxH * t * t;
-      b.style.height = h + 'px';
-      // Show drop when body has some length
-      drops[i].style.opacity = h > 10 ? '1' : '0';
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out
+      const h = maxH * ease;
+      s.style.height = Math.max(0, h) + 'px';
+      drops[i].style.opacity = h > 6 ? '1' : '0';
     });
   }
 
-  updateDrips(0);
+  update(0);
 
-  const STEPS  = 200;
-  const IVTIME = 5000 / STEPS;
-  let   step   = 0;
-
-  const timer = setInterval(() => {
+  // 5 second timer
+  const STEPS = 200, IV = 5000/STEPS;
+  let step = 0;
+  const timer = setInterval(()=>{
     step++;
-    const pct = Math.min(Math.round((step / STEPS) * 100), 100);
-    pctLabel.textContent = pct + '%';
-    updateDrips(pct);
-    if (pct >= 100) {
+    const pct = Math.min(Math.round(step/STEPS*100), 100);
+    update(pct);
+    if(pct >= 100){
       clearInterval(timer);
-      setTimeout(doSplash, 300);
+      // Instant transition — no delay, no intermediate step
+      doSplash();
     }
-  }, IVTIME);
+  }, IV);
 
-  function doSplash() {
-    loaderCtr.style.display = 'none';
-    dripsEl.style.display   = 'none';
+  function doSplash(){
+    lcEl.style.display    = 'none';
+    dripsEl.style.display = 'none';
     mainEl.classList.add('on');
     splash.classList.add('go');
-    splash.addEventListener('animationend', () => {
+    splash.addEventListener('animationend', ()=>{
       loaderEl.style.display = 'none';
       splash.style.display   = 'none';
       mainLogo.classList.add('in');
-      if (taglineEl) taglineEl.classList.add('in');
+      if(taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
-    }, { once: true });
+    }, {once:true});
   }
 })();
 </script>
