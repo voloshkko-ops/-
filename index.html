@@ -210,6 +210,8 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 /* ── SECTION 2: RATING ── */
 #s2 {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 65% 85% at 98% 2%,  rgba(0,100,22,0.5)  0%, transparent 52%),
     radial-gradient(ellipse 55% 75% at 2%  98%, rgba(0,80,18,0.4)   0%, transparent 52%),
@@ -338,6 +340,24 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .rl-dot.high { background: #22c55e; }
 .rl-dot.mid  { background: #eab308; }
 .rl-dot.low  { background: #ef4444; }
+
+/* Floating à letters background */
+.bg-a {
+  position: absolute;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  color: #22c55e;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  animation: bgAFloat linear forwards;
+}
+@keyframes bgAFloat {
+  0%   { opacity: 0;    transform: translateY(0)    scale(1); }
+  15%  { opacity: .06; }
+  80%  { opacity: .06; }
+  100% { opacity: 0;    transform: translateY(-60px) scale(1.05); }
+}
 </style>
 </head>
 <body>
@@ -550,6 +570,31 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }, { threshold: 0.08 });
 
   obs.observe(document.getElementById('s2'));
+
+  // Floating à letters every 30s
+  const s2 = document.getElementById('s2');
+  function spawnAs() {
+    const count = 2 + Math.floor(Math.random() * 2); // 2 or 3
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('span');
+        el.className = 'bg-a';
+        el.textContent = 'à';
+        const size = 80 + Math.random() * 120;
+        const dur  = 8 + Math.random() * 6;
+        el.style.cssText = `
+          font-size:${size}px;
+          left:${5 + Math.random()*88}%;
+          top:${5 + Math.random()*85}%;
+          animation-duration:${dur}s;
+        `;
+        s2.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }, i * 900);
+    }
+  }
+  spawnAs();
+  setInterval(spawnAs, 30000);
 })();
 </script>
 </body>
