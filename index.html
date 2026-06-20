@@ -15,23 +15,39 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
    LOADER
 ═══════════════════════════ */
 #loader {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: #fff;
-  overflow: hidden;
+  position: fixed; inset: 0; z-index: 9999;
+  background: #fff; overflow: hidden;
 }
 
-/* à + % centered */
+/* Iris layers — 007 barrel closing */
+#iris {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+
+/* Each ring is a radial gradient: transparent in center, color outside.
+   mix-blend-mode: multiply = colors mix where layers overlap            */
+.ring {
+  position: absolute; inset: 0;
+  mix-blend-mode: multiply;
+  /* background set by JS */
+}
+
+/* Slow spiral rotation on the whole iris for 007 swirl feel */
+#iris {
+  animation: irisRotate 5s linear forwards;
+}
+@keyframes irisRotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(18deg); }
+}
+
+/* à + % centered, always on top */
 #loader-center {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
   z-index: 30;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  display: flex; flex-direction:column; align-items:center; gap:6px;
   pointer-events: none;
 }
 
@@ -40,107 +56,47 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   font-size: clamp(90px, 18vw, 180px);
   font-weight: 800;
   color: #22c55e;
-  line-height: 1;
-  letter-spacing: -3px;
+  line-height: 1; letter-spacing:-3px;
   text-shadow:
-    0 0 24px rgba(34,197,94,0.9),
-    0 0 60px rgba(34,197,94,0.5);
+    0 0 20px rgba(34,197,94,1),
+    0 0 50px rgba(34,197,94,0.6),
+    0 0 100px rgba(34,197,94,0.3);
 }
 
 #pct-label {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(13px, 2vw, 17px);
-  font-weight: 600;
-  letter-spacing: 6px;
+  font-size: clamp(13px,2vw,17px);
+  font-weight: 600; letter-spacing:6px;
   color: #22c55e;
-  text-shadow: 0 0 10px rgba(34,197,94,0.7);
-}
-
-/* Paint container */
-#paint { position:absolute; inset:0; pointer-events:none; }
-
-/* ── FROM TOP ── */
-.s-top {
-  position: absolute;
-  top: -10px;
-  transform-origin: top center;
-  border-radius: 0 0 45% 45% / 0 0 55% 55%;
-  animation: flowDown var(--dur) cubic-bezier(0.4,0,0.6,1) var(--d) both;
-}
-@keyframes flowDown {
-  0%   { height: 0; }
-  100% { height: 62vh; }
-}
-
-/* ── FROM BOTTOM ── */
-.s-bot {
-  position: absolute;
-  bottom: -10px;
-  transform-origin: bottom center;
-  border-radius: 45% 45% 0 0 / 55% 55% 0 0;
-  animation: flowUp var(--dur) cubic-bezier(0.4,0,0.6,1) var(--d) both;
-}
-@keyframes flowUp {
-  0%   { height: 0; }
-  100% { height: 62vh; }
-}
-
-/* ── FROM LEFT ── */
-.s-left {
-  position: absolute;
-  left: -10px;
-  transform-origin: left center;
-  border-radius: 0 55% 55% 0 / 0 45% 45% 0;
-  animation: flowRight var(--dur) cubic-bezier(0.4,0,0.6,1) var(--d) both;
-}
-@keyframes flowRight {
-  0%   { width: 0; }
-  100% { width: 62vw; }
-}
-
-/* ── FROM RIGHT ── */
-.s-right {
-  position: absolute;
-  right: -10px;
-  transform-origin: right center;
-  border-radius: 55% 0 0 55% / 45% 0 0 45%;
-  animation: flowLeft var(--dur) cubic-bezier(0.4,0,0.6,1) var(--d) both;
-}
-@keyframes flowLeft {
-  0%   { width: 0; }
-  100% { width: 62vw; }
+  text-shadow: 0 0 12px rgba(34,197,94,0.8);
 }
 
 /* ═══════════════════════════
    SPLASH
 ═══════════════════════════ */
 #splash {
-  position: fixed; inset:0;
-  z-index: 8888;
-  pointer-events: none;
-  background: #020602;
+  position:fixed; inset:0; z-index:8888;
+  pointer-events:none; background:#020602;
   clip-path: circle(0% at 50% 50%);
 }
-#splash.go {
-  animation: splashGo 0.85s cubic-bezier(0.55,0,0.1,1) forwards;
-}
+#splash.go { animation: splashGo 0.85s cubic-bezier(0.55,0,0.1,1) forwards; }
 @keyframes splashGo { to { clip-path: circle(150% at 50% 50%); } }
 
 /* ═══════════════════════════
    MAIN PAGE
 ═══════════════════════════ */
 #main {
-  position: fixed; inset:0; z-index:1;
+  position:fixed; inset:0; z-index:1;
   opacity:0; overflow-y:auto; overflow-x:hidden; scroll-behavior:smooth;
 }
 #main.on { opacity:1; }
 
 #s1 {
-  min-height: 100vh;
-  display: flex; flex-direction:column;
+  min-height:100vh;
+  display:flex; flex-direction:column;
   align-items:center; justify-content:center;
-  padding: 80px 24px 60px;
-  position: relative; overflow:hidden;
+  padding:80px 24px 60px;
+  position:relative; overflow:hidden;
   background:
     radial-gradient(ellipse 65% 85% at 2%  98%, rgba(0,100,22,0.6)  0%, transparent 52%),
     radial-gradient(ellipse 55% 75% at 98% 2%,  rgba(0,80,18,0.5)   0%, transparent 52%),
@@ -151,18 +107,15 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 #s1::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background:
-    linear-gradient(135deg, rgba(0,120,28,0.08) 0%, transparent 40%),
-    linear-gradient(315deg, rgba(0,90,18,0.06) 0%, transparent 40%);
+    linear-gradient(135deg,rgba(0,120,28,0.08) 0%,transparent 40%),
+    linear-gradient(315deg,rgba(0,90,18,0.06)  0%,transparent 40%);
 }
 #s1::after {
   content:''; position:absolute; inset:-20%; pointer-events:none;
-  background: radial-gradient(ellipse 30% 30% at 50% 50%, rgba(26,122,60,0.07) 0%, transparent 70%);
-  animation: breathe 5s ease-in-out infinite;
+  background:radial-gradient(ellipse 30% 30% at 50% 50%,rgba(26,122,60,0.07) 0%,transparent 70%);
+  animation:breathe 5s ease-in-out infinite;
 }
-@keyframes breathe {
-  0%,100% { transform:scale(1); opacity:0.6; }
-  50%      { transform:scale(1.1); opacity:1; }
-}
+@keyframes breathe { 0%,100%{transform:scale(1);opacity:.6;} 50%{transform:scale(1.1);opacity:1;} }
 
 .main-logo {
   position:relative; z-index:2;
@@ -173,63 +126,57 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   cursor:default; user-select:none;
   opacity:0; transform:translateY(24px);
 }
-.main-logo.in { animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s forwards; }
+.main-logo.in { animation:riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s forwards; }
 
 .logo-glow {
   position:absolute; top:50%; left:50%;
   transform:translate(-50%,-50%);
   width:130%; height:160%;
   background:radial-gradient(ellipse 55% 55% at 50% 50%,
-    rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 40%, transparent 70%);
+    rgba(255,255,255,0.18) 0%,rgba(255,255,255,0.07) 40%,transparent 70%);
   pointer-events:none; z-index:-1; border-radius:50%;
 }
-
-.ml-a-wrap {
-  position:relative; display:inline-flex;
-  flex-direction:column; align-items:center;
-}
+.ml-a-wrap { position:relative; display:inline-flex; flex-direction:column; align-items:center; }
 .ml-tick {
-  position:absolute; top:-0.08em; left:50%;
-  transform:translateX(-46%);
+  position:absolute; top:-0.08em; left:50%; transform:translateX(-46%);
   width:0.44em; overflow:visible; pointer-events:none;
   filter:drop-shadow(0 0 6px rgba(34,197,94,0.7));
 }
 .ml-tick path {
   stroke:#22c55e; stroke-width:3.5;
   stroke-linecap:round; stroke-linejoin:round; fill:none;
-  animation:tickFloat 2.6s ease-in-out infinite;
-  transform-origin:50% 50%;
+  animation:tickFloat 2.6s ease-in-out infinite; transform-origin:50% 50%;
 }
 @keyframes tickFloat {
-  0%,100% { transform:translateY(0px) rotate(0deg); }
-  25%     { transform:translateY(-4px) rotate(-4deg); }
-  50%     { transform:translateY(-2px) rotate(3deg); }
-  75%     { transform:translateY(-5px) rotate(-2deg); }
+  0%,100%{transform:translateY(0) rotate(0deg);}
+  25%{transform:translateY(-4px) rotate(-4deg);}
+  50%{transform:translateY(-2px) rotate(3deg);}
+  75%{transform:translateY(-5px) rotate(-2deg);}
 }
 .ml-a-letter {
   color:#22c55e;
-  text-shadow:0 0 20px rgba(34,197,94,0.55),0 0 50px rgba(34,197,94,0.25);
-  transition:text-shadow 0.3s;
+  text-shadow:0 0 20px rgba(34,197,94,.55),0 0 50px rgba(34,197,94,.25);
+  transition:text-shadow .3s;
 }
 .ml-bank {
   color:#000;
-  text-shadow:0 0 2px rgba(255,255,255,0.95),0 0 12px rgba(255,255,255,0.7),0 0 30px rgba(255,255,255,0.35);
-  transition:text-shadow 0.3s;
+  text-shadow:0 0 2px rgba(255,255,255,.95),0 0 12px rgba(255,255,255,.7),0 0 30px rgba(255,255,255,.35);
+  transition:text-shadow .3s;
 }
-.main-logo:hover .ml-a-letter { text-shadow:0 0 25px rgba(34,197,94,0.8),0 0 60px rgba(34,197,94,0.4); }
-.main-logo:hover .ml-bank { text-shadow:0 0 2px #fff,0 0 20px rgba(255,255,255,0.9),0 0 50px rgba(255,255,255,0.5); }
+.main-logo:hover .ml-a-letter { text-shadow:0 0 25px rgba(34,197,94,.8),0 0 60px rgba(34,197,94,.4); }
+.main-logo:hover .ml-bank { text-shadow:0 0 2px #fff,0 0 20px rgba(255,255,255,.9),0 0 50px rgba(255,255,255,.5); }
 
 .tagline {
   position:relative; z-index:2;
   font-family:'Space Grotesk',sans-serif;
   font-size:clamp(12px,1.6vw,16px); font-weight:300;
   letter-spacing:5px; text-transform:uppercase;
-  color:rgba(255,255,255,0.4); margin-top:10px;
-  cursor:default; transition:color 0.3s,text-shadow 0.3s;
+  color:rgba(255,255,255,.4); margin-top:10px;
+  cursor:default; transition:color .3s,text-shadow .3s;
   opacity:0; transform:translateY(10px);
 }
-.tagline:hover { color:rgba(255,255,255,0.8); text-shadow:0 0 16px rgba(255,255,255,0.2); }
-.tagline.in { animation:riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.35s forwards; }
+.tagline:hover { color:rgba(255,255,255,.8); text-shadow:0 0 16px rgba(255,255,255,.2); }
+.tagline.in { animation:riseIn .85s cubic-bezier(.22,1,.36,1) .35s forwards; }
 
 .subtitle-block {
   position:relative; z-index:2;
@@ -237,37 +184,37 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   margin-top:52px; padding:0 16px;
   opacity:0; transform:translateY(24px);
 }
-.subtitle-block.in { animation:riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.55s forwards; }
+.subtitle-block.in { animation:riseIn .85s cubic-bezier(.22,1,.36,1) .55s forwards; }
 
 @keyframes riseIn { to { opacity:1; transform:translateY(0); } }
 
 .subtitle-text {
   font-family:'Space Grotesk',sans-serif;
   font-size:clamp(13px,1.8vw,17px); font-weight:300;
-  color:rgba(255,255,255,0.75); line-height:1.8;
-  cursor:default; transition:color 0.35s,text-shadow 0.35s;
+  color:rgba(255,255,255,.75); line-height:1.8;
+  cursor:default; transition:color .35s,text-shadow .35s;
 }
-.subtitle-text:hover { color:rgba(255,255,255,1); text-shadow:0 0 18px rgba(255,255,255,0.22),0 0 40px rgba(255,255,255,0.1); }
-.subtitle-text .hl { color:#4ade80; font-weight:500; transition:text-shadow 0.35s; }
-.subtitle-text:hover .hl { text-shadow:0 0 14px rgba(74,222,128,0.6); }
+.subtitle-text:hover { color:rgba(255,255,255,1); text-shadow:0 0 18px rgba(255,255,255,.22),0 0 40px rgba(255,255,255,.1); }
+.subtitle-text .hl { color:#4ade80; font-weight:500; transition:text-shadow .35s; }
+.subtitle-text:hover .hl { text-shadow:0 0 14px rgba(74,222,128,.6); }
 
-.divider { width:48px; height:1px; background:linear-gradient(90deg,transparent,rgba(34,197,94,0.5),transparent); margin:28px auto; }
+.divider { width:48px; height:1px; background:linear-gradient(90deg,transparent,rgba(34,197,94,.5),transparent); margin:28px auto; }
 .author {
   font-family:'Inter',sans-serif; font-size:clamp(11px,1.4vw,14px);
   font-weight:400; letter-spacing:3px; text-transform:uppercase;
-  color:rgba(255,255,255,0.3); cursor:default; transition:color 0.3s,text-shadow 0.3s;
+  color:rgba(255,255,255,.3); cursor:default; transition:color .3s,text-shadow .3s;
 }
-.author:hover { color:rgba(255,255,255,0.65); text-shadow:0 0 16px rgba(255,255,255,0.18); }
+.author:hover { color:rgba(255,255,255,.65); text-shadow:0 0 16px rgba(255,255,255,.18); }
 
 .scroll-hint {
   position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
   z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px;
   opacity:0; animation:fadeH 1s ease 1.4s forwards;
 }
-@keyframes fadeH { to { opacity:0.3; } }
+@keyframes fadeH { to { opacity:.3; } }
 .scroll-hint span { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; color:#22c55e; text-transform:uppercase; }
-.sh-line { width:1px; height:28px; background:linear-gradient(to bottom,rgba(34,197,94,0.8),transparent); animation:shPulse 1.6s ease-in-out infinite; }
-@keyframes shPulse { 0%,100%{transform:scaleY(1);opacity:1;} 50%{transform:scaleY(0.5) translateY(6px);opacity:0.4;} }
+.sh-line { width:1px; height:28px; background:linear-gradient(to bottom,rgba(34,197,94,.8),transparent); animation:shPulse 1.6s ease-in-out infinite; }
+@keyframes shPulse { 0%,100%{transform:scaleY(1);opacity:1;} 50%{transform:scaleY(.5) translateY(6px);opacity:.4;} }
 
 #s2 { min-height:100vh; background:#020602; }
 </style>
@@ -278,7 +225,15 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 <!-- LOADER -->
 <div id="loader">
-  <div id="paint"></div>
+  <div id="iris">
+    <!-- 6 rings, each a different dark-green shade, closing at slightly different rates -->
+    <div class="ring" id="r0"></div>
+    <div class="ring" id="r1"></div>
+    <div class="ring" id="r2"></div>
+    <div class="ring" id="r3"></div>
+    <div class="ring" id="r4"></div>
+    <div class="ring" id="r5"></div>
+  </div>
   <div id="loader-center">
     <span id="loader-a">à</span>
     <span id="pct-label">0%</span>
@@ -318,7 +273,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 <script>
 (function(){
-  const paintEl   = document.getElementById('paint');
   const pctLabel  = document.getElementById('pct-label');
   const splash    = document.getElementById('splash');
   const mainEl    = document.getElementById('main');
@@ -328,83 +282,66 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const loaderEl  = document.getElementById('loader');
   const loaderCtr = document.getElementById('loader-center');
 
-  const COLORS = [
-    '#000e03','#001408','#001a06','#000a02',
-    '#002010','#001005','#001808','#000802',
-    '#001204','#000f04','#001a0a','#002508',
+  // 6 rings: color + how many % ahead this ring is in closing
+  // offset > 0 = this ring closes slower (creates color overlap zone)
+  const RINGS = [
+    { el: document.getElementById('r0'), color: '#001a06', cx: 50,   cy: 50,   offset: 0,  opacity: 0.92 },
+    { el: document.getElementById('r1'), color: '#003a14', cx: 51,   cy: 49,   offset: 6,  opacity: 0.80 },
+    { el: document.getElementById('r2'), color: '#000d03', cx: 49,   cy: 51,   offset: 12, opacity: 0.88 },
+    { el: document.getElementById('r3'), color: '#004a1c', cx: 50.5, cy: 50.5, offset: 4,  opacity: 0.75 },
+    { el: document.getElementById('r4'), color: '#001008', cx: 49.5, cy: 49.5, offset: 9,  opacity: 0.85 },
+    { el: document.getElementById('r5'), color: '#002510', cx: 50,   cy: 50,   offset: 15, opacity: 0.70 },
   ];
 
-  function rnd(a,b){ return Math.random()*(b-a)+a; }
-  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  // MAX radius in vmax so it covers screen corners (≥ 71vmax always covers)
+  const MAX_R = 75;
 
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-
-  // Streams per side
-  const N = 10; // per side
-
-  // ── TOP → DOWN ──
-  for(let i=0;i<N;i++){
-    const el = document.createElement('div');
-    el.className = 's-top';
-    const w = (vw/N) * rnd(1.0,1.6);
-    const x = (vw/N)*i + (vw/N)*0.5 + rnd(-(vw/N)*0.15,(vw/N)*0.15);
-    el.style.cssText = `left:${x-w/2}px;width:${w}px;--dur:${rnd(2.5,4.0)}s;--d:${rnd(0,0.3)}s;background:${pick(COLORS)};`;
-    paintEl.appendChild(el);
+  function updateIris(pct) {
+    RINGS.forEach(r => {
+      // Each ring closes at its own rate (offset shifts the closing curve)
+      const p   = Math.max(0, Math.min(100, pct * 1.15 - r.offset));
+      // Ease-in: slow start, fast close at end (feels like shutter slamming)
+      const ease = p < 0 ? 0 : (p/100) * (p/100);
+      const rad  = MAX_R * (1 - ease);
+      r.el.style.background =
+        `radial-gradient(circle at ${r.cx}% ${r.cy}%, ` +
+        `transparent ${rad.toFixed(2)}vmax, ${r.color} ${rad.toFixed(2)}vmax)`;
+      r.el.style.opacity = r.opacity;
+    });
   }
 
-  // ── BOTTOM → UP ──
-  for(let i=0;i<N;i++){
-    const el = document.createElement('div');
-    el.className = 's-bot';
-    const w = (vw/N) * rnd(1.0,1.6);
-    const x = (vw/N)*i + (vw/N)*0.5 + rnd(-(vw/N)*0.15,(vw/N)*0.15);
-    el.style.cssText = `left:${x-w/2}px;width:${w}px;--dur:${rnd(2.5,4.0)}s;--d:${rnd(0,0.3)}s;background:${pick(COLORS)};`;
-    paintEl.appendChild(el);
-  }
+  // Init at 0%
+  updateIris(0);
 
-  // ── LEFT → RIGHT ──
-  const M = 8;
-  for(let i=0;i<M;i++){
-    const el = document.createElement('div');
-    el.className = 's-left';
-    const h = (vh/M) * rnd(1.0,1.6);
-    const y = (vh/M)*i + (vh/M)*0.5 + rnd(-(vh/M)*0.15,(vh/M)*0.15);
-    el.style.cssText = `top:${y-h/2}px;height:${h}px;--dur:${rnd(2.5,4.0)}s;--d:${rnd(0,0.3)}s;background:${pick(COLORS)};`;
-    paintEl.appendChild(el);
-  }
+  // Drive progress over 5 seconds
+  const TOTAL  = 5000;
+  const STEPS  = 240;
+  const IVTIME = TOTAL / STEPS;
+  let   step   = 0;
 
-  // ── RIGHT → LEFT ──
-  for(let i=0;i<M;i++){
-    const el = document.createElement('div');
-    el.className = 's-right';
-    const h = (vh/M) * rnd(1.0,1.6);
-    const y = (vh/M)*i + (vh/M)*0.5 + rnd(-(vh/M)*0.15,(vh/M)*0.15);
-    el.style.cssText = `top:${y-h/2}px;height:${h}px;--dur:${rnd(2.5,4.0)}s;--d:${rnd(0,0.3)}s;background:${pick(COLORS)};`;
-    paintEl.appendChild(el);
-  }
-
-  // ── % counter ──
-  const STEPS = 200, INTERVAL = 5000/STEPS;
-  let step=0;
-  const timer = setInterval(()=>{
+  const timer = setInterval(() => {
     step++;
-    const pct = Math.min(Math.round((step/STEPS)*100),100);
-    pctLabel.textContent = pct+'%';
-    if(pct>=100){ clearInterval(timer); setTimeout(doSplash,300); }
-  }, INTERVAL);
+    const pct = Math.min(Math.round((step / STEPS) * 100), 100);
+    pctLabel.textContent = pct + '%';
+    updateIris(pct);
+    if (pct >= 100) {
+      clearInterval(timer);
+      // Brief pause so iris is fully shut, then splash
+      setTimeout(doSplash, 200);
+    }
+  }, IVTIME);
 
-  function doSplash(){
-    loaderCtr.style.display='none';
+  function doSplash() {
+    loaderCtr.style.display = 'none';
     mainEl.classList.add('on');
     splash.classList.add('go');
-    splash.addEventListener('animationend',()=>{
-      loaderEl.style.display='none';
-      splash.style.display='none';
+    splash.addEventListener('animationend', () => {
+      loaderEl.style.display = 'none';
+      splash.style.display   = 'none';
       mainLogo.classList.add('in');
-      if(taglineEl) taglineEl.classList.add('in');
+      if (taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
-    },{once:true});
+    }, { once: true });
   }
 })();
 </script>
