@@ -23,13 +23,12 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   overflow: hidden;
 }
 
-/* Text block at top-center */
 #lc {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: max(48px, 9vh);
-  gap: 4px;
+  gap: 6px;
   position: relative;
   z-index: 2;
 }
@@ -41,9 +40,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   color: #22c55e;
   line-height: 1;
   letter-spacing: -3px;
-  text-shadow:
-    0 0 30px rgba(34,197,94,0.8),
-    0 0 80px rgba(34,197,94,0.3);
+  text-shadow: 0 0 30px rgba(34,197,94,0.8), 0 0 80px rgba(34,197,94,0.3);
 }
 
 #lw {
@@ -62,64 +59,24 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   letter-spacing: 5px;
   color: #22c55e;
   text-shadow: 0 0 14px rgba(34,197,94,0.9);
+  margin-top: 2px;
 }
 
-/* Drips row */
-#drips {
+/* Paint drip container — positioned by JS right below text */
+#drip-wrap {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
   z-index: 3;
+  width: min(480px, 88vw);
+  pointer-events: none;
 }
 
-/* Each drip: stem + SVG teardrop */
-.drip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+#drip-svg {
+  width: 100%;
+  overflow: visible;
+  display: block;
 }
-
-.stem {
-  width: var(--w);
-  height: 0;           /* grown by JS */
-  border-radius: calc(var(--w)/2) calc(var(--w)/2) 0 0;
-  background: #22c55e;
-  position: relative;
-  /* Glossy highlight */
-  box-shadow:
-    inset calc(var(--w)*-0.2) 0 calc(var(--w)*0.3) rgba(0,0,0,0.3),
-    inset calc(var(--w)*0.15) 0 calc(var(--w)*0.25) rgba(255,255,255,0.25);
-}
-
-.stem::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 22%;
-  width: 26%;
-  bottom: 4px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.22);
-  filter: blur(1.5px);
-}
-
-/* Teardrop at bottom — SVG so shape is natural */
-.drop {
-  width: calc(var(--w) * 1.9);
-  height: calc(var(--w) * 2.4);
-  margin-top: -1px;
-  flex-shrink: 0;
-  filter:
-    drop-shadow(calc(var(--w)*-0.15) 0 calc(var(--w)*0.2) rgba(0,0,0,0.35))
-    drop-shadow(calc(var(--w)*0.1) 0 calc(var(--w)*0.15) rgba(255,255,255,0.15));
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.drop path { fill: #22c55e; }
 
 /* ═══════════════════════════
    SPLASH
@@ -284,44 +241,30 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     <span id="lp">0%</span>
   </div>
 
-  <!-- Drips: positioned by JS right under the text block -->
-  <div id="drips">
-    <!-- 5 drips, widths vary for natural look -->
-    <div class="drip" style="--w:18px">
-      <div class="stem" id="s0"></div>
-      <svg class="drop" id="d0" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
-        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="drip" style="--w:24px">
-      <div class="stem" id="s1"></div>
-      <svg class="drop" id="d1" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
-        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="drip" style="--w:20px">
-      <div class="stem" id="s2"></div>
-      <svg class="drop" id="d2" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
-        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="drip" style="--w:16px">
-      <div class="stem" id="s3"></div>
-      <svg class="drop" id="d3" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
-        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="drip" style="--w:22px">
-      <div class="stem" id="s4"></div>
-      <svg class="drop" id="d4" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18,2 C22,10 32,22 32,32 C32,41 26,47 18,47 C10,47 4,41 4,32 C4,22 14,10 18,2 Z"/>
-        <path d="M10,22 Q9,35 11,42" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
+  <!-- SVG paint drips — positioned by JS -->
+  <div id="drip-wrap">
+    <svg id="drip-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="drip-glow" x="-30%" y="-10%" width="160%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="drip-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#1aaa50"/>
+          <stop offset="35%"  stop-color="#22c55e"/>
+          <stop offset="65%"  stop-color="#22c55e"/>
+          <stop offset="100%" stop-color="#16943f"/>
+        </linearGradient>
+        <!-- highlight shimmer -->
+        <linearGradient id="drip-hi" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="rgba(255,255,255,0)"/>
+          <stop offset="30%"  stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="60%"  stop-color="rgba(255,255,255,0.1)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+      </defs>
+      <!-- wave base + drips drawn by JS -->
+    </svg>
   </div>
 </div>
 
@@ -363,67 +306,172 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const taglineEl = document.getElementById('tagline');
   const loaderEl  = document.getElementById('loader');
   const lcEl      = document.getElementById('lc');
-  const dripsEl   = document.getElementById('drips');
+  const dripWrap  = document.getElementById('drip-wrap');
+  const dripSvg   = document.getElementById('drip-svg');
   const lpEl      = document.getElementById('lp');
 
-  const N      = 5;
-  const stems  = Array.from({length:N}, (_,i)=>document.getElementById('s'+i));
-  const drops  = Array.from({length:N}, (_,i)=>document.getElementById('d'+i));
+  // SVG viewport width
+  const SVG_W = 480;
 
-  // Each drip starts flowing at a different % for natural stagger
-  const STAGGER = [0, 10, 5, 18, 8];
+  // Drip definitions: x center, width, max height, stagger delay (0-25%)
+  const DRIPS = [
+    { x: 48,  w: 22, maxH: 220, delay: 0  },
+    { x: 108, w: 30, maxH: 280, delay: 8  },
+    { x: 178, w: 18, maxH: 195, delay: 15 },
+    { x: 238, w: 26, maxH: 260, delay: 4  },
+    { x: 298, w: 20, maxH: 240, delay: 20 },
+    { x: 362, w: 28, maxH: 270, delay: 11 },
+    { x: 422, w: 16, maxH: 180, delay: 6  },
+  ];
 
-  // Position drips right below text block, stretching to bottom
-  function init() {
-    const r   = lcEl.getBoundingClientRect();
-    const top = r.bottom + 8;
-    dripsEl.style.top = top + 'px';
-    return window.innerHeight - top;
+  // Wave base height (the wavy paint mass at top)
+  const WAVE_H = 52;
+
+  // Build SVG: wave base + drip stems + teardrops
+  dripSvg.setAttribute('viewBox', '0 0 ' + SVG_W + ' 380');
+  dripSvg.setAttribute('height', '380');
+
+  // Wave path (organic wavy bottom edge)
+  const wavePath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const wp = [
+    'M0,0',
+    'L' + SVG_W + ',0',
+    'L' + SVG_W + ',' + (WAVE_H - 8),
+    'C' + (SVG_W*0.88) + ',' + (WAVE_H+14) + ' ' + (SVG_W*0.78) + ',' + (WAVE_H-10) + ' ' + (SVG_W*0.68) + ',' + (WAVE_H+8),
+    'C' + (SVG_W*0.58) + ',' + (WAVE_H+22) + ' ' + (SVG_W*0.5) + ',' + (WAVE_H-6) + ' ' + (SVG_W*0.42) + ',' + (WAVE_H+12),
+    'C' + (SVG_W*0.32) + ',' + (WAVE_H+26) + ' ' + (SVG_W*0.22) + ',' + (WAVE_H-8) + ' ' + (SVG_W*0.12) + ',' + (WAVE_H+10),
+    'C' + (SVG_W*0.06) + ',' + (WAVE_H+18) + ' 0,' + (WAVE_H+4) + ' 0,' + (WAVE_H+4),
+    'Z'
+  ].join(' ');
+  wavePath.setAttribute('d', wp);
+  wavePath.setAttribute('fill', 'url(#drip-grad)');
+  wavePath.setAttribute('filter', 'url(#drip-glow)');
+  dripSvg.appendChild(wavePath);
+
+  // Wave highlight
+  const waveHi = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  waveHi.setAttribute('x','0'); waveHi.setAttribute('y','0');
+  waveHi.setAttribute('width', SVG_W); waveHi.setAttribute('height', '18');
+  waveHi.setAttribute('fill','url(#drip-hi)');
+  dripSvg.appendChild(waveHi);
+
+  // Create drip elements
+  const stemEls = [];
+  const dropEls = [];
+
+  DRIPS.forEach((d, i) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+
+    // Stem rectangle (starts at wave bottom, height=0, grows down)
+    const stem = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    const sx = d.x - d.w/2;
+    stem.setAttribute('x', sx);
+    stem.setAttribute('y', WAVE_H + 12);
+    stem.setAttribute('width', d.w);
+    stem.setAttribute('height', '0');
+    stem.setAttribute('fill', 'url(#drip-grad)');
+    stem.setAttribute('rx', d.w/2);
+
+    // Stem highlight
+    const stemHi = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    stemHi.setAttribute('x', sx + d.w*0.2);
+    stemHi.setAttribute('y', WAVE_H + 12);
+    stemHi.setAttribute('width', d.w * 0.28);
+    stemHi.setAttribute('height', '0');
+    stemHi.setAttribute('fill', 'rgba(255,255,255,0.2)');
+    stemHi.setAttribute('rx', d.w*0.14);
+
+    // Teardrop at bottom of stem
+    const tw = d.w * 2.0;
+    const th = d.w * 2.6;
+    // Teardrop SVG path centered at (d.x, WAVE_H + 12 + currentH + th/2)
+    const drop = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    drop.setAttribute('cx', d.x);
+    drop.setAttribute('cy', WAVE_H + 12);
+    drop.setAttribute('rx', tw/2);
+    drop.setAttribute('ry', th/2);
+    drop.setAttribute('fill', 'url(#drip-grad)');
+    drop.setAttribute('opacity', '0');
+
+    // Teardrop highlight
+    const dropHi = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    dropHi.setAttribute('cx', d.x - tw*0.12);
+    dropHi.setAttribute('cy', WAVE_H + 12);
+    dropHi.setAttribute('rx', tw*0.18);
+    dropHi.setAttribute('ry', th*0.28);
+    dropHi.setAttribute('fill', 'rgba(255,255,255,0.25)');
+    dropHi.setAttribute('opacity', '0');
+
+    g.appendChild(stem);
+    g.appendChild(stemHi);
+    g.appendChild(drop);
+    g.appendChild(dropHi);
+    dripSvg.appendChild(g);
+
+    stemEls.push({ stem, stemHi, drop, dropHi, d });
+  });
+
+  // Position drip-wrap right below text block
+  function positionDrips() {
+    const r = lcEl.getBoundingClientRect();
+    dripWrap.style.top = (r.bottom + 6) + 'px';
   }
-
-  const maxH = init();
+  positionDrips();
 
   function update(pct) {
     lpEl.textContent = pct + '%';
-    stems.forEach((s, i) => {
-      const p = Math.max(0, pct - STAGGER[i]);
-      // Ease: starts slow, speeds up mid-way (natural gravity)
-      const t = p / 100;
-      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out
-      const h = maxH * ease;
-      s.style.height = Math.max(0, h) + 'px';
-      drops[i].style.opacity = h > 6 ? '1' : '0';
+
+    stemEls.forEach(({ stem, stemHi, drop, dropHi, d }) => {
+      const p = Math.max(0, pct - d.delay);
+      const t = p / (100 - d.delay);
+      // Ease-in: slow start, faster as it grows (like gravity)
+      const ease = t * t;
+      const h = d.maxH * ease;
+
+      const baseY = WAVE_H + 12;
+
+      stem.setAttribute('height', h);
+      stemHi.setAttribute('height', h);
+      stemHi.setAttribute('y', baseY);
+
+      const tw = d.w * 2.0;
+      const th = d.w * 2.6;
+      const dropCY = baseY + h + th * 0.5;
+
+      drop.setAttribute('cy', dropCY);
+      drop.setAttribute('opacity', h > 8 ? '1' : '0');
+
+      dropHi.setAttribute('cy', dropCY - th*0.1);
+      dropHi.setAttribute('opacity', h > 8 ? '1' : '0');
     });
   }
 
   update(0);
 
-  // 5 second timer
-  const STEPS = 200, IV = 5000/STEPS;
+  const STEPS = 200, IV = 5000 / STEPS;
   let step = 0;
-  const timer = setInterval(()=>{
+  const timer = setInterval(() => {
     step++;
-    const pct = Math.min(Math.round(step/STEPS*100), 100);
+    const pct = Math.min(Math.round(step / STEPS * 100), 100);
     update(pct);
-    if(pct >= 100){
+    if (pct >= 100) {
       clearInterval(timer);
-      // Instant transition — no delay, no intermediate step
       doSplash();
     }
   }, IV);
 
-  function doSplash(){
-    lcEl.style.display    = 'none';
-    dripsEl.style.display = 'none';
+  function doSplash() {
+    lcEl.style.display     = 'none';
+    dripWrap.style.display = 'none';
     mainEl.classList.add('on');
     splash.classList.add('go');
-    splash.addEventListener('animationend', ()=>{
+    splash.addEventListener('animationend', () => {
       loaderEl.style.display = 'none';
       splash.style.display   = 'none';
       mainLogo.classList.add('in');
-      if(taglineEl) taglineEl.classList.add('in');
+      if (taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
-    }, {once:true});
+    }, { once: true });
   }
 })();
 </script>
