@@ -207,6 +207,75 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .sh-line{width:1px;height:28px;background:linear-gradient(to bottom,rgba(34,197,94,.8),transparent);animation:shPulse 1.6s ease-in-out infinite;}
 @keyframes shPulse{0%,100%{transform:scaleY(1);opacity:1;}50%{transform:scaleY(.5) translateY(6px);opacity:.4;}}
 
+/* ── DONUT CHART ── */
+.donut-wrap {
+  display: flex; align-items: center; gap: 40px;
+  flex-wrap: wrap; justify-content: center;
+  margin-bottom: 40px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .6s ease .1s, transform .6s ease .1s;
+}
+.donut-wrap.vis { opacity: 1; transform: translateY(0); }
+
+.donut-svg { width: 200px; height: 200px; cursor: pointer; flex-shrink: 0; }
+
+.donut-segment {
+  transition: opacity .25s, transform .25s;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.donut-segment:hover { opacity: .85; transform: scale(1.04); }
+.donut-segment.active { filter: brightness(1.2); }
+.donut-segment.dimmed { opacity: .25; }
+
+.donut-center {
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.dc-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 500;
+  fill: rgba(255,255,255,.4);
+  letter-spacing: 1px;
+}
+.dc-count {
+  font-family: 'Inter', sans-serif;
+  font-size: 26px; font-weight: 800;
+  fill: #fff;
+}
+.dc-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  fill: rgba(255,255,255,.35);
+}
+
+.donut-legend {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.dl-item {
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; padding: 10px 16px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.03);
+  transition: background .2s, border-color .2s, transform .2s;
+  min-width: 220px;
+}
+.dl-item:hover { background: rgba(255,255,255,.07); transform: translateX(4px); }
+.dl-item.active { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.08); }
+.dl-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.dl-info { flex: 1; }
+.dl-name {
+  font-family: 'Inter', sans-serif; font-size: 11px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+}
+.dl-stats {
+  font-family: 'Inter', sans-serif; font-size: 13px;
+  font-weight: 700; color: #fff; margin-top: 3px;
+}
+.dl-stats span { font-size: 11px; font-weight: 400; color: rgba(255,255,255,.4); margin-left: 6px; }
+
 /* ── SECTION 3: DIALOGS ── */
 #s3 {
   min-height: 100vh;
@@ -437,6 +506,12 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   <section id="s3">
     <h2 class="rating-title" id="dt">Кількість діалогів</h2>
     <p class="rating-subtitle" id="ds">10.06 — 17.06 · всі оператори</p>
+
+    <!-- Donut chart -->
+    <div class="donut-wrap" id="donut-wrap">
+      <svg class="donut-svg" id="donut-svg" viewBox="0 0 200 200"></svg>
+      <div class="donut-legend" id="donut-legend"></div>
+    </div>
 
     <div class="rating-filters" id="df">
       <button class="rf-btn rf-all active" data-f="all">Всі</button>
@@ -723,7 +798,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     });
   });
 
-  const targets = ['dt','ds','df','dleg'].map(id => document.getElementById(id));
+  const targets = ['dt','ds','df','dleg','donut-wrap'].map(id => document.getElementById(id));
 
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
@@ -739,6 +814,126 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       obs.disconnect();
     });
   }, { threshold: 0.06 });
+
+  // ── Donut chart ──
+  const TIERS = [
+    { key:'high', label:'Високий',  color:'#22c55e', min:600 },
+    { key:'mid',  label:'Середній', color:'#eab308', min:400 },
+    { key:'low',  label:'Низький',  color:'#ef4444', min:0   },
+  ];
+
+  const tierStats = {};
+  TIERS.forEach(t => { tierStats[t.key] = { count:0, total:0 }; });
+  DATA.forEach(emp => {
+    const k = tier(emp.v);
+    tierStats[k].count++;
+    tierStats[k].total += emp.v;
+  });
+
+  const svg    = document.getElementById('donut-svg');
+  const legend = document.getElementById('donut-legend');
+  const cx = 100, cy = 100, R = 80, r = 50;
+  const total = DATA.length;
+  let startAngle = -Math.PI / 2;
+  let activeSegKey = null;
+
+  const segEls = {};
+
+  function polarToXY(angle, radius){
+    return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+  }
+  function describeArc(sa, ea, R, r){
+    const [x1,y1] = polarToXY(sa, R);
+    const [x2,y2] = polarToXY(ea, R);
+    const [x3,y3] = polarToXY(ea, r);
+    const [x4,y4] = polarToXY(sa, r);
+    const large = ea - sa > Math.PI ? 1 : 0;
+    return `M${x1},${y1} A${R},${R},0,${large},1,${x2},${y2} L${x3},${y3} A${r},${r},0,${large},0,${x4},${y4} Z`;
+  }
+
+  TIERS.forEach(t => {
+    const stat = tierStats[t.key];
+    const angle = (stat.count / total) * 2 * Math.PI;
+    const endAngle = startAngle + angle;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', describeArc(startAngle, endAngle, R, r));
+    path.setAttribute('fill', t.color);
+    path.setAttribute('opacity','0.85');
+    path.classList.add('donut-segment');
+    path.dataset.key = t.key;
+    svg.appendChild(path);
+    segEls[t.key] = path;
+    startAngle = endAngle;
+
+    // Legend item
+    const item = document.createElement('div');
+    item.className = 'dl-item';
+    item.dataset.key = t.key;
+    item.innerHTML = `
+      <div class="dl-dot" style="background:${t.color}"></div>
+      <div class="dl-info">
+        <div class="dl-name">${t.label} показник</div>
+        <div class="dl-stats">${stat.count} співробітників<span>· ${stat.total.toLocaleString()} діалогів</span></div>
+      </div>`;
+    legend.appendChild(item);
+  });
+
+  // Center text
+  const gCenter = document.createElementNS('http://www.w3.org/2000/svg','g');
+  gCenter.classList.add('donut-center');
+  const tLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
+  tLabel.classList.add('dc-label');
+  tLabel.setAttribute('x',cx); tLabel.setAttribute('y', cy-14);
+  tLabel.textContent = 'ВСЬОГО';
+  const tCount = document.createElementNS('http://www.w3.org/2000/svg','text');
+  tCount.classList.add('dc-count');
+  tCount.setAttribute('x',cx); tCount.setAttribute('y', cy+8);
+  tCount.textContent = total;
+  const tSub = document.createElementNS('http://www.w3.org/2000/svg','text');
+  tSub.classList.add('dc-sub');
+  tSub.setAttribute('x',cx); tSub.setAttribute('y', cy+26);
+  tSub.textContent = 'операторів';
+  gCenter.appendChild(tLabel); gCenter.appendChild(tCount); gCenter.appendChild(tSub);
+  svg.appendChild(gCenter);
+
+  function selectTier(key) {
+    if (activeSegKey === key) {
+      // reset
+      activeSegKey = null;
+      Object.values(segEls).forEach(p => { p.classList.remove('active','dimmed'); });
+      document.querySelectorAll('.dl-item').forEach(el => el.classList.remove('active'));
+      rows.forEach(r => r.classList.remove('dimmed'));
+      tLabel.textContent = 'ВСЬОГО';
+      tCount.textContent = total;
+      tSub.textContent = 'операторів';
+      document.querySelectorAll('#df .rf-btn').forEach(b => { b.classList.toggle('active', b.dataset.f==='all'); });
+    } else {
+      activeSegKey = key;
+      const stat = tierStats[key];
+      const t = TIERS.find(t=>t.key===key);
+      Object.entries(segEls).forEach(([k,p]) => {
+        p.classList.toggle('active', k===key);
+        p.classList.toggle('dimmed', k!==key);
+      });
+      document.querySelectorAll('.dl-item').forEach(el => el.classList.toggle('active', el.dataset.key===key));
+      rows.forEach(r => r.classList.toggle('dimmed', r.dataset.tier !== key));
+      tLabel.textContent = t.label.toUpperCase();
+      tCount.textContent = stat.count;
+      tSub.textContent = stat.total.toLocaleString() + ' діал.';
+      document.querySelectorAll('#df .rf-btn').forEach(b => { b.classList.toggle('active', b.dataset.f===key); });
+    }
+  }
+
+  Object.entries(segEls).forEach(([k,p]) => p.addEventListener('click', ()=>selectTier(k)));
+  document.querySelectorAll('.dl-item').forEach(el => el.addEventListener('click', ()=>selectTier(el.dataset.key)));
+  document.querySelectorAll('#df .rf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.f;
+      if (f === 'all') selectTier(activeSegKey || ''); // reset
+      else selectTier(f);
+    });
+  });
 
   obs.observe(document.getElementById('s3'));
 
