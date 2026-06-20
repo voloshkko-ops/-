@@ -23,19 +23,39 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   overflow: hidden;
 }
 
-/* % counter */
-#pct-label {
+/* % counter + à letter */
+#loader-center {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 20;
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(14px, 2.5vw, 20px);
-  font-weight: 600;
-  letter-spacing: 5px;
-  color: rgba(0,0,0,0.25);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   pointer-events: none;
-  mix-blend-mode: multiply;
+}
+
+#loader-a {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(80px, 16vw, 160px);
+  font-weight: 800;
+  color: #22c55e;
+  line-height: 1;
+  text-shadow:
+    0 0 20px rgba(34,197,94,0.8),
+    0 0 50px rgba(34,197,94,0.5),
+    0 0 100px rgba(34,197,94,0.2);
+  letter-spacing: -3px;
+}
+
+#pct-label {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(13px, 2vw, 17px);
+  font-weight: 600;
+  letter-spacing: 6px;
+  color: #22c55e;
+  text-shadow: 0 0 12px rgba(34,197,94,0.7);
 }
 
 /* Paint streams container */
@@ -354,7 +374,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 <!-- LOADER -->
 <div id="loader">
   <div id="paint"></div>
-  <div id="pct-label">0%</div>
+  <div id="loader-center">
+    <span id="loader-a">à</span>
+    <span id="pct-label">0%</span>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -415,45 +438,42 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const vh = window.innerHeight;
   const TOTAL = 5000; // ms
 
-  // ── Build paint streams ──
-  // We pre-build all streams with CSS animations staggered over 5s
-  // So browser handles it natively — zero JS frame-by-frame = no freeze
+  // ── Evenly spaced streams covering full width ──
+  // Divide screen into equal columns, one stream per column
+  const COLS = 18;
+  const colW = (vw + 80) / COLS;
 
-  const STREAM_COUNT = 22;
-  const streams = [];
-
-  for(let i = 0; i < STREAM_COUNT; i++){
-    const el = document.createElement('div');
+  for(let i = 0; i < COLS; i++){
+    const el  = document.createElement('div');
     el.className = 'stream';
-
-    const x     = rnd(-30, vw + 30);
-    const w     = rnd(60, vw * 0.22);
-    const dur   = rnd(1.8, 3.5);   // how long stream takes to fall
-    const delay = rnd(0, 3.2);     // stagger start across 5s
+    // Center of each column ± small jitter
+    const cx  = -40 + colW * i + colW * 0.5 + rnd(-colW*0.2, colW*0.2);
+    const w   = colW * rnd(1.0, 1.6); // overlap neighbours
+    const dur = rnd(2.2, 3.8);
+    // All start near-simultaneously — tiny jitter only (0–0.4s)
+    const delay = rnd(0, 0.4);
 
     el.style.cssText = `
-      left: ${x - w/2}px;
+      left: ${cx - w/2}px;
       --w: ${w}px;
       --dur: ${dur}s;
       --delay: ${delay}s;
       background: ${pick(COLORS)};
     `;
     paintEl.appendChild(el);
-    streams.push({ delay, dur, x, w });
   }
 
-  // ── Bottom pools (paint spreading at floor) ──
-  const POOL_COUNT = 14;
-  for(let i = 0; i < POOL_COUNT; i++){
-    const el = document.createElement('div');
+  // ── Bottom pools ──
+  for(let i = 0; i < COLS; i++){
+    const el   = document.createElement('div');
     el.className = 'pool';
-    const pw    = rnd(80, vw * 0.3);
-    const px    = rnd(-40, vw + 40);
-    const pdelay= rnd(1.5, 4.0);
-    const pdur  = rnd(1.0, 2.5);
+    const cx   = -40 + colW * i + colW * 0.5 + rnd(-colW*0.1, colW*0.1);
+    const pw   = colW * rnd(1.2, 2.0);
+    const pdelay = rnd(1.8, 3.5);
+    const pdur   = rnd(0.8, 1.8);
 
     el.style.cssText = `
-      left: ${px - pw/2}px;
+      left: ${cx - pw/2}px;
       --pw: ${pw}px;
       --pdelay: ${pdelay}s;
       --pdur: ${pdur}s;
@@ -462,28 +482,24 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     paintEl.appendChild(el);
   }
 
-  // ── Splash drips flying off streams ──
-  for(let i = 0; i < 30; i++){
-    const el = document.createElement('div');
+  // ── Splash drips ──
+  for(let i = 0; i < 35; i++){
+    const el   = document.createElement('div');
     el.className = 'splash-drip';
-    const size   = rnd(6, 28);
-    const sx     = rnd(0, vw);
-    const sy     = rnd(vh*0.3, vh);
-    const delay  = rnd(1.2, 4.5);
-    const dx     = rnd(-120, 120);
-    const dy     = rnd(-80, 60);
-    const ds     = rnd(0.3, 1.2);
+    const size = rnd(5, 22);
+    const sx   = rnd(0, vw);
+    const sy   = rnd(vh * 0.4, vh);
 
     el.style.cssText = `
-      left: ${sx}px; top: ${sy}px;
-      width: ${size}px; height: ${size}px;
-      background: ${pick(COLORS)};
-      border-radius: 50%;
-      --sd: ${rnd(0.5,1.2)}s;
-      --sdelay: ${delay}s;
-      --dx: ${dx}px;
-      --dy: ${dy}px;
-      --ds: ${ds};
+      left:${sx}px; top:${sy}px;
+      width:${size}px; height:${size}px;
+      background:${pick(COLORS)};
+      border-radius:50%;
+      --sd:${rnd(0.4,1.0)}s;
+      --sdelay:${rnd(1.5, 4.2)}s;
+      --dx:${rnd(-140,140)}px;
+      --dy:${rnd(-90,50)}px;
+      --ds:${rnd(0.3,1.1)};
     `;
     paintEl.appendChild(el);
   }
@@ -505,8 +521,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }, INTERVAL);
 
   function doSplash(){
-    // Hide % label
-    pctLabel.style.display = 'none';
+    document.getElementById('loader-center').style.display = 'none';
     // Reveal main and expand dark splash circle
     mainEl.classList.add('on');
     splash.classList.add('go');
