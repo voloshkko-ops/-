@@ -600,30 +600,33 @@ html, body {
 
 <script>
 (function(){
-  const DURATION = 5000;
-  const STEPS    = 250;
-  const INTERVAL = DURATION / STEPS;
+  // ── constants ──
+  const STEPS    = 200;
+  const INTERVAL = 5000 / STEPS; // 5s total
 
-  const riseRect  = document.getElementById('riseRect');
-  const pctLabel  = document.getElementById('pctLabel') || document.getElementById('pct-label');
-  const blobsEl   = document.getElementById('loader-blobs');
-  const wordEl    = document.getElementById('word-assembly');
-  const wlTickPath= document.getElementById('wl-tick-path');
-  const splash    = document.getElementById('splash');
-  const mainEl    = document.getElementById('main');
-  const mainLogo  = document.getElementById('main-logo');
-  const subBlock  = document.getElementById('sub-block');
-  const loaderEl  = document.getElementById('loader');
+  // ── elements ──
+  const riseRect   = document.getElementById('riseRect');
+  const pctLabel   = document.getElementById('pct-label');
+  const blobsEl    = document.getElementById('loader-blobs');
+  const loaderCtr  = document.getElementById('loader-center');
+  const wordEl     = document.getElementById('word-assembly');
+  const wlTickPath = document.getElementById('wl-tick-path');
+  const splash     = document.getElementById('splash');
+  const mainEl     = document.getElementById('main');
+  const mainLogo   = document.getElementById('main-logo');
+  const subBlock   = document.getElementById('sub-block');
+  const loaderEl   = document.getElementById('loader');
+  const taglineEl  = document.getElementById('tagline');
+
+  // hide word-logo before animation
+  const wlLogo = wordEl.querySelector('.word-logo');
+  wlLogo.style.opacity = '0';
 
   let step = 0, lastMilestone = -1;
-  // word-logo starts invisible for pop animation
-  const wlLogo = document.querySelector('.word-logo');
-  if(wlLogo){ wlLogo.style.opacity='0'; }
 
   function rnd(a,b){ return Math.random()*(b-a)+a; }
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
-  // Very dark colors only — won't blend with bright green à
   const BLOB_COLORS = [
     '#000a02','#001205','#001a06','#000d03',
     '#001508','#002008','#000800','#001003',
@@ -634,110 +637,75 @@ html, body {
     const vw = window.innerWidth, vh = window.innerHeight;
     const cx = vw/2, cy = vh/2;
     const safeR = Math.min(vw,vh)*0.28;
-
     for(let i=0;i<count;i++){
-      let x,y,tries=0;
-      do {
-        x = rnd(-20, vw+20);
-        y = rnd(-20, vh+20);
-        tries++;
-      } while(tries<25 && Math.hypot(x-cx,y-cy)<safeR);
-
-      const size  = rnd(60,200);
-      const color = pick(BLOB_COLORS);
-      const rot   = rnd(-80,80)+'deg';
-
-      const b = document.createElement('div');
+      let x,y,t=0;
+      do { x=rnd(-20,vw+20); y=rnd(-20,vh+20); t++; }
+      while(t<25 && Math.hypot(x-cx,y-cy)<safeR);
+      const s=rnd(60,200), c=pick(BLOB_COLORS), r=rnd(-80,80)+'deg';
+      const b=document.createElement('div');
       b.className='blob';
-      b.style.cssText=`
-        left:${x}px;top:${y}px;
-        width:${size}px;height:${size*rnd(0.5,1.2)}px;
-        background:${color};
-        --r:${rot};
-        border-radius:${rnd(30,65)}% ${rnd(35,65)}% ${rnd(30,70)}% ${rnd(35,60)}% /
-                      ${rnd(35,65)}% ${rnd(30,60)}% ${rnd(40,70)}% ${rnd(30,65)}%;
-        animation-delay:${rnd(0,0.1)}s;
-      `;
+      b.style.cssText=`left:${x}px;top:${y}px;width:${s}px;height:${s*rnd(0.5,1.2)}px;background:${c};--r:${r};border-radius:${rnd(30,65)}% ${rnd(35,65)}% ${rnd(30,70)}% ${rnd(35,60)}%/${rnd(35,65)}% ${rnd(30,60)}% ${rnd(40,70)}% ${rnd(30,65)}%;animation-delay:${rnd(0,0.1)}s;`;
       blobsEl.appendChild(b);
     }
   }
 
-  // à fills fast — reaches 100% at ~65% of total duration
-  function setFill(rawPct){
-    const pct = Math.min(rawPct / 0.65, 100); // fills by the time overall=65%
-    const totalH = 240;
-    const filled = totalH * (pct/100);
-    riseRect.setAttribute('y',  230 - filled);
+  // à fills to 100% when overall progress = 65%
+  function setFill(pct){
+    const filled = 240 * Math.min(pct/65, 1);
+    riseRect.setAttribute('y', 230 - filled);
     riseRect.setAttribute('height', filled + 10);
   }
-
-  // Main timer — total 5s, blobs run all 5s, à done at ~3.2s
-  const TOTAL_DURATION = 5000;
-  const STEPS          = 200;
-  const INTERVAL       = TOTAL_DURATION / STEPS;
 
   const timer = setInterval(()=>{
     step++;
     const pct = Math.min(Math.round((step/STEPS)*100), 100);
     pctLabel.textContent = pct+'%';
     setFill(pct);
-
-    // Blobs spread throughout entire duration
     const m = Math.floor(pct/6);
-    if(m>lastMilestone){
-      lastMilestone=m;
+    if(m > lastMilestone){
+      lastMilestone = m;
       spawnBlobs(4 + Math.floor(pct/14));
     }
-
-    if(pct>=100){
-      clearInterval(timer);
-      onComplete();
-    }
+    if(pct >= 100){ clearInterval(timer); onComplete(); }
   }, INTERVAL);
 
   function onComplete(){
-    pctLabel.textContent='100%';
     setFill(100);
+    pctLabel.textContent = '100%';
 
-    // Flash loader center out, pop logo instantly, then splash
     setTimeout(()=>{
-      document.getElementById('loader-center').style.transition='opacity 0.2s';
-      document.getElementById('loader-center').style.opacity='0';
+      // Fade out the à letter
+      loaderCtr.style.transition = 'opacity 0.2s';
+      loaderCtr.style.opacity = '0';
 
-      // Show word-assembly with a pop (scale bounce)
-      wordEl.style.opacity='1';
-      wordEl.style.pointerEvents='auto';
-      const wl = wordEl.querySelector('.word-logo');
-      wl.style.transform='scale(0.6)';
-      wl.style.opacity='0';
-      wl.style.transition='transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease';
-      // Draw tick instantly
+      // Pop in word-assembly
+      wordEl.style.opacity = '1';
       if(wlTickPath){
-        const len = wlTickPath.getTotalLength()||60;
+        const len = wlTickPath.getTotalLength() || 60;
         wlTickPath.style.strokeDasharray  = len;
         wlTickPath.style.strokeDashoffset = 0;
       }
+      wlLogo.style.transform  = 'scale(0.55)';
+      wlLogo.style.transition = 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease';
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        wl.style.transform='scale(1)';
-        wl.style.opacity='1';
+        wlLogo.style.transform = 'scale(1)';
+        wlLogo.style.opacity   = '1';
       }));
 
-      // Short pause, then splash
-      setTimeout(doSplash, 700);
+      setTimeout(doSplash, 750);
     }, 150);
   }
 
   function doSplash(){
     mainEl.classList.add('on');
-
     splash.classList.add('go');
-    splash.addEventListener('animationend',()=>{
-      loaderEl.style.display='none';
-      splash.style.display='none';
+    splash.addEventListener('animationend', ()=>{
+      loaderEl.style.display = 'none';
+      splash.style.display   = 'none';
       mainLogo.classList.add('in');
-      document.getElementById('tagline').classList.add('in');
+      if(taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
-    },{once:true});
+    }, {once:true});
   }
 
 })();
