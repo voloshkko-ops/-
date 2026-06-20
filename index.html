@@ -6,548 +6,704 @@
 <title>àbank24</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  :root {
-    --green: #1a7a3c;
-    --green-bright: #22c55e;
-    --black: #050a05;
-    --dark-green: #0a1a0f;
-    --darker: #040d07;
-  }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #000;
+}
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
+/* ════════════════════════════════
+   LOADER
+════════════════════════════════ */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 
-  /* ─── LOADER ─── */
-  #loader {
-    position: fixed;
-    inset: 0;
-    background: #ffffff;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
+/* Green ray background — same vibe as reference photo */
+#loader-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 0% 100%, rgba(0,90,20,0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 70% at 100% 0%,  rgba(0,70,15,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 60% at 100% 100%,rgba(0,50,10,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 50% at 0% 0%,    rgba(0,40,8,0.25)  0%, transparent 50%),
+    #000;
+  animation: rayPulse 6s ease-in-out infinite alternate;
+}
 
-  #loader-center {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
+@keyframes rayPulse {
+  0%   { opacity: 0.85; }
+  100% { opacity: 1; }
+}
 
-  #percent-wrap {
-    position: relative;
-    display: inline-block;
-  }
+/* Ink blobs — behind center, dark green */
+#loader-blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
 
-  #percent {
-    font-family: 'Montserrat', sans-serif;
-    font-size: clamp(64px, 12vw, 120px);
-    font-weight: 600;
-    color: #050a05;
-    letter-spacing: -2px;
-    line-height: 1;
-    mix-blend-mode: multiply;
-    position: relative;
-    z-index: 2;
-    transition: color 0.3s;
-  }
+.blob {
+  position: absolute;
+  border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
+  opacity: 0;
+  animation: blobPop 0.5s cubic-bezier(0.34,1.4,0.64,1) forwards;
+  filter: blur(1px);
+}
 
-  #loader-bar {
-    width: 200px;
-    height: 2px;
-    background: rgba(0,0,0,0.1);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-    z-index: 2;
-  }
+@keyframes blobPop {
+  0%   { opacity:0; transform:scale(0) rotate(var(--r)); }
+  70%  { opacity:0.9; transform:scale(1.08) rotate(var(--r)); }
+  100% { opacity:0.85; transform:scale(1) rotate(var(--r)); }
+}
 
-  #loader-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #1a7a3c, #22c55e);
-    border-radius: 2px;
-    transition: width 0.05s linear;
-  }
+.drip {
+  position: absolute;
+  border-radius: 0 0 50% 50%;
+  opacity: 0;
+  animation: dripAnim 1s ease-in forwards;
+}
 
-  /* Paint blobs container */
-  #blobs {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-  }
+@keyframes dripAnim {
+  0%   { opacity:0; height:0; }
+  20%  { opacity:0.8; }
+  100% { opacity:0.8; height:var(--dh); }
+}
 
-  .blob {
-    position: absolute;
-    border-radius: 40% 60% 70% 30% / 50% 40% 60% 50%;
-    opacity: 0;
-    animation: blobIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    filter: blur(0px);
-  }
+/* ── SVG à fill ── */
+#loader-center {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
 
-  @keyframes blobIn {
-    0%   { opacity: 0; transform: scale(0) rotate(0deg); }
-    60%  { opacity: 1; transform: scale(1.1) rotate(var(--rot)); }
-    100% { opacity: 1; transform: scale(1) rotate(var(--rot)); }
-  }
+#letter-svg {
+  width: clamp(160px, 30vw, 260px);
+  height: clamp(180px, 34vw, 300px);
+  filter: drop-shadow(0 0 24px rgba(34,197,94,0.4));
+}
 
-  /* Drip effect */
-  .drip {
-    position: absolute;
-    width: 6px;
-    border-radius: 3px 3px 50% 50%;
-    opacity: 0;
-    animation: dripDown 1.2s ease-in forwards;
-    transform-origin: top center;
-  }
+#pct-label {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 500;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.5);
+}
 
-  @keyframes dripDown {
-    0%   { opacity: 0; height: 0px; }
-    20%  { opacity: 1; }
-    100% { opacity: 1; height: var(--drip-h); }
-  }
+/* ── Word assembly after 100% ── */
+#word-assembly {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+}
 
-  /* ─── SPLASH TRANSITION ─── */
-  #splash-cover {
-    position: fixed;
-    inset: 0;
-    background: #050a05;
-    z-index: 8888;
-    pointer-events: none;
-    opacity: 0;
-    clip-path: circle(0% at 50% 50%);
-    transition: none;
-  }
+.word-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(52px, 11vw, 120px);
+  font-weight: 800;
+  letter-spacing: -2px;
+}
 
-  #splash-cover.expanding {
-    animation: splashExpand 0.9s cubic-bezier(0.55, 0, 0.1, 1) forwards;
-  }
+.wl-a {
+  color: #fff;
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  @keyframes splashExpand {
-    0%   { opacity: 1; clip-path: circle(0% at 50% 50%); }
-    100% { opacity: 1; clip-path: circle(150% at 50% 50%); }
-  }
+.wl-tick {
+  position: absolute;
+  top: -0.18em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.38em;
+  height: auto;
+  overflow: visible;
+}
 
-  /* ─── MAIN PAGE ─── */
-  #main {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    opacity: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-    background: var(--darker);
-  }
+.wl-tick path {
+  stroke: #22c55e;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+}
 
-  #main.visible {
-    opacity: 1;
-  }
+.wl-bank {
+  color: #fff;
+}
 
-  /* Section 1 */
-  #section-1 {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: 60px 24px;
-    background: radial-gradient(ellipse 80% 70% at 50% 50%, #0d2818 0%, #040d07 60%, #020806 100%);
-    overflow: hidden;
-  }
+.wl-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16px);
+}
 
-  /* Subtle grid texture */
-  #section-1::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-    pointer-events: none;
-  }
+/* ════════════════════════════════
+   SPLASH
+════════════════════════════════ */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 8888;
+  pointer-events: none;
+  clip-path: circle(0% at 50% 50%);
+  background: #000;
+}
 
-  /* Corner glow */
-  #section-1::after {
-    content: '';
-    position: absolute;
-    top: -200px; left: -200px; right: -200px; bottom: -200px;
-    background: radial-gradient(ellipse 40% 40% at 50% 50%, rgba(26,122,60,0.12) 0%, transparent 70%);
-    pointer-events: none;
-    animation: breathe 4s ease-in-out infinite;
-  }
+#splash.go {
+  animation: splashGo 0.85s cubic-bezier(0.55,0,0.1,1) forwards;
+}
 
-  @keyframes breathe {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50%       { opacity: 1;   transform: scale(1.05); }
-  }
+@keyframes splashGo {
+  to { clip-path: circle(150% at 50% 50%); }
+}
 
-  /* ─── LOGO ─── */
-  .logo-wrap {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    margin-bottom: 0;
-  }
+/* ════════════════════════════════
+   MAIN PAGE
+════════════════════════════════ */
+#main {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
 
-  .logo-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(72px, 14vw, 180px);
-    font-weight: 700;
-    line-height: 0.9;
-    letter-spacing: -3px;
-    /* White glow to separate from dark bg */
-    filter: drop-shadow(0 0 30px rgba(255,255,255,0.18)) drop-shadow(0 0 80px rgba(255,255,255,0.08));
-    user-select: none;
-  }
+#main.on { opacity: 1; }
 
-  .logo-a {
-    color: #22c55e;
-    display: inline-block;
-    position: relative;
-    /* Extra green glow for à */
-    text-shadow:
-      0 0 20px rgba(34,197,94,0.6),
-      0 0 60px rgba(34,197,94,0.3),
-      0 0 120px rgba(34,197,94,0.15);
-  }
+/* ── Section 1 ── */
+#s1 {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px 60px;
+  position: relative;
+  overflow: hidden;
 
-  /* Animated grave accent */
-  .logo-a .accent {
-    display: inline-block;
-    transform-origin: center bottom;
-    animation: accentDance 3s ease-in-out infinite;
-  }
+  /* Background matching reference photo — dark black-green rays */
+  background:
+    radial-gradient(ellipse 65% 85% at 2% 98%,  rgba(0,100,22,0.6)  0%, transparent 52%),
+    radial-gradient(ellipse 55% 75% at 98% 2%,  rgba(0,80,18,0.5)   0%, transparent 52%),
+    radial-gradient(ellipse 45% 65% at 98% 98%, rgba(0,60,12,0.35)  0%, transparent 48%),
+    radial-gradient(ellipse 35% 55% at 2%  2%,  rgba(0,50,10,0.3)   0%, transparent 48%),
+    radial-gradient(ellipse 30% 40% at 50% 50%, rgba(0,30,6,0.2)    0%, transparent 60%),
+    #020602;
+}
 
-  @keyframes accentDance {
-    0%   { transform: rotate(0deg) translateY(0px) scale(1); }
-    15%  { transform: rotate(-8deg) translateY(-4px) scale(1.15); }
-    30%  { transform: rotate(5deg) translateY(-2px) scale(0.95); }
-    45%  { transform: rotate(-4deg) translateY(-6px) scale(1.1); }
-    60%  { transform: rotate(6deg) translateY(-1px) scale(1.05); }
-    75%  { transform: rotate(-3deg) translateY(-3px) scale(1.08); }
-    90%  { transform: rotate(2deg) translateY(-1px) scale(1.02); }
-    100% { transform: rotate(0deg) translateY(0px) scale(1); }
-  }
+/* Subtle diagonal light streaks */
+#s1::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(0,120,28,0.08) 0%, transparent 40%),
+    linear-gradient(315deg, rgba(0,90,18,0.06) 0%, transparent 40%);
+  pointer-events: none;
+}
 
-  .logo-bank {
-    color: #050a05;
-    display: inline-block;
-    /* Make black visible on dark bg via strong white outline glow */
-    text-shadow:
-      0 0 2px #fff,
-      0 0 8px rgba(255,255,255,0.9),
-      0 0 20px rgba(255,255,255,0.5),
-      0 0 40px rgba(255,255,255,0.2);
-  }
+/* Breathing green core */
+#s1::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(ellipse 30% 30% at 50% 50%, rgba(26,122,60,0.07) 0%, transparent 70%);
+  animation: breathe 5s ease-in-out infinite;
+  pointer-events: none;
+}
 
-  /* ─── SUBTITLE TEXT ─── */
-  .subtitle-wrap {
-    position: relative;
-    z-index: 2;
-    max-width: 780px;
-    text-align: center;
-    margin-top: 56px;
-    padding: 0 16px;
-  }
+@keyframes breathe {
+  0%,100% { transform:scale(1); opacity:0.6; }
+  50%      { transform:scale(1.1); opacity:1; }
+}
 
-  .subtitle-main {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(14px, 2vw, 18px);
-    font-weight: 300;
-    color: rgba(255,255,255,0.88);
-    line-height: 1.75;
-    letter-spacing: 0.3px;
-  }
+/* ── Main Logo ── */
+.main-logo {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(56px, 12vw, 140px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  cursor: default;
+  user-select: none;
+}
 
-  .subtitle-main .highlight {
-    color: #22c55e;
-    font-weight: 500;
-  }
+.ml-a-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+}
 
-  .subtitle-author {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(14px, 1.8vw, 17px);
-    font-weight: 400;
-    color: rgba(255,255,255,0.4);
-    margin-top: 28px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-style: italic;
-  }
+/* SVG checkmark tick above the a */
+.ml-tick {
+  position: absolute;
+  top: -0.12em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.42em;
+  overflow: visible;
+  pointer-events: none;
+}
 
-  /* Divider line */
-  .divider {
-    width: 60px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(34,197,94,0.6), transparent);
-    margin: 28px auto 0;
-  }
+.ml-tick path {
+  stroke: #22c55e;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  animation: tickBounce 2.8s ease-in-out infinite;
+  transform-origin: center;
+}
 
-  /* Scroll hint */
-  .scroll-hint {
-    position: absolute;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    opacity: 0;
-    animation: fadeInHint 1s ease 1s forwards;
-  }
+@keyframes tickBounce {
+  0%,100% { transform:translateY(0) rotate(0deg) scale(1);   opacity:1; }
+  20%     { transform:translateY(-3px) rotate(-6deg) scale(1.12); opacity:1; }
+  40%     { transform:translateY(1px)  rotate(4deg)  scale(0.96); opacity:1; }
+  60%     { transform:translateY(-2px) rotate(-3deg) scale(1.06); opacity:1; }
+  80%     { transform:translateY(0.5px) rotate(2deg) scale(0.99); opacity:1; }
+}
 
-  @keyframes fadeInHint {
-    to { opacity: 0.35; }
-  }
+.ml-a-letter {
+  display: inline-block;
+  color: #fff;
+  transition: text-shadow 0.3s ease;
+}
 
-  .scroll-hint span {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: #22c55e;
-    text-transform: uppercase;
-  }
+.ml-bank {
+  color: #fff;
+  display: inline-block;
+  transition: text-shadow 0.3s ease;
+}
 
-  .scroll-arrow {
-    width: 1px;
-    height: 32px;
-    background: linear-gradient(to bottom, rgba(34,197,94,0.8), transparent);
-    animation: scrollPulse 1.5s ease-in-out infinite;
-  }
+/* Hover glow — subtle white */
+.main-logo:hover .ml-a-letter,
+.main-logo:hover .ml-bank {
+  text-shadow: 0 0 18px rgba(255,255,255,0.35), 0 0 40px rgba(255,255,255,0.12);
+}
 
-  @keyframes scrollPulse {
-    0%, 100% { transform: scaleY(1) translateY(0); opacity: 1; }
-    50%       { transform: scaleY(0.6) translateY(6px); opacity: 0.5; }
-  }
+.main-logo:hover .ml-tick path {
+  stroke: #4ade80;
+  filter: drop-shadow(0 0 4px rgba(74,222,128,0.8));
+}
 
-  /* ─── SECTION 2 (empty) ─── */
-  #section-2 {
-    min-height: 100vh;
-    background: linear-gradient(180deg, #020806 0%, #040d07 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* ── Subtitle ── */
+.subtitle-block {
+  position: relative;
+  z-index: 2;
+  max-width: 740px;
+  text-align: center;
+  margin-top: 52px;
+  padding: 0 16px;
+}
 
-  /* ─── ENTRANCE ANIMATION for main content ─── */
-  .logo-wrap, .subtitle-wrap {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+.subtitle-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(13px, 1.8vw, 17px);
+  font-weight: 300;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.8;
+  letter-spacing: 0.2px;
+  cursor: default;
+  transition: color 0.3s, text-shadow 0.3s;
+}
 
-  .logo-wrap.revealed {
-    animation: slideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
-  }
+.subtitle-text:hover {
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 0 20px rgba(255,255,255,0.15);
+}
 
-  .subtitle-wrap.revealed {
-    animation: slideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
-  }
+.subtitle-text .hl {
+  color: #4ade80;
+  font-weight: 500;
+  transition: text-shadow 0.3s;
+}
 
-  @keyframes slideUp {
-    to { opacity: 1; transform: translateY(0); }
-  }
+.subtitle-text:hover .hl {
+  text-shadow: 0 0 12px rgba(74,222,128,0.5);
+}
 
-  @media (max-width: 600px) {
-    .logo-text { letter-spacing: -1px; }
-    .subtitle-main { font-size: 13px; }
-  }
+.divider {
+  width: 48px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34,197,94,0.5), transparent);
+  margin: 28px auto;
+}
+
+.author {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(11px, 1.4vw, 14px);
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  cursor: default;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+
+.author:hover {
+  color: rgba(255,255,255,0.65);
+  text-shadow: 0 0 16px rgba(255,255,255,0.18);
+}
+
+/* Reveal animations */
+.main-logo, .subtitle-block {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.main-logo.in {
+  animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
+}
+
+.subtitle-block.in {
+  animation: riseIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+}
+
+@keyframes riseIn {
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeH 1s ease 1.2s forwards;
+}
+
+@keyframes fadeH { to { opacity:0.3; } }
+
+.scroll-hint span {
+  font-family:'Inter',sans-serif;
+  font-size:9px; letter-spacing:4px;
+  color:#22c55e; text-transform:uppercase;
+}
+
+.sh-line {
+  width:1px; height:28px;
+  background:linear-gradient(to bottom,rgba(34,197,94,0.8),transparent);
+  animation: shPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes shPulse {
+  0%,100% { transform:scaleY(1); opacity:1; }
+  50%      { transform:scaleY(0.5) translateY(6px); opacity:0.4; }
+}
+
+/* ── Section 2 (empty) ── */
+#s2 {
+  min-height: 100vh;
+  background: #020602;
+}
 </style>
 </head>
 <body>
 
-<!-- SPLASH COVER (dark circle that expands) -->
-<div id="splash-cover"></div>
+<div id="splash"></div>
 
 <!-- ═══ LOADER ═══ -->
 <div id="loader">
-  <div id="blobs"></div>
+  <div id="loader-bg"></div>
+  <div id="loader-blobs"></div>
+
+  <!-- Filling à SVG -->
   <div id="loader-center">
-    <div id="percent-wrap">
-      <span id="percent">0%</span>
+    <svg id="letter-svg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Clip that rises from bottom -->
+        <clipPath id="rise">
+          <rect id="riseRect" x="-10" y="230" width="220" height="0"/>
+        </clipPath>
+        <!-- Glow filter -->
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Outline à (always visible) -->
+      <text
+        x="100" y="205"
+        text-anchor="middle"
+        font-family="Inter, sans-serif"
+        font-size="210"
+        font-weight="800"
+        fill="none"
+        stroke="rgba(34,197,94,0.18)"
+        stroke-width="1.5">à</text>
+
+      <!-- Filled à (revealed bottom→top) -->
+      <g clip-path="url(#rise)" filter="url(#glow)">
+        <text
+          x="100" y="205"
+          text-anchor="middle"
+          font-family="Inter, sans-serif"
+          font-size="210"
+          font-weight="800"
+          fill="#22c55e">à</text>
+      </g>
+    </svg>
+
+    <div id="pct-label">0%</div>
+  </div>
+
+  <!-- Word assembly overlay -->
+  <div id="word-assembly">
+    <div class="word-logo">
+      <span class="wl-a">
+        <svg class="wl-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
+          <path id="wl-tick-path" d="M3 11 L13 19 L33 3"/>
+        </svg>
+        <span>a</span>
+      </span>
+      <span class="wl-bank">
+        <span class="wl-char">b</span><span class="wl-char">a</span><span class="wl-char">n</span><span class="wl-char">k</span><span class="wl-char">2</span><span class="wl-char">4</span>
+      </span>
     </div>
-    <div id="loader-bar"><div id="loader-bar-fill"></div></div>
   </div>
 </div>
 
-<!-- ═══ MAIN PAGE (hidden until load complete) ═══ -->
+<!-- ═══ MAIN ═══ -->
 <div id="main">
+  <section id="s1">
 
-  <!-- Section 1 -->
-  <section id="section-1">
-    <div class="logo-wrap" id="logo-wrap">
-      <div class="logo-text">
-        <span class="logo-a"><span class="accent">`</span>a</span><span class="logo-bank">bank24</span>
-      </div>
+    <div class="main-logo" id="main-logo">
+      <span class="ml-a-wrap">
+        <svg class="ml-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 11 L13 19 L33 3"/>
+        </svg>
+        <span class="ml-a-letter">a</span>
+      </span>
+      <span class="ml-bank">bank24</span>
     </div>
 
-    <div class="subtitle-wrap" id="subtitle-wrap">
-      <p class="subtitle-main">
-        Шукаємо тих, хто <span class="highlight">«поза зоною комфорту»</span>:<br>
-        Потрібно прорахувати <span class="highlight">% SL ASA</span> для всієї команди за період.
-        Фінальна мета&nbsp;— сформувати список <span class="highlight">(ПІБ&nbsp;+&nbsp;LDAP)</span> операторів,
-        які не дотягнули до таргету в&nbsp;<span class="highlight">65%</span>.
+    <div class="subtitle-block" id="sub-block">
+      <p class="subtitle-text">
+        Шукаємо тих, хто <span class="hl">«поза зоною комфорту»</span>:<br>
+        Потрібно прорахувати <span class="hl">% SL ASA</span> для всієї команди за період.<br>
+        Фінальна мета&nbsp;— сформувати список <span class="hl">(ПІБ&nbsp;+&nbsp;LDAP)</span> операторів,
+        які не дотягнули до таргету в&nbsp;<span class="hl">65%</span>.
       </p>
       <div class="divider"></div>
-      <p class="subtitle-author">Підготувала Волошко Ульяна</p>
+      <p class="author">Підготувала Волошко Ульяна</p>
     </div>
 
     <div class="scroll-hint">
       <span>scroll</span>
-      <div class="scroll-arrow"></div>
+      <div class="sh-line"></div>
     </div>
   </section>
 
-  <!-- Section 2 (empty) -->
-  <section id="section-2"></section>
-
+  <section id="s2"></section>
 </div>
 
 <script>
-(function () {
-  const loader      = document.getElementById('loader');
-  const blobsEl     = document.getElementById('blobs');
-  const percentEl   = document.getElementById('percent');
-  const barFill     = document.getElementById('loader-bar-fill');
-  const splashCover = document.getElementById('splash-cover');
-  const mainEl      = document.getElementById('main');
-  const logoWrap    = document.getElementById('logo-wrap');
-  const subWrap     = document.getElementById('subtitle-wrap');
-
-  const COLORS = [
-    '#050a05', '#0a1a0f', '#0d2818', '#1a7a3c',
-    '#051205', '#071a0a', '#0f2d14', '#0a0a05',
-    '#030d06', '#152b0f', '#000500', '#081508',
-  ];
-
-  const DURATION = 5000; // ms
-  const STEPS    = 200;
+(function(){
+  const DURATION = 5000;
+  const STEPS    = 250;
   const INTERVAL = DURATION / STEPS;
 
-  let current = 0;
-  let lastBlobAt = -1;
+  const riseRect  = document.getElementById('riseRect');
+  const pctLabel  = document.getElementById('pctLabel') || document.getElementById('pct-label');
+  const blobsEl   = document.getElementById('loader-blobs');
+  const wordEl    = document.getElementById('word-assembly');
+  const wlTickPath= document.getElementById('wl-tick-path');
+  const splash    = document.getElementById('splash');
+  const mainEl    = document.getElementById('main');
+  const mainLogo  = document.getElementById('main-logo');
+  const subBlock  = document.getElementById('sub-block');
+  const loaderEl  = document.getElementById('loader');
 
-  function rnd(min, max) { return Math.random() * (max - min) + min; }
-  function pick(arr)     { return arr[Math.floor(Math.random() * arr.length)]; }
+  let step = 0, lastMilestone = -1;
 
-  function addBlob(count) {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+  function rnd(a,b){ return Math.random()*(b-a)+a; }
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
-    for (let i = 0; i < count; i++) {
-      // Blob
-      const el = document.createElement('div');
-      el.className = 'blob';
+  const BLOB_COLORS = [
+    '#001a05','#002a08','#003810','#004d14',
+    '#001205','#002210','#003008','#001a03',
+    '#004020','#000d02','#002d0a','#001508',
+  ];
 
-      const size  = rnd(40, 160);
-      const x     = rnd(0, vw - size);
-      const y     = rnd(0, vh - size);
-      const rot   = rnd(-60, 60) + 'deg';
-      const color = pick(COLORS);
+  function spawnBlobs(count){
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const cx = vw/2, cy = vh/2;
+    const safeR = Math.min(vw,vh)*0.22; // keep center clear
 
-      el.style.cssText = `
-        left: ${x}px; top: ${y}px;
-        width: ${size}px; height: ${size * rnd(0.6, 1.1)}px;
-        background: ${color};
-        --rot: ${rot};
-        border-radius: ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}% /
-                       ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}% ${rnd(30,70)}%;
-        animation-delay: ${rnd(0, 0.2)}s;
+    for(let i=0;i<count;i++){
+      // random position, avoid center circle
+      let x,y,tries=0;
+      do {
+        x = rnd(0,vw); y = rnd(0,vh);
+        tries++;
+      } while(tries<20 && Math.hypot(x-cx,y-cy)<safeR);
+
+      const size = rnd(30,120);
+      const color= pick(BLOB_COLORS);
+      const rot  = rnd(-70,70)+'deg';
+
+      const b = document.createElement('div');
+      b.className='blob';
+      b.style.cssText=`
+        left:${x}px;top:${y}px;
+        width:${size}px;height:${size*rnd(0.55,1.15)}px;
+        background:${color};
+        --r:${rot};
+        border-radius:${rnd(30,65)}% ${rnd(35,65)}% ${rnd(30,70)}% ${rnd(35,60)}% /
+                      ${rnd(35,65)}% ${rnd(30,60)}% ${rnd(40,70)}% ${rnd(30,65)}%;
+        animation-delay:${rnd(0,0.15)}s;
       `;
-      blobsEl.appendChild(el);
+      blobsEl.appendChild(b);
 
-      // Drip from bottom of some blobs
-      if (Math.random() > 0.5) {
-        const drip = document.createElement('div');
-        drip.className = 'drip';
-        const dh = rnd(20, 90);
-        drip.style.cssText = `
-          left: ${x + size * rnd(0.2, 0.8)}px;
-          top: ${y + size * 0.7}px;
-          width: ${rnd(4, 10)}px;
-          background: ${color};
-          --drip-h: ${dh}px;
-          animation-delay: ${rnd(0.1, 0.4)}s;
+      if(Math.random()>0.55){
+        const d=document.createElement('div');
+        d.className='drip';
+        const dh=rnd(15,70);
+        d.style.cssText=`
+          left:${x+size*rnd(0.25,0.7)}px;
+          top:${y+size*0.65}px;
+          width:${rnd(3,8)}px;
+          background:${color};
+          --dh:${dh}px;
+          animation-delay:${rnd(0.1,0.5)}s;
         `;
-        blobsEl.appendChild(drip);
+        blobsEl.appendChild(d);
       }
     }
   }
 
-  function addInitialSplash() {
-    // Big center blobs at the very start
-    addBlob(6);
+  // Animate the SVG fill rect (rise from bottom)
+  function setFill(pct){
+    const totalH = 240;
+    const filled = totalH * (pct/100);
+    const y = 230 - filled;
+    riseRect.setAttribute('y', y);
+    riseRect.setAttribute('height', filled + 10);
   }
 
-  // Start with a couple of blobs
-  addInitialSplash();
+  // Tick animation for word assembly
+  function animateTick(cb){
+    if(!wlTickPath) return cb&&cb();
+    const len = wlTickPath.getTotalLength();
+    wlTickPath.style.strokeDasharray  = len;
+    wlTickPath.style.strokeDashoffset = len;
+    wlTickPath.style.transition='stroke-dashoffset 0.5s ease';
+    setTimeout(()=>{
+      wlTickPath.style.strokeDashoffset=0;
+      setTimeout(cb,500);
+    },50);
+  }
 
-  const timer = setInterval(() => {
-    current++;
-    const pct = Math.min(Math.round((current / STEPS) * 100), 100);
+  function animateChars(cb){
+    const chars = document.querySelectorAll('.wl-char');
+    chars.forEach((c,i)=>{
+      setTimeout(()=>{
+        c.style.transition='opacity 0.2s, transform 0.3s cubic-bezier(0.22,1,0.36,1)';
+        c.style.opacity=1;
+        c.style.transform='translateY(0)';
+      }, i*60);
+    });
+    setTimeout(cb, chars.length*60+300);
+  }
 
-    percentEl.textContent = pct + '%';
-    barFill.style.width   = pct + '%';
+  // Main timer
+  const timer = setInterval(()=>{
+    step++;
+    const pct = Math.min(Math.round((step/STEPS)*100), 100);
+    pctLabel.textContent = pct+'%';
+    setFill(pct);
 
-    // Every ~10% add more paint
-    const milestone = Math.floor(pct / 8);
-    if (milestone > lastBlobAt) {
-      lastBlobAt = milestone;
-      // More blobs as we approach 100
-      const count = 4 + Math.floor(pct / 15);
-      addBlob(count);
+    const m = Math.floor(pct/7);
+    if(m>lastMilestone){
+      lastMilestone=m;
+      spawnBlobs(3 + Math.floor(pct/18));
     }
 
-    // Darken % text as blobs take over
-    if (pct > 60) {
-      percentEl.style.color = `hsl(${134}, ${pct - 50}%, ${Math.max(10, 50 - pct * 0.4)}%)`;
-    }
-
-    if (pct >= 100) {
+    if(pct>=100){
       clearInterval(timer);
-      finishLoad();
+      onComplete();
     }
   }, INTERVAL);
 
-  function finishLoad() {
-    // Add a final burst of blobs
-    addBlob(30);
+  function onComplete(){
+    spawnBlobs(20);
+    pctLabel.textContent='100%';
+    setFill(100);
 
-    // Short pause, then splash
-    setTimeout(() => {
-      // Reveal main (behind everything)
-      mainEl.classList.add('visible');
+    // Show word assembly
+    setTimeout(()=>{
+      document.getElementById('loader-center').style.opacity='0';
+      document.getElementById('loader-center').style.transition='opacity 0.3s';
 
-      // Dark splash circle expands over loader
-      splashCover.classList.add('expanding');
+      wordEl.style.transition='opacity 0.3s';
+      wordEl.style.opacity='1';
+      wordEl.style.pointerEvents='auto';
 
-      splashCover.addEventListener('animationend', () => {
-        // Hide loader completely
-        loader.style.display = 'none';
-        splashCover.style.display = 'none';
-
-        // Animate content in
-        logoWrap.classList.add('revealed');
-        subWrap.classList.add('revealed');
-      }, { once: true });
-    }, 400);
+      animateTick(()=>{
+        animateChars(()=>{
+          // Pause, then splash out
+          setTimeout(doSplash, 600);
+        });
+      });
+    }, 300);
   }
+
+  function doSplash(){
+    mainEl.classList.add('on');
+
+    splash.classList.add('go');
+    splash.addEventListener('animationend',()=>{
+      loaderEl.style.display='none';
+      splash.style.display='none';
+      mainLogo.classList.add('in');
+      subBlock.classList.add('in');
+    },{once:true});
+  }
+
 })();
 </script>
 </body>
