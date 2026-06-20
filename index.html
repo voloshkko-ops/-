@@ -585,6 +585,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const sideState = [0, 1, 0]; // start alternated
 
   function spawnAs() {
+    // Remove any still-alive letters before spawning new ones
+    s2.querySelectorAll('.bg-a').forEach(el => el.remove());
+
     ZONES.forEach((zone, zi) => {
       setTimeout(() => {
         const el = document.createElement('span');
