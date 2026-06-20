@@ -17,10 +17,38 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   background: #000;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 0;
 }
 
-/* Big à that morphs into the logo letter */
+#la-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Animated tick above à */
+#ltick {
+  width: 0.52em;
+  margin-bottom: 0.04em;
+  overflow: visible;
+  filter: drop-shadow(0 0 8px rgba(34,197,94,0.8));
+}
+#ltick path {
+  stroke: #22c55e;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  animation: tickFloat 2.6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes tickFloat {
+  0%,100% { transform: translateY(0)    rotate(0deg);  }
+  25%      { transform: translateY(-5px) rotate(-4deg); }
+  50%      { transform: translateY(-2px) rotate(3deg);  }
+  75%      { transform: translateY(-6px) rotate(-2deg); }
+}
+
 #la {
   font-family: 'Inter', sans-serif;
   font-size: clamp(120px, 22vw, 200px);
@@ -28,87 +56,25 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   color: #22c55e;
   line-height: 1;
   letter-spacing: -4px;
-  text-shadow: 0 0 40px rgba(34,197,94,0.9), 0 0 100px rgba(34,197,94,0.3);
-  display: block;
-  transition: none;
+  text-shadow: 0 0 40px rgba(34,197,94,0.85), 0 0 100px rgba(34,197,94,0.25);
 }
 
-/* "bank" — hidden during load, fades in at 100% */
-#lb {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(120px, 22vw, 200px);
-  font-weight: 800;
-  color: #000;
-  line-height: 1;
-  letter-spacing: -4px;
-  text-shadow: 0 0 2px rgba(255,255,255,.95), 0 0 14px rgba(255,255,255,.7), 0 0 36px rgba(255,255,255,.35);
-  display: block;
-  opacity: 0;
-  transition: none;
+#lsub {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px; margin-top: 18px;
 }
-
-#logo-row {
-  display: flex;
-  align-items: baseline;
-  position: relative;
-}
-
-.logo-glow-loader {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 130%; height: 160%;
-  background: radial-gradient(ellipse 55% 55% at 50% 50%,
-    rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.06) 40%, transparent 70%);
-  pointer-events: none; border-radius: 50%;
-  opacity: 0; transition: none;
-}
-
 #lw {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(10px, 1.4vw, 14px);
-  font-weight: 500;
-  letter-spacing: 6px;
+  font-size: clamp(10px, 1.4vw, 13px);
+  font-weight: 500; letter-spacing: 6px;
   text-transform: uppercase;
-  color: rgba(34,197,94,0.55);
-  margin-top: 16px;
+  color: rgba(34,197,94,0.5);
 }
-
 #lp {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(13px, 1.8vw, 17px);
-  font-weight: 800;
-  letter-spacing: 6px;
-  color: rgba(34,197,94,0.8);
-  margin-top: 6px;
-}
-
-/* Tick on the à */
-#loader-tick {
-  position: absolute;
-  top: -0.09em; left: 50%;
-  transform: translateX(-46%);
-  width: 0.44em;
-  overflow: visible;
-  pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(34,197,94,0.7));
-  opacity: 1;
-}
-#loader-tick path {
-  stroke: #22c55e; stroke-width: 3.5;
-  stroke-linecap: round; stroke-linejoin: round; fill: none;
-  animation: tickFloat 2.6s ease-in-out infinite;
-  transform-origin: 50% 50%;
-}
-@keyframes tickFloat {
-  0%,100%{ transform: translateY(0) rotate(0deg); }
-  25%    { transform: translateY(-4px) rotate(-4deg); }
-  50%    { transform: translateY(-2px) rotate(3deg); }
-  75%    { transform: translateY(-5px) rotate(-2deg); }
-}
-
-#la-wrap {
-  position: relative;
-  display: inline-block;
+  font-size: clamp(13px, 1.8vw, 16px);
+  font-weight: 800; letter-spacing: 6px;
+  color: rgba(34,197,94,0.75);
 }
 
 /* ── SPLASH ── */
@@ -118,9 +84,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   background: #020602;
   clip-path: circle(0% at 50% 50%);
 }
-#splash.go {
-  animation: splashGo 0.75s cubic-bezier(0.55,0,0.1,1) forwards;
-}
+#splash.go { animation: splashGo 0.7s cubic-bezier(0.55,0,0.1,1) forwards; }
 @keyframes splashGo { to { clip-path: circle(150% at 50% 50%); } }
 
 /* ── MAIN ── */
@@ -157,7 +121,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   font-size: clamp(56px,12vw,140px);
   font-weight: 800; letter-spacing: -2px;
   cursor: default; user-select: none;
-  opacity: 0; transform: scale(0.92);
+  opacity: 0; transform: scale(0.94);
 }
 .main-logo.in { animation: popIn 0.55s cubic-bezier(0.22,1,0.36,1) forwards; }
 @keyframes popIn { to { opacity:1; transform:scale(1); } }
@@ -173,11 +137,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .ml-a-wrap { position:relative; display:inline-flex; flex-direction:column; align-items:center; }
 .ml-tick {
   position:absolute; top:-0.08em; left:50%; transform:translateX(-46%);
-  width:0.44em; overflow:visible; pointer-events:none;
-  filter: drop-shadow(0 0 6px rgba(34,197,94,0.7));
+  width:0.48em; overflow:visible; pointer-events:none;
+  filter: drop-shadow(0 0 7px rgba(34,197,94,0.75));
 }
 .ml-tick path {
-  stroke:#22c55e; stroke-width:3.5;
+  stroke:#22c55e; stroke-width:5.5;
   stroke-linecap:round; stroke-linejoin:round; fill:none;
   animation: tickFloat 2.6s ease-in-out infinite; transform-origin: 50% 50%;
 }
@@ -252,18 +216,16 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 <!-- LOADER -->
 <div id="loader">
-  <div id="logo-row">
-    <div class="logo-glow-loader" id="loader-glow"></div>
-    <div id="la-wrap">
-      <svg id="loader-tick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 12 L12 20 L32 4"/>
-      </svg>
-      <span id="la">à</span>
-    </div>
-    <span id="lb">bank</span>
+  <div id="la-wrap">
+    <svg id="ltick" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 12 L12 20 L32 4"/>
+    </svg>
+    <span id="la">à</span>
   </div>
-  <span id="lw">завантаження</span>
-  <span id="lp">0%</span>
+  <div id="lsub">
+    <span id="lw">завантаження</span>
+    <span id="lp">0%</span>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -304,22 +266,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const taglineEl = document.getElementById('tagline');
   const loaderEl  = document.getElementById('loader');
   const lpEl      = document.getElementById('lp');
-  const lbEl      = document.getElementById('lb');
-  const loaderGlow = document.getElementById('loader-glow');
-
-  // At 80% reveal "bank" text so it flows in naturally
-  let bankShown = false;
 
   function update(pct) {
     lpEl.textContent = pct + '%';
-
-    if (pct >= 80 && !bankShown) {
-      bankShown = true;
-      lbEl.style.transition = 'opacity 0.5s ease';
-      lbEl.style.opacity = '1';
-      loaderGlow.style.transition = 'opacity 0.5s ease';
-      loaderGlow.style.opacity = '1';
-    }
   }
 
   update(0);
