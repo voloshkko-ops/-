@@ -84,7 +84,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   background: #020602;
   clip-path: circle(0% at 50% 50%);
 }
-#splash.go { animation: splashGo 0.7s cubic-bezier(0.55,0,0.1,1) forwards; }
+#splash.go { animation: splashGo 0.45s cubic-bezier(0.4,0,0.2,1) forwards; }
 @keyframes splashGo { to { clip-path: circle(150% at 50% 50%); } }
 
 /* ── MAIN ── */
@@ -286,11 +286,14 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     loaderEl.style.display = 'none';
     mainEl.classList.add('on');
     splash.classList.add('go');
-    splash.addEventListener('animationend', () => {
-      splash.style.display = 'none';
+    // Start logo animation mid-splash so it's visible as soon as splash clears
+    setTimeout(() => {
       mainLogo.classList.add('in');
       if (taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
+    }, 200);
+    splash.addEventListener('animationend', () => {
+      splash.style.display = 'none';
     }, { once: true });
   }
 })();
