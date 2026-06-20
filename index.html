@@ -406,6 +406,44 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .bar-val.mid  { color: #eab308; }
 .bar-val.low  { color: #ef4444; }
 
+/* ── s3 employee cards grid ── */
+.emp-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+  position: relative; z-index: 1;
+}
+.emp-card {
+  position: relative; padding: 16px 16px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.03);
+  cursor: pointer; overflow: hidden;
+  opacity: 0; transform: scale(.88);
+  transition: opacity .3s ease, transform .3s ease, background .2s, border-color .2s, box-shadow .2s;
+}
+.emp-card.vis { opacity: 1; transform: scale(1); }
+.emp-card.dimmed { opacity: .1; pointer-events: none; transform: scale(.95); }
+.emp-card:hover:not(.dimmed) { background: rgba(255,255,255,.07); transform: translateY(-3px) scale(1.02); }
+.emp-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0;
+}
+.emp-card.high::before { background: linear-gradient(90deg,#16a34a,#22c55e); }
+.emp-card.mid::before  { background: linear-gradient(90deg,#a16207,#eab308); }
+.emp-card.low::before  { background: linear-gradient(90deg,#b91c1c,#ef4444); }
+.emp-card.high:hover:not(.dimmed) { border-color:rgba(34,197,94,.3); box-shadow:0 8px 28px rgba(34,197,94,.12); }
+.emp-card.mid:hover:not(.dimmed)  { border-color:rgba(234,179,8,.3); box-shadow:0 8px 28px rgba(234,179,8,.1); }
+.emp-card.low:hover:not(.dimmed)  { border-color:rgba(239,68,68,.3); box-shadow:0 8px 28px rgba(239,68,68,.1); }
+.ec-rank { font-family:'Inter',sans-serif; font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.2); margin-bottom:7px; }
+.ec-name { font-family:'Inter',sans-serif; font-size:clamp(10px,1vw,12px); font-weight:600; color:rgba(255,255,255,.8); line-height:1.35; margin-bottom:10px; }
+.ec-val  { font-family:'Inter',sans-serif; font-size:clamp(24px,2.8vw,32px); font-weight:800; line-height:1; }
+.emp-card.high .ec-val { color:#22c55e; text-shadow:0 0 18px rgba(34,197,94,.4); }
+.emp-card.mid  .ec-val { color:#eab308; text-shadow:0 0 18px rgba(234,179,8,.3); }
+.emp-card.low  .ec-val { color:#ef4444; text-shadow:0 0 18px rgba(239,68,68,.3); }
+.ec-unit { font-family:'Inter',sans-serif; font-size:9px; color:rgba(255,255,255,.28); letter-spacing:1px; margin-top:3px; }
+
 /* Legend */
 .rating-legend {
   display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap; justify-content: center;
@@ -520,7 +558,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       <button class="rf-btn rf-low"        data-f="low">Низький показник</button>
     </div>
 
-    <div class="rating-chart" id="dchart" style="position:relative;z-index:1;"></div>
+    <div class="emp-grid" id="dchart"></div>
 
     <div class="rating-legend" id="dleg">
       <div class="rl-item"><div class="rl-dot high"></div>≥ 600 — високий</div>
@@ -772,20 +810,18 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const chart = document.getElementById('dchart');
   const rows  = [];
 
-  DATA.forEach(emp => {
+  DATA.forEach((emp, i) => {
     const t = tier(emp.v);
-    const row = document.createElement('div');
-    row.className = 'bar-row';
-    row.dataset.tier = t;
-    const pct = (emp.v / MAX * 100).toFixed(1);
-    row.innerHTML = `
-      <div class="bar-name" title="${emp.n}">${emp.n}</div>
-      <div class="bar-track">
-        <div class="bar-fill ${t}" style="width:0%" data-pct="${pct}"></div>
-      </div>
-      <div class="bar-val ${t}">${emp.v}</div>`;
-    chart.appendChild(row);
-    rows.push(row);
+    const card = document.createElement('div');
+    card.className = `emp-card ${t}`;
+    card.dataset.tier = t;
+    card.innerHTML = `
+      <div class="ec-rank">#${i+1}</div>
+      <div class="ec-name">${emp.n}</div>
+      <div class="ec-val">${emp.v}</div>
+      <div class="ec-unit">діалогів</div>`;
+    chart.appendChild(card);
+    rows.push(card);
   });
 
   // Filter buttons
@@ -805,11 +841,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       if (!e.isIntersecting) return;
       targets.forEach(t => t && t.classList.add('vis'));
       rows.forEach((r, i) => {
-        setTimeout(() => {
-          r.classList.add('vis');
-          const fill = r.querySelector('.bar-fill');
-          setTimeout(() => { fill.style.width = fill.dataset.pct + '%'; }, 40);
-        }, i * 35);
+        setTimeout(() => r.classList.add('vis'), i * 28);
       });
       obs.disconnect();
     });
