@@ -477,15 +477,15 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 #star-title {
   font-family: 'Unbounded', sans-serif;
-  font-size: clamp(28px, 5.5vw, 72px);
+  font-size: clamp(26px, 5vw, 64px);
   font-weight: 900;
   color: #fff;
   letter-spacing: 2px;
   text-transform: uppercase;
   opacity: 0;
   position: absolute;
-  bottom: 28%;
-  left: 50%; transform: translateX(-50%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
   white-space: nowrap;
   z-index: 2;
   text-shadow: 0 0 40px rgba(255,255,255,.3);
@@ -493,12 +493,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 #top5-list {
   display: flex; flex-direction: column;
-  align-items: center; gap: 14px;
+  align-items: center; gap: 12px;
   position: absolute;
-  bottom: 4%;
-  left: 50%; transform: translateX(-50%);
+  top: 62%; left: 50%; transform: translateX(-50%);
   z-index: 2;
-  width: 100%; max-width: 600px; padding: 0 24px;
+  width: 100%; max-width: 620px; padding: 0 24px;
 }
 
 .top5-card {
@@ -1129,95 +1128,80 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   let started = false;
   let particles = [];
-  let hx = 0, hy = 0;          // comet head
-  let sx = 0, sy = 0;          // start
-  let ex = 0, ey = 0;          // end (impact)
-  let motionAngle = 0;
   let phase = 'fly', flyT = 0;
-  const FLY = 300;              // ~5s at 60fps — slow majestic flight
+  const FLY = 360; // ~6s
   let raf;
+  let W, H, impactX, impactY;
 
   function resize() {
-    canvas.width  = section.offsetWidth;
-    canvas.height = section.offsetHeight;
+    W = canvas.width  = section.offsetWidth;
+    H = canvas.height = section.offsetHeight;
+    impactX = W * 0.5;
+    impactY = H * 0.46;
   }
 
-  // Comet draws itself: long gradient tail opposite to direction of motion
-  function drawComet(headX, headY, angle) {
-    const TAIL = Math.min(canvas.width * 0.65, 500);
+  // Draw comet at position (hx,hy) scaled by `scale`
+  // Motion angle = direction the comet is heading (for tail direction)
+  function drawComet(hx, hy, scale, angle) {
+    const tail  = 420 * scale;
+    const core  = 14  * scale;
+    const coma  = 80  * scale;
+    const width = 40  * scale;
 
-    // Tail goes backward from motion
+    // Tail direction = opposite of motion
     const tx = Math.cos(angle + Math.PI);
     const ty = Math.sin(angle + Math.PI);
-    const tailEndX = headX + tx * TAIL;
-    const tailEndY = headY + ty * TAIL;
+    const tex = hx + tx * tail;
+    const tey = hy + ty * tail;
 
-    // Outer wide glow tail
-    const g1 = ctx.createLinearGradient(headX, headY, tailEndX, tailEndY);
-    g1.addColorStop(0,   'rgba(255,255,255,0.0)'); // head is nucleus, not tail
-    g1.addColorStop(0,   'rgba(200,255,210,0.55)');
-    g1.addColorStop(0.15,'rgba(100,220,140,0.3)');
-    g1.addColorStop(0.5, 'rgba(34,197,94,0.1)');
-    g1.addColorStop(1,   'rgba(0,0,0,0)');
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(headX, headY);
-    ctx.lineTo(tailEndX, tailEndY);
-    ctx.strokeStyle = g1;
-    ctx.lineWidth = 36;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+
+    // Wide soft outer tail
+    const g1 = ctx.createLinearGradient(hx, hy, tex, tey);
+    g1.addColorStop(0,   'rgba(220,255,230,0.65)');
+    g1.addColorStop(0.12,'rgba(100,220,150,0.35)');
+    g1.addColorStop(0.45,'rgba(34,197,94,0.1)');
+    g1.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tex,tey);
+    ctx.strokeStyle=g1; ctx.lineWidth=width; ctx.lineCap='round'; ctx.stroke();
 
     // Bright core tail
-    const g2 = ctx.createLinearGradient(headX, headY, headX + tx*TAIL*0.5, headY + ty*TAIL*0.5);
-    g2.addColorStop(0,   'rgba(255,255,255,0.95)');
-    g2.addColorStop(0.25,'rgba(180,255,200,0.55)');
-    g2.addColorStop(1,   'rgba(34,197,94,0)');
-    ctx.beginPath();
-    ctx.moveTo(headX, headY);
-    ctx.lineTo(headX + tx*TAIL*0.5, headY + ty*TAIL*0.5);
-    ctx.strokeStyle = g2;
-    ctx.lineWidth = 10;
-    ctx.stroke();
-    ctx.restore();
+    const g2 = ctx.createLinearGradient(hx, hy, hx+tx*tail*.45, hy+ty*tail*.45);
+    g2.addColorStop(0,  'rgba(255,255,255,1)');
+    g2.addColorStop(0.3,'rgba(200,255,215,0.6)');
+    g2.addColorStop(1,  'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(hx+tx*tail*.45,hy+ty*tail*.45);
+    ctx.strokeStyle=g2; ctx.lineWidth=width*0.22; ctx.stroke();
 
-    // Head outer glow (coma)
-    const coma = ctx.createRadialGradient(headX,headY,0,headX,headY,70);
-    coma.addColorStop(0,   'rgba(255,255,255,0.7)');
-    coma.addColorStop(0.15,'rgba(200,255,215,0.35)');
-    coma.addColorStop(0.45,'rgba(34,197,94,0.08)');
-    coma.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.arc(headX, headY, 70, 0, Math.PI*2);
-    ctx.fillStyle = coma;
-    ctx.fill();
+    // Coma (fuzzy glow around nucleus)
+    const cg = ctx.createRadialGradient(hx,hy,0,hx,hy,coma);
+    cg.addColorStop(0,   'rgba(255,255,255,0.75)');
+    cg.addColorStop(0.18,'rgba(180,255,210,0.35)');
+    cg.addColorStop(0.5, 'rgba(34,197,94,0.08)');
+    cg.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(hx,hy,coma,0,Math.PI*2);
+    ctx.fillStyle=cg; ctx.fill();
 
     // Nucleus
-    ctx.save();
-    ctx.shadowColor = '#afffcb';
-    ctx.shadowBlur  = 30;
-    ctx.beginPath();
-    ctx.arc(headX, headY, 10, 0, Math.PI*2);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-    // Inner bright spot
-    ctx.beginPath();
-    ctx.arc(headX, headY, 4, 0, Math.PI*2);
-    ctx.fillStyle = '#e0ffed';
-    ctx.fill();
+    ctx.shadowColor='#c0ffdc'; ctx.shadowBlur=30*scale;
+    ctx.beginPath(); ctx.arc(hx,hy,core,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(hx,hy,core*.4,0,Math.PI*2);
+    ctx.fillStyle='#e8fff3'; ctx.fill();
+
     ctx.restore();
   }
 
   function spawnImpact() {
-    for (let i = 0; i < 70; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const sp = 2 + Math.random() * 7;
+    for (let i=0;i<80;i++) {
+      const a=Math.random()*Math.PI*2, sp=2+Math.random()*8;
       particles.push({
-        x: hx, y: hy,
-        vx: Math.cos(a)*sp, vy: Math.sin(a)*sp,
-        size: 1.5 + Math.random()*3.5,
-        alpha: 1, decay: 0.02+Math.random()*0.02,
-        color: Math.random()>.4 ? '#22c55e' : '#facc15',
+        x:impactX,y:impactY,
+        vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+        size:1.5+Math.random()*4, alpha:1,
+        decay:0.018+Math.random()*0.018,
+        color:Math.random()>.4?'#22c55e':'#facc15'
       });
     }
   }
@@ -1226,60 +1210,69 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     if (started) return;
     started = true;
     resize();
-
-    // Impact point: center-ish where title sits (upper portion of canvas)
-    ex = canvas.width  * 0.5;
-    ey = canvas.height * 0.35;
-
-    // Comet comes from upper-right, diagonal flight toward impact
-    motionAngle = Math.PI + 0.42;  // moving left-down-ish
-    const dist = canvas.width * 1.05;
-    sx = ex + Math.cos(motionAngle + Math.PI) * dist;
-    sy = ey + Math.sin(motionAngle + Math.PI) * dist;
-
-    hx = sx; hy = sy;
-    phase = 'fly'; flyT = 0; particles = [];
-    titleEl.style.opacity = '0';
-    raf = requestAnimationFrame(tick);
+    phase='fly'; flyT=0; particles=[];
+    titleEl.style.opacity='0';
+    raf=requestAnimationFrame(tick);
   }
 
-  function tick() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function easeIn(t){ return t*t*t; }
+  function easeOut(t){ return 1-Math.pow(1-t,3); }
 
-    if (phase === 'fly') {
+  function tick() {
+    ctx.clearRect(0,0,W,H);
+
+    if (phase==='fly') {
       flyT++;
-      const t = Math.min(flyT / FLY, 1);
-      hx = sx + (ex - sx) * t;
-      hy = sy + (ey - sy) * t;
-      drawComet(hx, hy, motionAngle);
+      const t = Math.min(flyT/FLY, 1);
+
+      // Scale: starts BIG (close-up), shrinks as it moves away
+      // First 30% — very close (scale 3.5→2), then zooms out fast to 0.55 at impact
+      let scale, hx, hy, angle;
+
+      if (t < 0.3) {
+        // Close-up phase: comet fills screen, drifts slowly right-to-left
+        const t2 = t / 0.3;
+        scale = 3.5 - t2 * 1.5; // 3.5 → 2.0
+        hx = W * (0.75 - t2 * 0.35);
+        hy = H * (0.35 + t2 * 0.08);
+        angle = Math.PI * 0.97; // heading left slightly down
+      } else {
+        // Zoom-out phase: shrinks toward impact point
+        const t2 = easeIn((t - 0.3) / 0.7);
+        scale = 2.0 - t2 * 1.45; // 2.0 → 0.55
+        hx = W * 0.4 + (impactX - W*0.4) * t2;
+        hy = H * 0.43 + (impactY - H*0.43) * t2;
+        // Angle shifts slightly to aim at impact
+        angle = Math.PI * 0.97 + 0.15 * t2;
+      }
+
+      drawComet(hx, hy, Math.max(scale, 0.3), angle);
 
       if (t >= 1) {
-        phase = 'impact';
+        phase='impact';
         spawnImpact();
-        // Title snaps in instantly
-        titleEl.style.opacity = '1';
-        titleEl.style.textShadow = '0 0 120px rgba(255,255,255,1), 0 0 60px rgba(34,197,94,.9)';
-        setTimeout(()=>{ titleEl.style.transition='text-shadow 1.4s ease'; titleEl.style.textShadow='0 0 24px rgba(255,255,255,.2)'; }, 60);
-        listEl.querySelectorAll('.top5-card').forEach((c,i)=>setTimeout(()=>c.classList.add('vis'), 450+i*180));
+        titleEl.style.opacity='1';
+        titleEl.style.textShadow='0 0 140px rgba(255,255,255,1),0 0 60px rgba(34,197,94,.9)';
+        setTimeout(()=>{ titleEl.style.transition='text-shadow 1.5s ease'; titleEl.style.textShadow='0 0 20px rgba(255,255,255,.18)'; },80);
+        listEl.querySelectorAll('.top5-card').forEach((c,i)=>setTimeout(()=>c.classList.add('vis'),420+i*170));
       }
     }
 
-    if (phase === 'impact') {
-      particles.forEach(p => {
-        if (p.alpha<=0) return;
+    if (phase==='impact') {
+      particles.forEach(p=>{
+        if(p.alpha<=0)return;
         p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.vx*=0.96;
         p.alpha-=p.decay;
         ctx.globalAlpha=Math.max(0,p.alpha);
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
         ctx.fillStyle=p.color; ctx.fill();
         ctx.globalAlpha=1;
       });
       particles=particles.filter(p=>p.alpha>0);
-      if(!particles.length){ phase='done'; return; }
+      if(!particles.length){phase='done';return;}
     }
 
-    if (phase!=='done') raf=requestAnimationFrame(tick);
+    if(phase!=='done') raf=requestAnimationFrame(tick);
   }
 
   // Trigger when s4 enters view
