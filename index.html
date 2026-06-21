@@ -1220,7 +1220,6 @@ p:hover, span:hover, li:hover, label:hover {
         const match = activeFilter === 'all' || r.dataset.tier === activeFilter;
         r.classList.toggle('dimmed', !match);
       });
-      document.getElementById('rchart').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
@@ -1367,7 +1366,6 @@ p:hover, span:hover, li:hover, label:hover {
       btn.classList.add('active');
       const f = btn.dataset.f;
       rows.forEach(r => r.classList.toggle('dimmed', f !== 'all' && r.dataset.tier !== f));
-      scrollToCards();
     });
   });
 
