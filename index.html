@@ -460,93 +460,215 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .rl-dot.mid  { background: #eab308; }
 .rl-dot.low  { background: #ef4444; }
 
-/* ── S4 STAR SECTION ── */
+/* ── S4 MAGAZINE SECTION ── */
 #s4 {
   min-height: 100vh;
   position: relative; overflow: hidden;
-  background: #000;
+  background: radial-gradient(ellipse at 50% 40%, #0d2010 0%, #020602 70%);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
+  gap: 40px;
 }
 
-#star-canvas {
+/* ── Stage & Magazine ── */
+#mag-stage {
+  perspective: 1400px;
+  perspective-origin: 50% 42%;
+}
+
+#magazine {
+  position: relative;
+  width: 360px; height: 510px;
+  transform-style: preserve-3d;
+  transform: rotateX(10deg) rotateY(-6deg);
+  filter: drop-shadow(0 40px 60px rgba(0,0,0,.7));
+}
+
+/* Base book shadow on "table" */
+#magazine::after {
+  content:'';
+  position:absolute;
+  bottom:-28px; left:6%; width:88%; height:28px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,0,0,.55) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Spine (left edge of book) */
+#mag-spine {
+  position:absolute; left:-8px; top:0; width:8px; height:100%;
+  background:linear-gradient(to right,#b0b8b0,#e8ece8,#c4cac4);
+  transform:rotateY(-90deg);
+  transform-origin:right center;
+  z-index:10;
+}
+
+/* Each page is absolutely stacked, flip around left edge */
+.mag-page {
   position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 1.1s cubic-bezier(0.645,0.045,0.355,1);
+  cursor: pointer;
+}
+.mag-page.flipped { transform: rotateY(-180deg); }
+
+.page-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: 2px 4px 4px 2px;
+  overflow: hidden;
+  box-shadow: inset -3px 0 8px rgba(0,0,0,.08);
+}
+.page-face.back {
+  transform: rotateY(180deg);
+  border-radius: 4px 2px 2px 4px;
+  box-shadow: inset 3px 0 8px rgba(0,0,0,.08);
 }
 
-#star-title {
-  font-family: 'Unbounded', sans-serif;
-  font-size: clamp(26px, 5vw, 64px);
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  opacity: 0;
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-  z-index: 2;
-  text-shadow: 0 0 40px rgba(255,255,255,.3);
+/* Curl shadow overlay during flip */
+.page-curl-shadow {
+  position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(to right,rgba(0,0,0,0) 60%,rgba(0,0,0,.22) 100%);
+  opacity:0;
+  transition:opacity .3s;
 }
+.mag-page.flipping .page-curl-shadow { opacity:1; }
 
-#top5-list {
+/* ── PAGE CONTENT STYLES ── */
+.p-cover {
+  background: #fff;
+  font-family: 'Inter', sans-serif;
   display: flex; flex-direction: column;
-  align-items: center; gap: 12px;
-  position: absolute;
-  top: 58%; left: 50%; transform: translateX(-50%);
-  z-index: 2;
-  width: 100%; max-width: 620px; padding: 0 24px;
+  height: 100%;
+}
+.p-cover-top {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid #e8e8e8;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.p-logo-a { font-size:32px; font-weight:800; color:#22c55e; font-family:'Inter',sans-serif; line-height:1; }
+.p-logo-bank { font-size:32px; font-weight:800; color:#111; font-family:'Inter',sans-serif; line-height:1; }
+.p-issue { font-size:9px; color:#888; letter-spacing:.5px; text-align:right; line-height:1.4; }
+
+.p-cover-img {
+  flex:1; position:relative; overflow:hidden;
+  background: linear-gradient(160deg,#c8d4c8 0%,#a0b0a0 40%,#808888 100%);
+}
+.p-cover-img-inner {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 30% 40%,rgba(255,255,255,.15) 0%,transparent 50%),
+    linear-gradient(170deg,#bcc8bc 0%,#8a9890 35%,#6a7870 65%,#4a5850 100%);
+}
+/* ATM machines silhouette */
+.p-cover-img-inner::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    repeating-linear-gradient(90deg,transparent 0%,transparent 18%,rgba(255,255,255,.04) 18%,rgba(255,255,255,.04) 20%),
+    linear-gradient(0deg,rgba(0,0,0,.3) 0%,transparent 40%);
 }
 
-.top5-card {
-  width: 100%;
-  display: flex; align-items: center; gap: 18px;
-  padding: 16px 24px;
-  border-radius: 16px;
-  border: 1px solid rgba(34,197,94,.25);
-  background: rgba(34,197,94,.06);
-  opacity: 0; transform: translateX(-30px);
-  transition: opacity .4s ease, transform .4s ease;
+.p-cover-label {
+  position:absolute; top:14px; left:14px;
+  background:#fff;
+  padding:8px 10px;
+  max-width:120px;
+  font-size:9.5px; font-weight:700; color:#111;
+  line-height:1.35; letter-spacing:.2px;
+  border-left:3px solid #22c55e;
 }
-.top5-card.vis { opacity: 1; transform: translateX(0); }
-.top5-card:hover { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.45); }
+.p-cover-label small { font-weight:400; color:#555; font-size:8.5px; display:block; margin-top:3px; }
 
-.t5-rank {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(28px,4vw,42px); font-weight: 800;
-  color: rgba(34,197,94,.35); width: 48px; text-align: center; flex-shrink: 0;
+.p-cover-headline {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:16px 14px 14px;
+  background:linear-gradient(0deg,rgba(255,255,255,1) 60%,rgba(255,255,255,0));
 }
-.t5-star {
-  font-size: clamp(28px,4vw,42px);
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 8px rgba(250,204,21,.9));
-  animation: starWiggle 1.8s ease-in-out infinite;
-  transform-origin: center;
-  margin-left: -8px;
+.p-cover-headline h1 {
+  font-size:17px; font-weight:800; color:#111; line-height:1.2;
+  letter-spacing:-.3px; margin-bottom:4px;
 }
-@keyframes starWiggle {
-  0%,100% { transform: rotate(-8deg) scale(1);   }
-  50%      { transform: rotate(10deg) scale(1.15); }
+.p-cover-headline p {
+  font-size:8px; color:#555; letter-spacing:.8px; text-transform:uppercase;
 }
-.t5-info { flex: 1; }
-.t5-name {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(13px,1.6vw,17px); font-weight: 600;
-  color: rgba(255,255,255,.9);
+
+.p-cover-footer {
+  padding:7px 18px;
+  font-size:8px; color:#aaa; letter-spacing:.4px;
+  border-top:1px solid #eee;
+  display:flex; justify-content:space-between;
 }
-.t5-val {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(11px,1.2vw,13px); font-weight: 400;
-  color: rgba(34,197,94,.7); margin-top: 3px; letter-spacing: 1px;
+
+/* Page 2 — Rating spread */
+.p-inner {
+  background:#fff;
+  font-family:'Inter',sans-serif;
+  height:100%; display:flex; flex-direction:column;
+  padding:20px 16px 14px;
+  gap:10px;
 }
-.t5-pct {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(20px,2.8vw,30px); font-weight: 800;
-  color: #22c55e;
-  text-shadow: 0 0 20px rgba(34,197,94,.5);
+.p-inner-title {
+  font-size:13px; font-weight:800; color:#111;
+  letter-spacing:-.2px; text-transform:uppercase;
+  border-bottom:2px solid #22c55e; padding-bottom:6px;
 }
+.p-inner-sub { font-size:8px; color:#888; letter-spacing:.5px; }
+.p-bars { display:flex; flex-direction:column; gap:5px; flex:1; }
+.p-bar-row { display:flex; align-items:center; gap:6px; }
+.p-bar-name { font-size:7.5px; color:#333; width:90px; flex-shrink:0; line-height:1.2; }
+.p-bar-track { flex:1; height:10px; background:#f0f0f0; border-radius:5px; overflow:hidden; }
+.p-bar-fill { height:100%; border-radius:5px; }
+.p-bar-val { font-size:7.5px; font-weight:700; color:#111; width:32px; text-align:right; flex-shrink:0; }
+
+/* Page 3 — Top performers */
+.p-top {
+  background:#fff;
+  font-family:'Inter',sans-serif;
+  height:100%; display:flex; flex-direction:column;
+  padding:20px 16px 14px; gap:10px;
+}
+.p-top-title {
+  font-size:13px; font-weight:800; color:#111;
+  text-transform:uppercase; letter-spacing:-.2px;
+  border-bottom:2px solid #facc15; padding-bottom:6px;
+}
+.p-top-cards { display:flex; flex-direction:column; gap:7px; flex:1; }
+.p-top-card {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 10px;
+  border:1px solid #f0f0f0; border-radius:6px;
+  background:#fafafa;
+}
+.p-top-rank { font-size:16px; font-weight:800; color:#e5e5e5; width:24px; flex-shrink:0; }
+.p-top-star { font-size:14px; flex-shrink:0; }
+.p-top-name { font-size:8px; font-weight:600; color:#222; line-height:1.3; flex:1; }
+.p-top-pct { font-size:10px; font-weight:800; color:#22c55e; }
+.p-top-footer { font-size:7.5px; color:#bbb; text-align:center; letter-spacing:.5px; }
+
+/* ── HAND SVG ── */
+#mag-hand {
+  position:absolute;
+  bottom:-60px; right:-20px;
+  width:120px; opacity:0;
+  pointer-events:none; z-index:20;
+  transform: rotate(-15deg);
+}
+
+/* ── DOTS ── */
+#mag-dots {
+  display:flex; gap:10px; align-items:center;
+  opacity:0; transition:opacity .6s;
+}
+#mag-dots.vis { opacity:1; }
+.mdot {
+  width:8px; height:8px; border-radius:50%;
+  background:rgba(255,255,255,.25);
+  cursor:pointer; transition:background .3s, transform .3s;
+  border:1px solid rgba(255,255,255,.15);
+}
+.mdot.active { background:#22c55e; transform:scale(1.3); }
+
 
 /* Floating à letters background */
 .bg-a {
@@ -655,11 +777,107 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     </div>
   </section>
 
-  <!-- S4: STAR SECTION -->
+  <!-- S4: MAGAZINE SECTION -->
   <section id="s4">
-    <canvas id="star-canvas"></canvas>
-    <div id="star-title">наші зірочки</div>
-    <div id="top5-list"></div>
+    <div id="mag-stage">
+      <div id="magazine">
+        <div id="mag-spine"></div>
+
+        <!-- PAGE 0: Cover (front) + Page 2 back -->
+        <div class="mag-page" id="mp0">
+          <!-- FRONT: Cover -->
+          <div class="page-face front p-cover">
+            <div class="p-cover-top">
+              <div><span class="p-logo-a">à</span><span class="p-logo-bank">банк</span></div>
+              <div class="p-issue">ЛИПЕНЬ 2026<br>ВИПУСК №31<br>abank.ua</div>
+            </div>
+            <div class="p-cover-img">
+              <div class="p-cover-img-inner"></div>
+              <div class="p-cover-label">
+                ВИМІРЯНІ ТАРИФИ НА ПЛАТЕЖІ: НОВА ЕКОНОМІКА
+                <small>Скільки ви справді заощаджуєте?</small>
+              </div>
+              <div class="p-cover-headline">
+                <h1>ЯК СТАТИ СТАРШИМ: ЗМІНИ В БАНКУ?</h1>
+                <p>СТРАТЕГІЇ, УСПІХ ТА ЕВОЛЮЦІЯ ЛІДЕРСТВА</p>
+              </div>
+            </div>
+            <div class="p-cover-footer">
+              <span>ЛИПЕНЬ 2026</span><span>ВИПУСК №31 | abank.ua</span>
+            </div>
+          </div>
+          <!-- BACK of page 0 -->
+          <div class="page-face back p-inner">
+            <div class="p-inner-title">Загальний рейтинг</div>
+            <div class="p-inner-sub">SL ASA ПОКАЗНИКИ • ЧЕРВЕНЬ 2026</div>
+            <div class="p-bars" id="mag-bars"></div>
+          </div>
+          <div class="page-curl-shadow"></div>
+        </div>
+
+        <!-- PAGE 1: Rating spread (front) + Top5 back -->
+        <div class="mag-page" id="mp1">
+          <div class="page-face front p-inner">
+            <div class="p-inner-title">Рейтинг діалогів</div>
+            <div class="p-inner-sub">КІЛЬКІСТЬ ДІАЛОГІВ • 10–17 ЧЕРВНЯ</div>
+            <div class="p-bars" id="mag-bars2"></div>
+          </div>
+          <div class="page-face back p-top">
+            <div class="p-top-title">Наші зірочки ★</div>
+            <div class="p-top-cards" id="mag-top5"></div>
+            <div class="p-top-footer">ЗАГАЛЬНИЙ РЕЙТИНГ SL ASA • ЧЕРВЕНЬ 2026</div>
+          </div>
+          <div class="page-curl-shadow"></div>
+        </div>
+
+        <!-- PAGE 2: Final (always visible as last page) -->
+        <div class="mag-page" id="mp2">
+          <div class="page-face front p-top">
+            <div class="p-top-title">Наші зірочки ★</div>
+            <div class="p-top-cards" id="mag-top5b"></div>
+            <div class="p-top-footer">ЗАГАЛЬНИЙ РЕЙТИНГ SL ASA • ЧЕРВЕНЬ 2026</div>
+          </div>
+          <div class="page-face back p-cover" style="background:#f5f5f5;">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+              <div><span class="p-logo-a" style="font-size:48px">à</span><span class="p-logo-bank" style="font-size:48px">банк</span></div>
+              <div style="font-size:10px;color:#aaa;letter-spacing:1px;">abank.ua</div>
+            </div>
+          </div>
+          <div class="page-curl-shadow"></div>
+        </div>
+      </div>
+
+      <!-- Animated hand SVG -->
+      <svg id="mag-hand" viewBox="0 0 120 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g opacity="0.92">
+          <!-- Palm -->
+          <ellipse cx="60" cy="130" rx="42" ry="46" fill="#f5c9a8"/>
+          <!-- Thumb -->
+          <ellipse cx="20" cy="108" rx="13" ry="22" fill="#f5c9a8" transform="rotate(-25 20 108)"/>
+          <!-- Fingers -->
+          <rect x="30" y="52" width="14" height="60" rx="7" fill="#f5c9a8"/>
+          <rect x="48" y="42" width="14" height="68" rx="7" fill="#f5c9a8"/>
+          <rect x="66" y="46" width="14" height="64" rx="7" fill="#f5c9a8"/>
+          <rect x="83" y="55" width="13" height="55" rx="6.5" fill="#f5c9a8"/>
+          <!-- Knuckle lines -->
+          <path d="M33 78 Q37 76 43 78" stroke="#e8a87c" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M51 68 Q55 66 61 68" stroke="#e8a87c" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M69 72 Q73 70 79 72" stroke="#e8a87c" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M85 80 Q89 78 95 80" stroke="#e8a87c" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Wrist -->
+          <rect x="22" y="155" width="76" height="30" rx="12" fill="#f5c9a8"/>
+          <!-- Shadow under hand -->
+          <ellipse cx="60" cy="175" rx="44" ry="8" fill="rgba(0,0,0,0.15)"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Navigation dots -->
+    <div id="mag-dots">
+      <span class="mdot active" data-page="0"></span>
+      <span class="mdot" data-page="1"></span>
+      <span class="mdot" data-page="2"></span>
+    </div>
   </section>
 </div>
 
@@ -1095,7 +1313,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   setInterval(spawnAs3, 8000);
 })();
 
-/* ── STAR ANIMATION (S4) ── */
+/* ── MAGAZINE ANIMATION (S4) ── */
 (function(){
   const TOP5 = [
     { name:'Саєнко Карина Андріївна',         pct:'100%'  },
@@ -1105,216 +1323,141 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     { name:'Козарчук Поліна Андріївна',        pct:'96.65%'},
   ];
 
-  const section  = document.getElementById('s4');
-  const canvas   = document.getElementById('star-canvas');
-  const titleEl  = document.getElementById('star-title');
-  const listEl   = document.getElementById('top5-list');
-  const ctx      = canvas.getContext('2d');
+  const TOP_BARS = [
+    { name:'Саєнко К.А.',    pct:100, color:'#22c55e' },
+    { name:'Семенюк В.Л.',   pct:99.5,color:'#22c55e' },
+    { name:'Табачун А.Ю.',   pct:97.6,color:'#22c55e' },
+    { name:'Діденко В.В.',   pct:96.8,color:'#22c55e' },
+    { name:'Козарчук П.А.',  pct:96.7,color:'#22c55e' },
+    { name:'Кучеренко А.',   pct:94.2,color:'#22c55e' },
+    { name:'Яворська Н.',    pct:90.1,color:'#22c55e' },
+    { name:'Сидоренко О.',   pct:87.5,color:'#22c55e' },
+    { name:'Петренко М.',    pct:72.3,color:'#eab308' },
+    { name:'Іваненко С.',    pct:68.1,color:'#eab308' },
+    { name:'Коваль Д.',      pct:62.0,color:'#ef4444' },
+    { name:'Бондар Р.',      pct:55.4,color:'#ef4444' },
+  ];
 
-  // Build top5 cards (hidden)
-  TOP5.forEach((e, i) => {
-    const card = document.createElement('div');
-    card.className = 'top5-card';
-    card.innerHTML = `
-      <div class="t5-rank">${i+1}</div>
-      <div class="t5-star" style="color:#facc15">★</div>
-      <div class="t5-info">
-        <div class="t5-name">${e.name}</div>
-        <div class="t5-val">SL ASA</div>
-      </div>
-      <div class="t5-pct">${e.pct}</div>`;
-    listEl.appendChild(card);
-  });
+  const DIALOG_BARS = [
+    { name:'Приймаченко А.', pct:100, color:'#22c55e' },
+    { name:'Табачун А.Ю.',   pct:93,  color:'#22c55e' },
+    { name:'Михайлець М.',   pct:91,  color:'#22c55e' },
+    { name:'Саєнко К.А.',    pct:87,  color:'#22c55e' },
+    { name:'Семенюк В.Л.',   pct:80,  color:'#22c55e' },
+    { name:'Коваленко Л.',   pct:74,  color:'#22c55e' },
+    { name:'Кравченко О.',   pct:68,  color:'#eab308' },
+    { name:'Петрова І.',     pct:62,  color:'#eab308' },
+    { name:'Сірко Д.',       pct:55,  color:'#eab308' },
+    { name:'Бойко А.',       pct:48,  color:'#ef4444' },
+    { name:'Асмолков С.',    pct:30,  color:'#ef4444' },
+    { name:'Марченко Т.',    pct:20,  color:'#ef4444' },
+  ];
 
-  let started = false;
-  let particles = [];
-  let phase = 'fly', flyT = 0;
-  const FLY = 540; // ~9s at 60fps
-  let raf;
-  let W, H, impactX, impactY;
+  // Build bar chart
+  function buildBars(containerId, data) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    data.forEach(d => {
+      el.innerHTML += `<div class="p-bar-row">
+        <div class="p-bar-name">${d.name}</div>
+        <div class="p-bar-track"><div class="p-bar-fill" style="width:${d.pct}%;background:${d.color}"></div></div>
+        <div class="p-bar-val" style="color:${d.color}">${d.pct}%</div>
+      </div>`;
+    });
+  }
+  buildBars('mag-bars',  TOP_BARS);
+  buildBars('mag-bars2', DIALOG_BARS);
 
-  // Static starfield
-  let STARS = [];
-  function buildStars() {
-    STARS = Array.from({length:180}, ()=>({
-      x: Math.random(), y: Math.random(),
-      r: 0.4 + Math.random()*1.6,
-      a: 0.2 + Math.random()*0.65
+  // Build top5 cards
+  function buildTop5(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    TOP5.forEach((e,i) => {
+      el.innerHTML += `<div class="p-top-card">
+        <div class="p-top-rank">${i+1}</div>
+        <div class="p-top-star">★</div>
+        <div class="p-top-name">${e.name}</div>
+        <div class="p-top-pct">${e.pct}</div>
+      </div>`;
+    });
+  }
+  buildTop5('mag-top5');
+  buildTop5('mag-top5b');
+
+  // Magazine flip logic
+  const pages   = [document.getElementById('mp0'), document.getElementById('mp1'), document.getElementById('mp2')];
+  const dots    = document.querySelectorAll('.mdot');
+  const dotsEl  = document.getElementById('mag-dots');
+  const handEl  = document.getElementById('mag-hand');
+  let current   = 0;
+  let autoPlaying = true;
+
+  // Flip to a specific page
+  function goToPage(n, animate) {
+    if (n === current && animate) return;
+    // Flip pages up to n
+    pages.forEach((p, i) => {
+      if (i < n) p.classList.add('flipped');
+      else        p.classList.remove('flipped');
+    });
+    dots.forEach((d,i) => d.classList.toggle('active', i===n));
+    current = n;
+  }
+
+  // Animate hand: swipe from bottom-right toward left
+  function animateHand(cb) {
+    if (!handEl) { cb && cb(); return; }
+    handEl.style.transition = 'none';
+    handEl.style.opacity    = '0';
+    handEl.style.transform  = 'translate(60px, 20px) rotate(-15deg)';
+    // small delay so CSS transition reset settles
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      handEl.style.transition = 'opacity .25s, transform 1.0s cubic-bezier(0.25,0.46,0.45,0.94)';
+      handEl.style.opacity    = '0.88';
+      handEl.style.transform  = 'translate(-120px, -10px) rotate(-22deg)';
+      setTimeout(()=>{
+        handEl.style.transition = 'opacity .4s';
+        handEl.style.opacity    = '0';
+        cb && cb();
+      }, 900);
     }));
   }
 
-  function resize() {
-    W = canvas.width  = section.offsetWidth;
-    H = canvas.height = section.offsetHeight;
-    impactX = W * 0.5;
-    impactY = H * 0.5;
+  // Auto-play sequence: page0 3s → flip → page1 3s → flip → page2 3s → show dots
+  function runAutoPlay() {
+    setTimeout(()=>{
+      if (!autoPlaying) return;
+      animateHand(()=>{
+        goToPage(1, true);
+        setTimeout(()=>{
+          if (!autoPlaying) return;
+          animateHand(()=>{
+            goToPage(2, true);
+            setTimeout(()=>{ dotsEl.classList.add('vis'); }, 3000);
+          });
+        }, 3000);
+      });
+    }, 3000);
   }
 
-  function drawStars(scaleFactor) {
-    // Stars appear slightly larger in close-up
-    const rs = Math.min(2.5, Math.max(0.6, scaleFactor * 0.35));
-    ctx.save();
-    STARS.forEach(s=>{
-      ctx.globalAlpha = s.a * 0.85;
-      ctx.beginPath();
-      ctx.arc(s.x*W, s.y*H, s.r * rs, 0, Math.PI*2);
-      ctx.fillStyle='#fff'; ctx.fill();
+  // Dot click — manual navigation
+  dots.forEach(d => {
+    d.addEventListener('click', () => {
+      autoPlaying = false;
+      dotsEl.classList.add('vis');
+      goToPage(+d.dataset.page, true);
     });
-    ctx.globalAlpha=1;
-    ctx.restore();
-  }
+  });
 
-  function drawComet(hx, hy, scale, angle) {
-    const tail  = 500 * scale;
-    const core  = 13  * scale;
-    const coma  = 90  * scale;
-    const width = 48  * scale;
-
-    const tx = Math.cos(angle + Math.PI);
-    const ty = Math.sin(angle + Math.PI);
-    const tex = hx + tx * tail;
-    const tey = hy + ty * tail;
-
-    ctx.save();
-
-    // Wide soft outer tail
-    const g1 = ctx.createLinearGradient(hx, hy, tex, tey);
-    g1.addColorStop(0,    'rgba(220,255,230,0.7)');
-    g1.addColorStop(0.08, 'rgba(120,230,160,0.4)');
-    g1.addColorStop(0.35, 'rgba(34,197,94,0.12)');
-    g1.addColorStop(1,    'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tex,tey);
-    ctx.strokeStyle=g1; ctx.lineWidth=width; ctx.lineCap='round'; ctx.stroke();
-
-    // Bright inner tail
-    const g2 = ctx.createLinearGradient(hx, hy, hx+tx*tail*.4, hy+ty*tail*.4);
-    g2.addColorStop(0,   'rgba(255,255,255,1)');
-    g2.addColorStop(0.25,'rgba(210,255,225,0.65)');
-    g2.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(hx+tx*tail*.4,hy+ty*tail*.4);
-    ctx.strokeStyle=g2; ctx.lineWidth=width*0.18; ctx.stroke();
-
-    // Coma glow
-    const cg = ctx.createRadialGradient(hx,hy,0,hx,hy,coma);
-    cg.addColorStop(0,    'rgba(255,255,255,0.8)');
-    cg.addColorStop(0.15, 'rgba(190,255,215,0.38)');
-    cg.addColorStop(0.5,  'rgba(34,197,94,0.08)');
-    cg.addColorStop(1,    'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.arc(hx,hy,coma,0,Math.PI*2);
-    ctx.fillStyle=cg; ctx.fill();
-
-    // Nucleus
-    ctx.shadowColor='#b0ffd8'; ctx.shadowBlur=35*scale;
-    ctx.beginPath(); ctx.arc(hx,hy,core,0,Math.PI*2);
-    ctx.fillStyle='#fff'; ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.beginPath(); ctx.arc(hx,hy,core*.38,0,Math.PI*2);
-    ctx.fillStyle='#eafff5'; ctx.fill();
-
-    ctx.restore();
-  }
-
-  function spawnImpact() {
-    for (let i=0;i<120;i++) {
-      const a=Math.random()*Math.PI*2, sp=3+Math.random()*12;
-      particles.push({
-        x:impactX, y:impactY,
-        vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
-        size:1.5+Math.random()*5, alpha:1,
-        decay:0.014+Math.random()*0.016,
-        color:Math.random()>.4?'#22c55e':'#facc15'
-      });
-    }
-  }
-
-  function startAnim() {
-    if (started) return;
-    started = true;
-    buildStars();
-    resize();
-    phase='fly'; flyT=0; particles=[];
-    titleEl.style.opacity='0';
-    raf=requestAnimationFrame(tick);
-  }
-
-  function easeIn(t){ return t*t*t; }
-  function easeInOut(t){ return t<.5?4*t*t*t:(t-1)*(2*t-2)*(2*t-2)+1; }
-
-  function tick() {
-    ctx.clearRect(0,0,W,H);
-
-    if (phase==='fly') {
-      flyT++;
-      const t = Math.min(flyT/FLY, 1);
-
-      let scale, hx, hy, angle;
-
-      if (t < 0.42) {
-        // ── CLOSE-UP PHASE ──
-        // Comet enormous (8x→4.5x): only nucleus + coma visible, tail goes off-screen
-        // Drifts slowly top-right → center-left so you FEEL it moving
-        const t2 = t / 0.42;
-        scale = 8.0 - t2 * 3.5;           // 8.0 → 4.5
-        hx = W * (0.82 - t2 * 0.52);      // right → left
-        hy = H * (0.28 + t2 * 0.14);      // top → slightly lower
-        angle = Math.PI * 0.95;
-
-      } else if (t < 0.82) {
-        // ── ZOOM-OUT PHASE ── camera pulls back
-        // Comet goes from 4.5x → 0.7x, full comet becomes visible in space
-        const t2 = easeIn((t - 0.42) / 0.40);
-        scale = 4.5 - t2 * 3.8;           // 4.5 → 0.7
-        hx = W * 0.30 + (impactX - W*0.30) * t2;
-        hy = H * 0.42 + (impactY - H*0.42) * t2;
-        angle = Math.PI * 0.95 + 0.18 * t2;
-
-      } else {
-        // ── FINAL STRIKE ── tiny but fast, aimed dead at title
-        const t2 = (t - 0.82) / 0.18;
-        scale = 0.7 - t2 * 0.25;          // 0.7 → 0.45
-        hx = impactX;
-        hy = impactY;
-        angle = Math.PI * 0.95 + 0.18 + 0.05 * t2;
-      }
-
-      drawStars(scale);
-      drawComet(hx, hy, Math.max(scale, 0.3), angle);
-
-      if (t >= 1) {
-        phase='impact';
-        spawnImpact();
-        titleEl.style.opacity='1';
-        titleEl.style.textShadow='0 0 180px rgba(255,255,255,1),0 0 80px rgba(34,197,94,1),0 0 30px rgba(34,197,94,.7)';
-        setTimeout(()=>{ titleEl.style.transition='text-shadow 1.8s ease'; titleEl.style.textShadow='0 0 24px rgba(255,255,255,.15)'; },100);
-        listEl.querySelectorAll('.top5-card').forEach((c,i)=>setTimeout(()=>c.classList.add('vis'),500+i*180));
-      }
-    }
-
-    if (phase==='impact') {
-      drawStars(0.6);
-      particles.forEach(p=>{
-        if(p.alpha<=0)return;
-        p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.vx*=0.97;
-        p.alpha-=p.decay;
-        ctx.globalAlpha=Math.max(0,p.alpha);
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-        ctx.fillStyle=p.color; ctx.fill();
-        ctx.globalAlpha=1;
-      });
-      particles=particles.filter(p=>p.alpha>0);
-      if(!particles.length){phase='done';return;}
-    }
-
-    if(phase!=='done') raf=requestAnimationFrame(tick);
-  }
-
-  // Trigger when s4 enters view
+  // Kick off when section enters view
   const obs = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) { startAnim(); obs.disconnect(); }
-  }, { threshold: 0.3 });
-  obs.observe(section);
+    if (entries[0].isIntersecting) {
+      runAutoPlay();
+      obs.disconnect();
+    }
+  }, { threshold: 0.4 });
+  obs.observe(document.getElementById('s4'));
 
-  window.addEventListener('resize', ()=>{ if (started) resize(); });
 })();
 </script>
 </body>
