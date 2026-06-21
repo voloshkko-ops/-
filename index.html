@@ -132,7 +132,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   transform: translate(-50%,-50%);
   width: 130%; height: 160%;
   background: radial-gradient(ellipse 55% 55% at 50% 50%,
-    rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 40%, transparent 70%);
+    rgba(34,197,94,0.22) 0%, rgba(34,197,94,0.08) 40%, transparent 70%);
   pointer-events: none; z-index: -1; border-radius: 50%;
 }
 .ml-a-wrap { position:relative; display:inline-flex; flex-direction:column; align-items:center; }
@@ -950,7 +950,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     <div class="sf-bottom">
       <div class="sf-logo"><span>à</span>bank · Презентація</div>
       <div class="sf-copy">Червень 2026 · Виконано з ♥ та кодом</div>
-      <div class="sf-built">Побудовано за допомогою <a href="https://claude.ai" target="_blank">Claude AI</a></div>
+      <div class="sf-built">Built with <a href="https://claude.ai" target="_blank">✦ Claude AI</a></div>
     </div>
   </footer>
 </div>
@@ -1071,10 +1071,13 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       document.querySelectorAll('.rf-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeFilter = btn.dataset.f;
+      let firstMatch = null;
       rows.forEach(r => {
         const match = activeFilter === 'all' || r.dataset.tier === activeFilter;
         r.classList.toggle('dimmed', !match);
+        if(match && !firstMatch) firstMatch = r;
       });
+      if(firstMatch) firstMatch.scrollIntoView({behavior:'smooth', block:'center'});
     });
   });
 
@@ -1626,18 +1629,109 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       ctx.fillStyle='#ef4444'; ctx.beginPath(); rr(ctx,bx,y+108,(e.v/100)*bw,bh,6); ctx.fill();
     });
     ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
-    ctx.fillText('3  із  3',W/2,H-16); ctx.textAlign='left';
+    ctx.fillText('3  із  4',W/2,H-16); ctx.textAlign='left';
+  }
+
+  function drawWhy(ctx,W,H){
+    /* white background */
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    /* top accent stripe */
+    const stripeG=ctx.createLinearGradient(0,0,W,0);
+    stripeG.addColorStop(0,'#22c55e'); stripeG.addColorStop(1,'#16a34a');
+    ctx.fillStyle=stripeG; ctx.fillRect(0,0,W,7);
+    /* header */
+    ctx.fillStyle='#f9fafb'; ctx.fillRect(0,0,W,72);
+    ctx.font='bold 26px Arial'; ctx.fillStyle='#22c55e'; ctx.textBaseline='middle';
+    const aW2=ctx.measureText('à').width;
+    ctx.fillText('à',22,38);
+    ctx.fillStyle='#111'; ctx.fillText('банк',22+aW2+3,38);
+    ctx.font='11px Arial'; ctx.fillStyle='#bbb'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
+    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31',W-18,62);
+    ctx.textAlign='left';
+
+    /* big quote mark decoration */
+    ctx.font='bold 140px Georgia'; ctx.fillStyle='rgba(34,197,94,0.07)';
+    ctx.textBaseline='top'; ctx.fillText('"',W-60,60);
+
+    /* category tag */
+    ctx.fillStyle='#22c55e';
+    ctx.beginPath(); rr(ctx,24,84,140,26,13); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 11px Arial'; ctx.textBaseline='middle';
+    ctx.fillText('КАР\'ЄРА & МОТИВАЦІЯ',34,97);
+
+    /* headline */
+    ctx.fillStyle='#111'; ctx.font='bold 28px Arial'; ctx.textBaseline='alphabetic';
+    ctx.fillText('Чому я можу стати',24,148);
+    ctx.fillText('старшим зміни?',24,182);
+    /* green underline */
+    ctx.fillStyle='#22c55e'; ctx.fillRect(24,190,W-48,3);
+
+    /* lead paragraph */
+    ctx.fillStyle='#444'; ctx.font='italic 14px Georgia'; ctx.textBaseline='alphabetic';
+    function wrap(t,x,y,mw,lh){
+      const words=t.split(' '); let line='';
+      words.forEach(w=>{
+        const test=line+w+' ';
+        if(ctx.measureText(test).width>mw&&line){ ctx.fillText(line,x,y); line=w+' '; y+=lh; }
+        else line=test;
+      });
+      if(line) ctx.fillText(line,x,y);
+      return y;
+    }
+    const lead='Впевненість у собі народжується з досвіду. Ось чому я вважаю, що готова взяти на себе більше відповідальності.';
+    ctx.fillStyle='#22c55e'; ctx.font='italic 14px Georgia';
+    wrap(lead,24,218,W-48,22);
+
+    /* divider */
+    ctx.fillStyle='#f0f0f0'; ctx.fillRect(24,248,W-48,1);
+
+    /* body text columns style */
+    ctx.fillStyle='#333'; ctx.font='13px Arial';
+    const body=[
+      'Відповідальність, швидке навчання та підтримка',
+      'колег — три стовпи мого підходу до роботи.',
+      '',
+      'Я щиро вірю: процеси можна покращити,',
+      'а ефективність команди — підвищити. Саме',
+      'тому готова взяти більше обов\'язків і зробити',
+      'вагомий внесок у досягнення спільних цілей.',
+      '',
+      'Нова посада — можливість розкрити свої',
+      'найкращі якості та надихати команду.',
+    ];
+    let by=272;
+    body.forEach(line=>{
+      if(line===''){by+=8;return;}
+      ctx.fillText(line,24,by); by+=22;
+    });
+
+    /* pull quote box */
+    ctx.fillStyle='rgba(34,197,94,0.06)';
+    ctx.beginPath(); rr(ctx,16,by+12,W-32,80,8); ctx.fill();
+    ctx.fillStyle='#22c55e'; ctx.fillRect(16,by+12,4,80);
+    ctx.fillStyle='#1a5c30'; ctx.font='italic bold 14px Georgia';
+    wrap('«Готова вести команду до спільного результату — кожен день, у кожній зміні.»',28,by+40,W-50,22);
+
+    /* author tag */
+    ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textBaseline='alphabetic';
+    ctx.fillText('— Ваш кандидат на посаду старшого зміни',24,H-52);
+
+    /* page indicator */
+    ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
+    ctx.fillText('4  із  4',W/2,H-16); ctx.textAlign='left';
   }
 
   // Generate PNGs
   const imgCover = makePng(drawCover, CW,CH);
   const imgTop5  = makePng(drawTop5,  CW,CH);
   const imgLow   = makePng(drawLow,   CW,CH);
+  const imgWhy   = makePng(drawWhy,   CW,CH);
 
   const PAGE_DATA = [
     { front: imgCover, back: imgTop5 },
     { front: imgTop5,  back: imgLow  },
-    { front: imgLow,   back: null    },
+    { front: imgLow,   back: imgWhy  },
+    { front: imgWhy,   back: null    },
   ];
 
   // ── Layout ────────────────────────────────────────────────
@@ -1870,249 +1964,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   });
 })();
 
-/* ── PARTICLE SPHERE → TEXT (S5) ── */
-(function(){
-  const cv=document.getElementById('star-cv');
-  if(!cv) return;
-  const ctx=cv.getContext('2d');
-  let W,H,CX,CY;
-  function resize(){
-    cv.width=cv.offsetWidth||window.innerWidth;
-    cv.height=cv.offsetHeight||window.innerHeight;
-    W=cv.width;H=cv.height;CX=W/2;CY=H/2;
-    rebuildTargets();
-  }
-  resize(); window.addEventListener('resize',resize);
-  const TAU=Math.PI*2;
-
-  /* ─── CONFIG ─── */
-  const COUNT = 7000;
-  const SPHERE_R = ()=> Math.min(W,H) * 0.28;
-
-  /* ─── Fibonacci sphere distribution ─── */
-  function fibSphere(i, n, R){
-    const phi = Math.acos(-1 + (2*i)/n);
-    const theta = Math.sqrt(n * Math.PI) * phi;
-    return {
-      x: R * Math.cos(theta) * Math.sin(phi),
-      y: R * Math.sin(theta) * Math.sin(phi),
-      z: R * Math.cos(phi)
-    };
-  }
-
-  /* ─── Sample text pixels ─── */
-  let textTargets = [];
-  function sampleText(){
-    const oc = document.createElement('canvas');
-    oc.width = W; oc.height = H;
-    const ox = oc.getContext('2d');
-    const fs = Math.min(W*0.10, H*0.13, 90);
-    ox.fillStyle = '#fff';
-    ox.font = `700 ${fs}px Inter,sans-serif`;
-    ox.textAlign = 'center'; ox.textBaseline = 'middle';
-    ox.fillText('дякую', CX, H*0.42);
-    ox.fillText('за увагу', CX, H*0.58);
-    const d = ox.getImageData(0,0,W,H).data;
-    const pts = [];
-    const step = 4;
-    for(let y=0;y<H;y+=step)
-      for(let x=0;x<W;x+=step)
-        if(d[(y*W+x)*4+3]>128) pts.push({x,y});
-    return pts;
-  }
-
-  /* ─── Particles ─── */
-  const px = new Float32Array(COUNT); /* current x */
-  const py = new Float32Array(COUNT);
-  const pz = new Float32Array(COUNT); /* for depth sorting */
-  const sx = new Float32Array(COUNT); /* sphere target */
-  const sy = new Float32Array(COUNT);
-  const sz = new Float32Array(COUNT);
-  const tx = new Float32Array(COUNT); /* text target */
-  const ty = new Float32Array(COUNT);
-  const ex = new Float32Array(COUNT); /* explode target */
-  const ey = new Float32Array(COUNT);
-  const hue= new Uint8Array(COUNT);
-
-  function buildSphereTargets(){
-    const R = SPHERE_R();
-    for(let i=0;i<COUNT;i++){
-      const p = fibSphere(i, COUNT, R);
-      sx[i]=p.x; sy[i]=p.y; sz[i]=p.z;
-      /* explode: random outward burst */
-      const a1=Math.random()*TAU, a2=Math.random()*Math.PI;
-      const r2=R*(2.5+Math.random()*3);
-      ex[i]=(CX+Math.sin(a2)*Math.cos(a1)*r2)-CX;
-      ey[i]=(CY+Math.cos(a2)*r2*0.6)-CY;
-      hue[i]=110+Math.floor(Math.random()*70);
-    }
-  }
-
-  function buildTextTargets(){
-    const pts = sampleText();
-    if(!pts.length) return;
-    for(let i=0;i<COUNT;i++){
-      const p = pts[i % pts.length];
-      tx[i] = p.x - CX;
-      ty[i] = p.y - CY;
-    }
-    /* shuffle assignment */
-    for(let i=COUNT-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [tx[i],tx[j]]=[tx[j],tx[i]];
-      [ty[i],ty[j]]=[ty[j],ty[i]];
-    }
-  }
-
-  function rebuildTargets(){
-    buildSphereTargets();
-    buildTextTargets();
-    /* init positions on sphere */
-    for(let i=0;i<COUNT;i++){
-      px[i]=sx[i]; py[i]=sy[i]; pz[i]=sz[i];
-    }
-  }
-
-  /* ─── Scroll → progress ─── */
-  let scrollProgress=0, scrollTarget=0;
-  /* progress: 0=sphere, 0.5=exploded, 1=text */
-  const s5el = document.getElementById('s5');
-  s5el.addEventListener('wheel', e=>{
-    e.preventDefault();
-    scrollTarget = Math.max(0, Math.min(1, scrollTarget + e.deltaY*0.0008));
-  }, {passive:false});
-
-  /* touch support */
-  let touchY0=0;
-  s5el.addEventListener('touchstart',e=>{ touchY0=e.touches[0].clientY; },{passive:true});
-  s5el.addEventListener('touchmove',e=>{
-    const dy=touchY0-e.touches[0].clientY; touchY0=e.touches[0].clientY;
-    scrollTarget=Math.max(0,Math.min(1,scrollTarget+dy*0.003));
-  },{passive:true});
-
-  /* ─── Stars background ─── */
-  const bgStars = Array.from({length:400},()=>({
-    x:Math.random(), y:Math.random(),
-    r:0.2+Math.random()*1.1,
-    a:0.04+Math.random()*0.3,
-    tw:Math.random()*TAU, tws:0.003+Math.random()*0.015,
-  }));
-
-  /* ─── Rotation ─── */
-  let rotY=0, rotX=0.12; /* slight tilt */
-  /* mouse drag rotation */
-  let dragging=false, dragX=0, dragY=0, rotYv=0, rotXv=0;
-  s5el.addEventListener('mousedown',e=>{ dragging=true; dragX=e.clientX; dragY=e.clientY; });
-  window.addEventListener('mouseup',()=>{ dragging=false; });
-  window.addEventListener('mousemove',e=>{
-    if(!dragging||scrollProgress>0.3) return;
-    rotYv += (e.clientX-dragX)*0.003; dragX=e.clientX;
-    rotXv += (e.clientY-dragY)*0.001; dragY=e.clientY;
-  });
-
-  let t=0, last=performance.now();
-
-  /* project 3D→2D with simple perspective */
-  function project(x,y,z){
-    const FOV=600;
-    const scale=FOV/(FOV+z);
-    return {x:CX+x*scale, y:CY+y*scale, s:scale};
-  }
-
-  /* rotate point around Y then X */
-  function rotate(x,y,z,ry,rx){
-    /* rotate Y */
-    const x1=x*Math.cos(ry)+z*Math.sin(ry);
-    const z1=-x*Math.sin(ry)+z*Math.cos(ry);
-    /* rotate X */
-    const y2=y*Math.cos(rx)-z1*Math.sin(rx);
-    const z2=y*Math.sin(rx)+z1*Math.cos(rx);
-    return {x:x1,y:y2,z:z2};
-  }
-
-  function easeInOut(t){ return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
-
-  function draw(now){
-    const dt=Math.min((now-last)/16.67,2.5); last=now;
-    t+=0.012*dt;
-
-    /* smooth scroll */
-    scrollProgress += (scrollTarget-scrollProgress)*0.06*dt;
-
-    /* auto-rotate sphere when not scrolled */
-    const rotFade=Math.max(0,1-scrollProgress*3);
-    rotYv += 0.004*dt*rotFade;
-    rotYv *= 0.96;
-    rotXv *= 0.96;
-    rotY  += rotYv;
-    rotX  += rotXv*rotFade;
-    rotX   = Math.max(-0.5,Math.min(0.5,rotX));
-
-    ctx.fillStyle='rgba(0,0,0,0.25)';
-    ctx.fillRect(0,0,W,H);
-
-    /* stars */
-    bgStars.forEach(s=>{
-      s.tw+=s.tws;
-      ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,TAU);
-      ctx.fillStyle=`rgba(180,255,200,${s.a*(0.5+0.5*Math.sin(s.tw))})`; ctx.fill();
-    });
-
-    /* ── update + draw particles ── */
-    /* phases:
-       0.0–0.4 : sphere → explode  (progress 0→1 maps to p 0→0.4)
-       0.4–1.0 : explode → text    (progress maps to p 0.4→1)
-    */
-    const ph1=Math.min(1,scrollProgress/0.38);   /* 0→1: sphere→explode */
-    const ph2=Math.max(0,(scrollProgress-0.38)/0.62); /* 0→1: explode→text */
-    const ep1=easeInOut(ph1);
-    const ep2=easeInOut(ph2);
-
-    /* draw back-to-front using z depth */
-    /* For performance, draw all without sorting (acceptable at this count) */
-    for(let i=0;i<COUNT;i++){
-      /* target on sphere (rotated) */
-      const rot=rotate(sx[i],sy[i],sz[i],rotY,rotX);
-
-      /* intermediate: sphere→explode→text */
-      let wx,wy,wz;
-      if(ph2>0.001){
-        /* explode→text */
-        const bx=CX+ex[i]*(1-ep1)+rot.x*ep1-(rot.x*(1));
-        /* just blend directly explode→text */
-        wx = ex[i]*(1-ep2) + tx[i]*ep2;
-        wy = ey[i]*(1-ep2) + ty[i]*ep2;
-        wz = rot.z*(1-ep2);
-      } else {
-        /* sphere→explode */
-        wx = rot.x*(1-ep1) + ex[i]*ep1;
-        wy = rot.y*(1-ep1) + ey[i]*ep1;
-        wz = rot.z*(1-ep1);
-      }
-
-      const proj=project(wx,wy,wz);
-      const depth=(wz+SPHERE_R()*1.5)/(SPHERE_R()*3);
-
-      /* brightness by depth + phase */
-      const textPhase = ph2>0.5?1:0;
-      const bright = textPhase ? 0.85+0.15*Math.sin(t*3+i*0.01) : 0.35+0.65*depth;
-      const alpha  = bright*(0.5+0.5*depth);
-      const size   = proj.s*(0.8+0.5*depth);
-
-      /* color: sphere=blue-purple, text=green */
-      const c = ph2>0.6 ?
-        `hsla(${hue[i]},100%,72%,${alpha})` :
-        `hsla(${230+hue[i]*0.3},80%,${55+depth*30}%,${alpha})`;
-
-      ctx.beginPath();
-      ctx.arc(proj.x,proj.y,Math.max(0.4,size*0.7),0,TAU);
-      ctx.fillStyle=c; ctx.fill();
-    }
-
-    requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-})();
 </script>
 </body>
 </html>
