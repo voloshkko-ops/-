@@ -67,7 +67,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 #lp {
   font-family: 'Inter', sans-serif;
   font-size: clamp(13px, 1.8vw, 16px);
-  font-weight: 800; letter-spacing: 6px;
+  font-weight: 800; letter-spacing: 1px;
   color: rgba(34,197,94,0.75);
 }
 
@@ -876,7 +876,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   update(0);
 
-  const STEPS = 200, IV = 5000 / STEPS;
+  const STEPS = 100, IV = 1800 / STEPS;
   let step = 0;
   const timer = setInterval(() => {
     step++;
@@ -1775,234 +1775,234 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   });
 })();
 
-/* ── BLACK HOLE (S5) ── */
+/* ── GARGANTUA BLACK HOLE (S5) ── */
 (function(){
   const cv=document.getElementById('star-cv');
   if(!cv) return;
   const ctx=cv.getContext('2d');
-  let W,H,CX,CY;
+  let W,H,CX,CY,BHR; /* BHR = event horizon radius */
   function resize(){
     cv.width=cv.offsetWidth||window.innerWidth;
     cv.height=cv.offsetHeight||window.innerHeight;
     W=cv.width;H=cv.height;CX=W/2;CY=H/2;
+    BHR=Math.min(W,H)*0.10;
   }
   resize(); window.addEventListener('resize',resize);
   const TAU=Math.PI*2;
 
-  /* ── mouse state ── */
-  let mx=0,my=0,mProx=0; /* mProx 0..1 = how close mouse is to center */
+  /* ── mouse ── */
+  let mx=CX,my=CY,mProx=0,proxSmooth=0;
   cv.parentElement.addEventListener('mousemove',e=>{
     const r=cv.getBoundingClientRect();
     mx=e.clientX-r.left; my=e.clientY-r.top;
     const d=Math.hypot(mx-CX,my-CY);
-    const maxD=Math.min(W,H)*0.45;
-    mProx=Math.max(0,1-d/maxD);
+    mProx=Math.max(0,1-d/(Math.min(W,H)*0.45));
   });
   cv.parentElement.addEventListener('mouseleave',()=>{ mProx=0; });
 
   /* ── background stars ── */
-  const bgStars=Array.from({length:600},()=>({
+  const bgStars=Array.from({length:700},()=>({
     x:Math.random(),y:Math.random(),
-    r:0.2+Math.random()*1.3,
-    a:0.05+Math.random()*0.4,
-    tw:Math.random()*TAU,tws:0.004+Math.random()*0.02,
+    r:0.15+Math.random()*1.2,
+    a:0.04+Math.random()*0.45,
+    tw:Math.random()*TAU,tws:0.003+Math.random()*0.018,
   }));
 
-  /* ── gravity wave rings ── */
-  const GWAVE_MAX=8;
-  const gwaves=[];
-  function spawnWave(){
-    gwaves.push({r:0,life:0,maxR:Math.min(W,H)*(0.28+Math.random()*0.22),speed:0.6+Math.random()*0.8});
-  }
-  let waveTimer=0;
-
-  /* ── spark streaks (kept from before) ── */
-  const BH_R=()=>Math.min(W,H)*(0.055+mProx*0.025); /* event horizon radius */
+  /* ── spark streaks (from previous) ── */
   function mkSpark(){
     const a=Math.random()*TAU;
-    const spd=(1.5+Math.random()*4.0);
-    const diskR=BH_R()*2.2+Math.random()*BH_R()*1.8;
-    const maxDist=100+Math.random()*Math.max(W,H)*0.58;
     return{
-      a,spd,dist:diskR,maxDist,
-      spiral:(Math.random()-0.5)*0.015, /* angle drift = spiral effect */
-      len:6+Math.random()*30,
-      size:0.3+Math.random()*1.6,
-      alpha:0.35+Math.random()*0.65,
-      hue:110+Math.floor(Math.random()*60),
+      a, spd:1.0+Math.random()*3.8,
+      dist:(BHR*2.8)+Math.random()*BHR*2,
+      maxDist:120+Math.random()*Math.max(W,H)*0.55,
+      spiral:(Math.random()-0.5)*0.012,
+      len:5+Math.random()*28,
+      size:0.3+Math.random()*1.5,
+      alpha:0.3+Math.random()*0.65,
+      hue:110+Math.floor(Math.random()*65),
     };
   }
-  const SPARK_COUNT=900;
-  const sparks=Array.from({length:SPARK_COUNT},()=>{
-    const s=mkSpark(); s.dist=Math.random()*s.maxDist; return s;
+  const sparks=Array.from({length:900},()=>{const s=mkSpark();s.dist=Math.random()*s.maxDist;return s;});
+
+  /* ── gravity waves ── */
+  const gwaves=[]; let waveTimer=0;
+  function spawnWave(){ gwaves.push({r:BHR*1.5,maxR:Math.min(W,H)*(0.3+Math.random()*0.25),spd:0.7+Math.random()}); }
+
+  /* ── accretion disk config ── */
+  /* The Interstellar disk: nearly edge-on, inner hot glow, outer fade */
+  /* TILT = y-compression ratio making it look nearly flat/edge-on */
+  const DISK_TILT=0.16; /* 0=flat edge, 1=circle */
+  let diskAngle=0;
+
+  /* disk particles for texture */
+  const diskPts=Array.from({length:800},()=>{
+    const r=BHR*(1.35+Math.random()*3.2);
+    const a=Math.random()*TAU;
+    return{r,a,spd:(0.005+Math.random()*0.012)*(Math.random()<0.5?1:-1),
+      size:0.4+Math.random()*2,alpha:0.3+Math.random()*0.7,
+      hue:110+Math.floor(Math.random()*70)};
   });
 
-  /* ── accretion disk particles (orbit close to BH) ── */
-  function mkAccrete(){
-    const a=Math.random()*TAU;
-    const f=0.6+Math.random()*0.7; /* orbit radius factor */
-    return{a,f,
-      spd:0.018+Math.random()*0.022,
-      size:0.5+Math.random()*2.2,
-      alpha:0.5+Math.random()*0.5,
-      hue:100+Math.floor(Math.random()*80),
-      tilt:0.22+Math.random()*0.18,
-    };
+  let t=0,last=performance.now();
+
+  /* ── draw accretion disk (Gargantua style) ── */
+  function drawDisk(bhR,diskRot,pulse){
+    const inner=bhR*1.3, outer=bhR*4.8;
+
+    /* ─ back half (behind BH): draw first, will be covered by BH ─ */
+    ctx.save();
+    /* clip to lower half only (behind = top of screen due to tilt) */
+    ctx.beginPath(); ctx.rect(0,0,W,CY); ctx.clip();
+    _drawDiskFull(bhR,inner,outer,diskRot,pulse,0.7);
+    ctx.restore();
+
+    /* ─ gravitational lensing ghost ring above BH ─ */
+    /* The real magic of Interstellar: top part of disk appears bent OVER the BH */
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0,0,W,CY+bhR*0.5); ctx.clip();
+    /* thin lensed arc drawn above */
+    for(let pass=0;pass<3;pass++){
+      const lensRx=(inner+outer)*0.5*(0.95+pass*0.04);
+      const lensRy=bhR*(0.55-pass*0.08);
+      const lensAlpha=[0.7,0.45,0.22][pass];
+      const lensW=[bhR*0.35,bhR*0.55,bhR*0.9][pass];
+      const g=ctx.createLinearGradient(CX-lensRx,CY,CX+lensRx,CY);
+      g.addColorStop(0,'rgba(0,255,100,0)');
+      g.addColorStop(0.2,`rgba(60,255,130,${lensAlpha*pulse})`);
+      g.addColorStop(0.5,`rgba(140,255,180,${lensAlpha*1.4*pulse})`);
+      g.addColorStop(0.8,`rgba(60,255,130,${lensAlpha*pulse})`);
+      g.addColorStop(1,'rgba(0,255,100,0)');
+      ctx.beginPath();
+      ctx.ellipse(CX,CY-bhR*0.72,lensRx,lensRy,0,Math.PI,TAU);
+      ctx.strokeStyle=g; ctx.lineWidth=lensW; ctx.stroke();
+    }
+    ctx.restore();
+
+    /* ─ front half (in front of BH): draw on top ─ */
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0,CY,W,H); ctx.clip();
+    _drawDiskFull(bhR,inner,outer,diskRot,pulse,1.0);
+    ctx.restore();
   }
-  const accrete=Array.from({length:500},mkAccrete);
 
-  /* ── orbital bands ── */
-  const BANDS=[
-    {tilt:0.18,rot:0,    spd:0.003,lw:32,alpha:0.38},
-    {tilt:0.30,rot:1.05, spd:-0.005,lw:20,alpha:0.28},
-    {tilt:0.12,rot:0.52, spd:0.002, lw:48,alpha:0.18},
-  ].map(b=>({...b,angle:Math.random()*TAU}));
-
-  let t=0,last=performance.now(),proxSmooth=0;
+  function _drawDiskFull(bhR,inner,outer,rot,pulse,alphaMult){
+    /* multi-layer disk with hot inner edge */
+    const layers=[
+      {r1:inner,     r2:inner*1.4, c1:`rgba(200,255,210,${0.95*alphaMult*pulse})`,c2:`rgba(60,255,120,${0.6*alphaMult*pulse})`, lw:bhR*0.55},
+      {r1:inner*1.3, r2:inner*2.2, c1:`rgba(40,255,110,${0.7*alphaMult*pulse})`, c2:`rgba(0,200,80,${0.3*alphaMult*pulse})`,  lw:bhR*0.9},
+      {r1:inner*2.0, r2:outer,     c1:`rgba(0,180,70,${0.45*alphaMult*pulse})`,  c2:'rgba(0,80,30,0)',                          lw:bhR*1.4},
+    ];
+    layers.forEach(l=>{
+      const mid=(l.r1+l.r2)/2;
+      const g=ctx.createRadialGradient(CX,CY,l.r1,CX,CY,l.r2);
+      g.addColorStop(0,l.c1); g.addColorStop(1,l.c2);
+      ctx.beginPath();
+      ctx.ellipse(CX,CY,mid,mid*DISK_TILT,rot,0,TAU);
+      ctx.strokeStyle=g; ctx.lineWidth=l.lw; ctx.stroke();
+    });
+  }
 
   function draw(now){
     const dt=Math.min((now-last)/16.67,2.5); last=now;
     t+=0.013*dt;
-    proxSmooth+=(mProx-proxSmooth)*0.04*dt; /* smooth mouse approach */
+    proxSmooth+=(mProx-proxSmooth)*0.035*dt;
 
-    const bhR=Math.min(W,H)*(0.055+proxSmooth*0.028);
-    const diskOuter=bhR*4.5;
+    const bhR=BHR*(1+proxSmooth*0.22);
+    const diskSpd=(0.003+proxSmooth*0.006)*dt;
+    diskAngle+=diskSpd;
+    const pulse=0.88+0.12*Math.sin(t*2.1);
 
     /* ── fade trail ── */
-    ctx.fillStyle='rgba(0,0,0,0.20)';
+    ctx.fillStyle='rgba(0,0,0,0.19)';
     ctx.fillRect(0,0,W,H);
 
-    /* ── background stars ── */
+    /* ── stars ── */
     bgStars.forEach(s=>{
       s.tw+=s.tws;
-      ctx.beginPath();
-      ctx.arc(s.x*W,s.y*H,s.r,0,TAU);
-      ctx.fillStyle=`rgba(180,255,200,${s.a*(0.5+0.5*Math.sin(s.tw))})`;
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,TAU);
+      ctx.fillStyle=`rgba(180,255,200,${s.a*(0.5+0.5*Math.sin(s.tw))})`; ctx.fill();
     });
 
-    /* ── deep nebula haze ── */
+    /* ── nebula haze ── */
     const D=Math.max(W,H);
-    const nebG=ctx.createRadialGradient(CX,CY,0,CX,CY,D*0.7);
-    nebG.addColorStop(0,'rgba(0,40,20,0.0)');
-    nebG.addColorStop(0.25,'rgba(0,80,40,0.06)');
-    nebG.addColorStop(0.6,'rgba(0,30,15,0.03)');
-    nebG.addColorStop(1,'transparent');
-    ctx.fillStyle=nebG; ctx.fillRect(0,0,W,H);
+    const nb=ctx.createRadialGradient(CX,CY,bhR*2,CX,CY,D*0.65);
+    nb.addColorStop(0,'rgba(0,60,25,0.08)'); nb.addColorStop(0.4,'rgba(0,30,12,0.04)'); nb.addColorStop(1,'transparent');
+    ctx.fillStyle=nb; ctx.fillRect(0,0,W,H);
 
-    /* ── outer orbital bands ── */
-    const baseRx=Math.min(W,H)*0.46*(1+proxSmooth*0.1);
-    BANDS.forEach((b,bi)=>{
-      b.angle+=b.spd*(1+proxSmooth*0.8)*dt;
-      const pulse=0.9+0.1*Math.sin(t*1.4+bi);
-      const rx=baseRx*(1+bi*0.22)*pulse;
-      const ry=rx*b.tilt;
-      ctx.beginPath();
-      ctx.ellipse(CX,CY,rx,ry,b.angle+b.rot,0,TAU);
-      ctx.strokeStyle=`rgba(0,255,100,${b.alpha*0.3*pulse})`;
-      ctx.lineWidth=b.lw*3; ctx.stroke();
-      ctx.beginPath();
-      ctx.ellipse(CX,CY,rx,ry,b.angle+b.rot,0,TAU);
-      ctx.strokeStyle=`rgba(140,255,180,${b.alpha*0.9*pulse})`;
-      ctx.lineWidth=b.lw*0.22; ctx.stroke();
+    /* ── outer bloom ── */
+    const obloom=ctx.createRadialGradient(CX,CY,bhR*2,CX,CY,D*0.5);
+    obloom.addColorStop(0,`rgba(0,200,80,${0.06+proxSmooth*0.06})`);
+    obloom.addColorStop(0.3,'rgba(0,100,40,0.03)'); obloom.addColorStop(1,'transparent');
+    ctx.fillStyle=obloom; ctx.fillRect(0,0,W,H);
+
+    /* ── disk particles (texture over disk bands) ── */
+    diskPts.forEach(p=>{
+      p.a+=p.spd*(1+proxSmooth*0.8)*dt;
+      const x=CX+Math.cos(p.a+diskAngle)*p.r;
+      const y=CY+Math.sin(p.a+diskAngle)*p.r*DISK_TILT;
+      const br=0.4+0.6*Math.abs(Math.cos(p.a));
+      ctx.beginPath(); ctx.arc(x,y,p.size*br,0,TAU);
+      ctx.fillStyle=`hsla(${p.hue},100%,70%,${p.alpha*br*0.75})`; ctx.fill();
     });
+
+    /* ── Gargantua accretion disk ── */
+    drawDisk(bhR,diskAngle,pulse);
 
     /* ── spark streaks ── */
-    const speedMult=1+proxSmooth*2.2;
+    const spdM=1+proxSmooth*2;
     sparks.forEach((s,i)=>{
-      s.dist+=s.spd*speedMult*dt;
-      s.a+=s.spiral*dt;
+      s.dist+=s.spd*spdM*dt; s.a+=s.spiral*dt;
       /* mouse deflection */
       const sx=CX+Math.cos(s.a)*s.dist, sy=CY+Math.sin(s.a)*s.dist;
-      const mdx=sx-mx, mdy=sy-my;
-      const md=Math.hypot(mdx,mdy);
-      if(md<120) s.a+=0.004*(120-md)/120*Math.sign(mdx)*dt;
-
-      if(s.dist>s.maxDist){ sparks[i]=mkSpark(); sparks[i].dist=BH_R()*2.5; return; }
-      const progress=s.dist/s.maxDist;
-      const al=s.alpha*(progress<0.06?progress/0.06:progress>0.78?(1-progress)/0.22:1);
-      if(al<=0.01) return;
-
-      const x1=CX+Math.cos(s.a)*s.dist;
-      const y1=CY+Math.sin(s.a)*s.dist;
-      const td=Math.max(3,s.len*(1-progress*0.45));
-      const x0=CX+Math.cos(s.a)*(s.dist-td);
-      const y0=CY+Math.sin(s.a)*(s.dist-td);
+      const md=Math.hypot(sx-mx,sy-my);
+      if(md<110) s.a+=0.005*(110-md)/110*Math.sign(sx-mx)*dt;
+      if(s.dist>s.maxDist){ sparks[i]=mkSpark(); return; }
+      const p=s.dist/s.maxDist;
+      const al=s.alpha*(p<0.05?p/0.05:p>0.78?(1-p)/0.22:1);
+      if(al<0.01) return;
+      const x1=CX+Math.cos(s.a)*s.dist, y1=CY+Math.sin(s.a)*s.dist;
+      const td=Math.max(3,s.len*(1-p*0.4));
+      const x0=CX+Math.cos(s.a)*(s.dist-td), y0=CY+Math.sin(s.a)*(s.dist-td);
       const g=ctx.createLinearGradient(x0,y0,x1,y1);
       g.addColorStop(0,`hsla(${s.hue},100%,65%,0)`);
       g.addColorStop(1,`hsla(${s.hue},100%,82%,${al})`);
       ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1);
-      ctx.strokeStyle=g; ctx.lineWidth=s.size*(1-progress*0.55); ctx.lineCap='round'; ctx.stroke();
-      if(progress<0.88){
-        ctx.beginPath(); ctx.arc(x1,y1,s.size*0.85,0,TAU);
-        ctx.fillStyle=`hsla(${s.hue+20},100%,90%,${al*0.85})`; ctx.fill();
-      }
+      ctx.strokeStyle=g; ctx.lineWidth=s.size*(1-p*0.5); ctx.lineCap='round'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(x1,y1,s.size*0.8,0,TAU);
+      ctx.fillStyle=`hsla(${s.hue+15},100%,88%,${al*0.8})`; ctx.fill();
     });
 
-    /* ── accretion disk (close orbit) ── */
-    accrete.forEach(p=>{
-      p.a+=p.spd*(1+proxSmooth)*dt;
-      const r=bhR*(p.f+0.5);
-      const x=CX+Math.cos(p.a)*r;
-      const y=CY+Math.sin(p.a)*r*p.tilt;
-      const brightness=0.45+0.55*Math.abs(Math.cos(p.a));
-      ctx.beginPath(); ctx.arc(x,y,p.size*brightness,0,TAU);
-      ctx.fillStyle=`hsla(${p.hue},100%,72%,${p.alpha*brightness*0.9})`; ctx.fill();
-    });
-
-    /* ── gravity wave rings ── */
+    /* ── gravity waves ── */
     waveTimer+=dt;
-    if(waveTimer>60/(1+proxSmooth*2)){ waveTimer=0; if(gwaves.length<GWAVE_MAX) spawnWave(); }
+    if(waveTimer>55){ waveTimer=0; if(gwaves.length<10) spawnWave(); }
     for(let i=gwaves.length-1;i>=0;i--){
       const w=gwaves[i];
-      w.r+=w.speed*dt*(1+proxSmooth);
-      w.life=w.r/w.maxR;
-      if(w.life>=1){ gwaves.splice(i,1); continue; }
-      const al=(1-w.life)*(w.life<0.1?w.life*10:1)*0.55;
-      ctx.beginPath(); ctx.arc(CX,CY,w.r,0,TAU);
-      ctx.strokeStyle=`rgba(80,255,150,${al*0.7})`;
-      ctx.lineWidth=2.5*(1-w.life); ctx.stroke();
-      /* inner bright ring */
-      ctx.beginPath(); ctx.arc(CX,CY,w.r*0.985,0,TAU);
-      ctx.strokeStyle=`rgba(200,255,220,${al*0.4})`;
-      ctx.lineWidth=1; ctx.stroke();
+      w.r+=w.spd*(1+proxSmooth)*dt;
+      const lf=w.r/w.maxR;
+      if(lf>=1){gwaves.splice(i,1);continue;}
+      const al=(1-lf)*(lf<0.08?lf/0.08:1)*0.5;
+      ctx.beginPath(); ctx.ellipse(CX,CY,w.r,w.r*DISK_TILT*2.5,0,0,TAU);
+      ctx.strokeStyle=`rgba(80,255,150,${al})`; ctx.lineWidth=2*(1-lf); ctx.stroke();
     }
 
-    /* ── photon sphere glow (around BH) ── */
-    const ps=0.5+0.5*Math.sin(t*2.2);
-    const photonR=bhR*1.55+bhR*0.08*ps;
-    const photonG=ctx.createRadialGradient(CX,CY,bhR*0.9,CX,CY,photonR*2.5);
-    photonG.addColorStop(0,`rgba(0,255,100,${0.45+proxSmooth*0.25})`);
-    photonG.addColorStop(0.35,`rgba(0,180,80,${0.18+proxSmooth*0.1})`);
-    photonG.addColorStop(0.7,'rgba(0,80,40,0.05)');
-    photonG.addColorStop(1,'transparent');
-    ctx.fillStyle=photonG;
-    ctx.beginPath(); ctx.arc(CX,CY,photonR*2.5,0,TAU); ctx.fill();
-
-    /* photon ring line */
-    ctx.beginPath(); ctx.arc(CX,CY,photonR,0,TAU);
-    ctx.strokeStyle=`rgba(120,255,160,${0.7+proxSmooth*0.3})`;
-    ctx.lineWidth=1.8+ps*1.2; ctx.stroke();
-
-    /* ── gravitational lensing halo ── */
-    const lensG=ctx.createRadialGradient(CX,CY,bhR*0.85,CX,CY,bhR*2.8);
-    lensG.addColorStop(0,'rgba(0,255,90,0.12)');
-    lensG.addColorStop(0.4,'rgba(0,200,70,0.06)');
-    lensG.addColorStop(1,'transparent');
-    ctx.fillStyle=lensG;
-    ctx.beginPath(); ctx.arc(CX,CY,bhR*2.8,0,TAU); ctx.fill();
-
-    /* ── BLACK HOLE event horizon — absolute dark ── */
-    /* outer edge softening */
-    const edgeG=ctx.createRadialGradient(CX,CY,bhR*0.7,CX,CY,bhR*1.05);
-    edgeG.addColorStop(0,'rgba(0,0,0,1)');
-    edgeG.addColorStop(0.7,'rgba(0,0,0,0.97)');
-    edgeG.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=edgeG;
-    ctx.beginPath(); ctx.arc(CX,CY,bhR*1.05,0,TAU); ctx.fill();
-    /* solid core */
-    ctx.beginPath(); ctx.arc(CX,CY,bhR*0.88,0,TAU);
-    ctx.fillStyle='#000'; ctx.fill();
+    /* ── BLACK HOLE ── */
+    /* event horizon shadow/lensing edge */
+    const lenG=ctx.createRadialGradient(CX,CY,bhR*0.82,CX,CY,bhR*1.35);
+    lenG.addColorStop(0,'rgba(0,0,0,1)');
+    lenG.addColorStop(0.65,'rgba(0,0,0,0.96)');
+    lenG.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=lenG; ctx.beginPath(); ctx.arc(CX,CY,bhR*1.35,0,TAU); ctx.fill();
+    /* hard black core */
+    ctx.beginPath(); ctx.arc(CX,CY,bhR*0.88,0,TAU); ctx.fillStyle='#000'; ctx.fill();
+    /* photon ring */
+    const phR=bhR*1.08+bhR*0.04*Math.sin(t*2.5);
+    ctx.beginPath(); ctx.arc(CX,CY,phR,0,TAU);
+    ctx.strokeStyle=`rgba(160,255,180,${0.8+proxSmooth*0.2})`; ctx.lineWidth=1.5+Math.sin(t*2.5)*0.5; ctx.stroke();
+    /* inner glow rim */
+    const rimG=ctx.createRadialGradient(CX,CY,bhR*0.9,CX,CY,bhR*1.3);
+    rimG.addColorStop(0,`rgba(0,255,100,${0.35+proxSmooth*0.2})`);
+    rimG.addColorStop(0.5,'rgba(0,180,70,0.08)'); rimG.addColorStop(1,'transparent');
+    ctx.fillStyle=rimG; ctx.beginPath(); ctx.arc(CX,CY,bhR*1.3,0,TAU); ctx.fill();
 
     requestAnimationFrame(draw);
   }
