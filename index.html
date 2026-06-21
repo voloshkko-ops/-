@@ -485,34 +485,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
 }
-/* ── S5 NEON STAR ── */
-#s5 {
-  min-height: 100vh; position: relative; overflow: hidden;
-  background: #000; display: flex; align-items: center; justify-content: center;
-}
-#star-cv {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  pointer-events: none;
-}
-#s5-title {
-  position: relative; z-index: 2; text-align: center;
-  pointer-events: none; user-select: none;
-}
-.s5-label {
-  display: block;
-  font-family: 'Unbounded', sans-serif;
-  font-size: clamp(3rem, 10vw, 8rem);
-  color: transparent;
-  -webkit-text-stroke: 2px rgba(34,197,94,0.15);
-  letter-spacing: -0.02em;
-}
-.s5-sub {
-  display: block;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.8rem, 2vw, 1.1rem);
-  color: rgba(34,197,94,0.2);
-  letter-spacing: 0.35em; text-transform: uppercase; margin-top: 0.5rem;
-}
+/* ── S5 (removed) ── */
 
 #s4-canvas-wrap {
   position: absolute; inset: 0;
@@ -734,6 +707,94 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   70%  { opacity: 1; }
   100% { opacity: 0;    transform: translateY(-140px) scale(1.12); }
 }
+
+/* ── SITE FOOTER ── */
+#site-footer {
+  background: #030a05;
+  border-top: 1px solid rgba(34,197,94,0.12);
+  padding: 80px 24px 48px;
+  position: relative;
+  overflow: hidden;
+}
+#site-footer::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(34,197,94,0.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+.sf-grid {
+  max-width: 960px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px; margin-bottom: 64px;
+}
+@media(max-width:640px){ .sf-grid{ grid-template-columns:1fr; } }
+.sf-card {
+  background: rgba(34,197,94,0.04);
+  border: 1px solid rgba(34,197,94,0.12);
+  border-radius: 16px;
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: border-color .3s, background .3s, transform .3s;
+  position: relative;
+  overflow: hidden;
+}
+.sf-card:hover {
+  border-color: rgba(34,197,94,0.4);
+  background: rgba(34,197,94,0.08);
+  transform: translateY(-4px);
+}
+.sf-card-icon {
+  font-size: 2rem; margin-bottom: 14px; display: block;
+}
+.sf-card-tag {
+  display: inline-block;
+  font-family:'Space Grotesk',sans-serif;
+  font-size: 10px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:rgba(34,197,94,0.5);
+  margin-bottom:8px;
+}
+.sf-card-title {
+  font-family:'Unbounded',sans-serif;
+  font-size: clamp(.75rem,.9vw,.88rem);
+  color:#fff; font-weight:900;
+  line-height:1.3; margin-bottom:12px;
+}
+.sf-card-body {
+  font-family:'Space Grotesk',sans-serif;
+  font-size: .82rem; color:rgba(255,255,255,0.45);
+  line-height:1.65;
+  max-height:0; overflow:hidden;
+  transition: max-height .5s cubic-bezier(.4,0,.2,1), opacity .4s;
+  opacity:0;
+}
+.sf-card.open .sf-card-body { max-height:300px; opacity:1; }
+.sf-card-arrow {
+  position:absolute; top:24px; right:20px;
+  font-size:1rem; color:rgba(34,197,94,0.4);
+  transition: transform .3s, color .3s;
+}
+.sf-card:hover .sf-card-arrow { color:rgba(34,197,94,0.8); }
+.sf-card.open .sf-card-arrow { transform:rotate(90deg); color:#22c55e; }
+
+.sf-bottom {
+  max-width:960px; margin:0 auto;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;
+  padding-top:32px;
+  border-top: 1px solid rgba(34,197,94,0.08);
+}
+.sf-logo { font-family:'Unbounded',sans-serif; font-weight:900; font-size:1.1rem; }
+.sf-logo span { color:#22c55e; }
+.sf-copy {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:.78rem; color:rgba(255,255,255,0.2);
+}
+.sf-built {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:.78rem; color:rgba(34,197,94,0.35);
+  display:flex; align-items:center; gap:8px;
+}
+.sf-built a { color:rgba(34,197,94,0.6); text-decoration:none; transition:color .2s; }
+.sf-built a:hover { color:#22c55e; }
 </style>
 </head>
 <body>
@@ -851,13 +912,47 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       <span class="mdot active" data-page="0" title="Обкладинка"></span>
       <span class="mdot" data-page="1" title="Топ-5"></span>
       <span class="mdot" data-page="2" title="Потребують уваги"></span>
+      <span class="mdot" data-page="3" title="Про мене"></span>
     </div>
   </section>
 
-  <!-- S5: NEON STAR -->
-  <section id="s5">
-    <canvas id="star-cv"></canvas>
-  </section>
+  <!-- FOOTER -->
+  <footer id="site-footer">
+    <div class="sf-grid">
+      <div class="sf-card" onclick="this.classList.toggle('open')">
+        <span class="sf-card-arrow">›</span>
+        <span class="sf-card-icon">🤖</span>
+        <span class="sf-card-tag">Технологія</span>
+        <div class="sf-card-title">Створено разом із Claude</div>
+        <div class="sf-card-body">
+          Весь сайт — HTML, CSS і JavaScript в одному файлі. Жодних фреймворків, жодного npm. Анімації написані на Canvas 2D, журнал — через CSS 3D-трансформації. У якості помічника використовувалась документація <a href="https://docs.anthropic.com" target="_blank">Claude від Anthropic</a> та claude.ai для генерації і відлагодження коду.
+        </div>
+      </div>
+      <div class="sf-card" onclick="this.classList.toggle('open')">
+        <span class="sf-card-arrow">›</span>
+        <span class="sf-card-icon">✦</span>
+        <span class="sf-card-tag">Дизайн</span>
+        <div class="sf-card-title">Особисті ідеї та естетика</div>
+        <div class="sf-card-body">
+          Палітра — глибокий чорний і неоновий зелений #22c55e. Типографіка: Unbounded для заголовків, Space Grotesk для тексту. Кожна секція — окрема ідея: матриця на фоні, журнал що перегортається, куля з частинок. Все народилось із бажання зробити «не як усі».
+        </div>
+      </div>
+      <div class="sf-card" onclick="this.classList.toggle('open')">
+        <span class="sf-card-arrow">›</span>
+        <span class="sf-card-icon">💡</span>
+        <span class="sf-card-tag">Передісторія</span>
+        <div class="sf-card-title">Як це все почалося</div>
+        <div class="sf-card-body">
+          Мій друг вирішив зайнятися продажами і скинув мені сайт, який йому зробили. Я подивилась і подумала: «За що він заплатив?» А потім сказала вголос — якби я могла робити сайти, я б тобі зробила в сто разів краще. Після цієї фрази я трохи зупинилась, задумалась… і почала копати тему дизайну. Цей сайт — доказ того, що слова варто підкріплювати справою.
+        </div>
+      </div>
+    </div>
+    <div class="sf-bottom">
+      <div class="sf-logo"><span>à</span>bank · Презентація</div>
+      <div class="sf-copy">Червень 2026 · Виконано з ♥ та кодом</div>
+      <div class="sf-built">Побудовано за допомогою <a href="https://claude.ai" target="_blank">Claude AI</a></div>
+    </div>
+  </footer>
 </div>
 
 <script>
@@ -1449,12 +1544,14 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     // article box
     ctx.fillStyle='rgba(255,255,255,0.96)';
     ctx.beginPath(); rr(ctx,24,126,210,116,5); ctx.fill();
-    ctx.fillStyle='#111'; ctx.font='bold 17px Arial'; ctx.textBaseline='alphabetic';
-    ctx.fillText('ВИМІРЯНІ ТАРИФИ',34,158);
-    ctx.fillText('НА ПЛАТЕЖІ:',34,180);
-    ctx.fillText('НОВА ЕКОНОМІЯ',34,202);  // ЕКОНОМІЯ
+    ctx.fillStyle='#22c55e'; ctx.font='bold 11px Arial'; ctx.textBaseline='alphabetic';
+    ctx.fillText('КАР\'ЄРА',34,148);
+    ctx.fillStyle='#111'; ctx.font='bold 16px Arial';
+    ctx.fillText('ЧОМУ Я МОЖУ',34,168);
+    ctx.fillText('СТАТИ СТАРШИМ',34,188);
+    ctx.fillText('ЗМІНИ?',34,208);
     ctx.fillStyle='#555'; ctx.font='12px Arial';
-    ctx.fillText('Скільки ви справді заощаджуєте?',34,224);
+    ctx.fillText('Читайте ексклюзивно →',34,228);
     // headline
     ctx.fillStyle='#111'; ctx.textAlign='center';
     ctx.font='bold 50px Arial';
@@ -1738,8 +1835,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     {n:'Табачук Анастасія Ю.', v:'97.63%'},
     {n:'Діденко Вікторія В.',  v:'96.83%'},
     {n:'Козарчук Поліна А.',   v:'96.65%'},
-    {n:'Приймаченко А.А.',     v:'95.10%'},
-    {n:'Михайлець М.О.',       v:'94.22%'},
   ];
   const LOW = [
     {n:'Шанюк В.С.',     v:'41.72%'},
