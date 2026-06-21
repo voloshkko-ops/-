@@ -1905,9 +1905,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const imgWhy   = makePng(drawWhy,   CW,CH);
 
   const PAGE_DATA = [
-    { front: imgCover, back: imgTop5 },
-    { front: imgTop5,  back: imgLow  },
-    { front: imgLow,   back: imgWhy  },
+    { front: imgCover },
+    { front: imgTop5  },
+    { front: imgLow   },
+    { front: imgWhy   },
   ];
 
   // ── Layout ────────────────────────────────────────────────
@@ -1947,20 +1948,18 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       'border-radius:3px;display:block;',
     ].join('');
 
-    // Back face — shows actual next page content
+    // Back face — decorative (content shown via front of next page)
     const back=document.createElement('div');
     back.style.cssText=[
       'position:absolute;inset:0;',
       'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
       'transform:rotateY(180deg);border-radius:3px;overflow:hidden;',
-      'background:#f5f3f0;',
+      'background:linear-gradient(135deg,#f5f3f0,#eae7e2);',
     ].join('');
-    if(pd.back){
-      const backImg=document.createElement('img');
-      backImg.src=pd.back; backImg.draggable=false;
-      backImg.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block;';
-      back.appendChild(backImg);
-    }
+    const bl=document.createElement('div');
+    bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;opacity:0.3;';
+    bl.innerHTML='<div style="font:bold 48px Arial;letter-spacing:-1px;color:#22c55e;">à</div>';
+    back.appendChild(bl);
 
     pg.appendChild(front); pg.appendChild(back);
     scene.appendChild(pg);
@@ -2020,7 +2019,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }
 
   function flipForward(){
-    if(busy||state>=PAGE_DATA.length) return;
+    if(busy||state>=PAGE_DATA.length-1) return;
     busy=true;
     const pg=pageEls[state];
     turnShadow.style.opacity='1';
