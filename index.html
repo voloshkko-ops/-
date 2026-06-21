@@ -764,7 +764,47 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   animation-play-state: paused;
 }
 .sf-card-icon {
-  font-size: 2rem; margin-bottom: 14px; display: block;
+  margin-bottom: 14px; display: block; width: 48px; height: 48px;
+}
+
+/* ── Robot icon animations ── */
+.robot-icon { width:48px; height:48px; }
+.robot-eye { animation: robotBlink 3.5s ease-in-out infinite; transform-origin: center; }
+.robot-eye-r { animation: robotBlink 3.5s ease-in-out infinite 0.12s; transform-origin: center; }
+.robot-arm { animation: robotWave 2.8s ease-in-out infinite; transform-origin: 2px 4px; }
+@keyframes robotBlink {
+  0%,88%,100% { transform: scaleY(1); }
+  92%          { transform: scaleY(0.08); }
+}
+@keyframes robotWave {
+  0%,100% { transform: rotate(0deg); }
+  25%     { transform: rotate(-18deg); }
+  55%     { transform: rotate(12deg); }
+}
+
+/* ── Star icon animations ── */
+.star-icon { width:48px; height:48px; animation: starSpin 6s linear infinite; }
+.star-inner { animation: starPulse 2s ease-in-out infinite; transform-origin: 24px 24px; }
+@keyframes starSpin { to { transform: rotate(360deg); } }
+@keyframes starPulse {
+  0%,100% { transform: scale(1); opacity:1; }
+  50%     { transform: scale(1.18); opacity:0.75; }
+}
+
+/* ── Bulb icon animations ── */
+.bulb-icon { width:48px; height:48px; }
+.bulb-glow { animation: bulbFlicker 2.6s ease-in-out infinite; transform-origin: 24px 24px; }
+.bulb-ray  { animation: bulbRay 2.6s ease-in-out infinite; transform-origin: 24px 24px; }
+@keyframes bulbFlicker {
+  0%,100% { opacity:1; transform:scale(1); }
+  20%     { opacity:0.6; transform:scale(0.92); }
+  40%     { opacity:1; transform:scale(1.05); }
+  60%     { opacity:0.8; transform:scale(0.97); }
+  80%     { opacity:1; transform:scale(1.02); }
+}
+@keyframes bulbRay {
+  0%,100% { transform:scale(1) rotate(0deg); opacity:0.7; }
+  50%     { transform:scale(1.2) rotate(15deg); opacity:1; }
 }
 .sf-card-tag {
   display: inline-block;
@@ -941,7 +981,27 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     <div class="sf-grid">
       <div class="sf-card" onclick="this.classList.toggle('open')">
         <span class="sf-card-arrow">›</span>
-        <span class="sf-card-icon">🤖</span>
+        <span class="sf-card-icon">
+          <svg class="robot-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- antenna -->
+            <line x1="24" y1="4" x2="24" y2="11" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="24" cy="3.5" r="2.5" fill="#22c55e"/>
+            <!-- head -->
+            <rect x="10" y="11" width="28" height="20" rx="5" fill="#1a2e1e" stroke="#22c55e" stroke-width="1.5"/>
+            <!-- eyes -->
+            <rect class="robot-eye"  x="15" y="17" width="6" height="6" rx="2" fill="#22c55e"/>
+            <rect class="robot-eye-r" x="27" y="17" width="6" height="6" rx="2" fill="#22c55e"/>
+            <!-- mouth -->
+            <rect x="16" y="26" width="16" height="3" rx="1.5" fill="#22c55e" opacity="0.6"/>
+            <!-- body -->
+            <rect x="14" y="33" width="20" height="10" rx="3" fill="#1a2e1e" stroke="#22c55e" stroke-width="1.2"/>
+            <!-- arm -->
+            <g class="robot-arm">
+              <rect x="6" y="34" width="6" height="3" rx="1.5" fill="#22c55e" opacity="0.7"/>
+            </g>
+            <rect x="36" y="34" width="6" height="3" rx="1.5" fill="#22c55e" opacity="0.7"/>
+          </svg>
+        </span>
         <span class="sf-card-tag">Технологія</span>
         <div class="sf-card-title">Створено разом із Claude</div>
         <div class="sf-card-body">
@@ -950,7 +1010,16 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       </div>
       <div class="sf-card" onclick="this.classList.toggle('open')">
         <span class="sf-card-arrow">›</span>
-        <span class="sf-card-icon">✦</span>
+        <span class="sf-card-icon">
+          <svg class="star-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g class="star-inner">
+              <!-- 4-pointed star -->
+              <path d="M24 4 L26.5 21.5 L44 24 L26.5 26.5 L24 44 L21.5 26.5 L4 24 L21.5 21.5 Z" fill="#22c55e" opacity="0.9"/>
+              <!-- inner bright -->
+              <path d="M24 14 L25.2 22.8 L34 24 L25.2 25.2 L24 34 L22.8 25.2 L14 24 L22.8 22.8 Z" fill="#fff" opacity="0.6"/>
+            </g>
+          </svg>
+        </span>
         <span class="sf-card-tag">Дизайн</span>
         <div class="sf-card-title">Особисті ідеї та естетика</div>
         <div class="sf-card-body">
@@ -959,7 +1028,29 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       </div>
       <div class="sf-card" onclick="this.classList.toggle('open')">
         <span class="sf-card-arrow">›</span>
-        <span class="sf-card-icon">💡</span>
+        <span class="sf-card-icon">
+          <svg class="bulb-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- rays -->
+            <g class="bulb-ray">
+              <line x1="24" y1="2"  x2="24" y2="7"  stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+              <line x1="38" y1="8"  x2="35" y2="11" stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+              <line x1="46" y1="22" x2="41" y2="22" stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+              <line x1="10" y1="8"  x2="13" y2="11" stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+              <line x1="2"  y1="22" x2="7"  y2="22" stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+            </g>
+            <!-- bulb glow -->
+            <g class="bulb-glow">
+              <circle cx="24" cy="21" r="11" fill="#22c55e" opacity="0.15"/>
+              <!-- bulb shape -->
+              <path d="M17 21 C17 15.5 20 11 24 11 C28 11 31 15.5 31 21 C31 24.5 29 27 27 29 L27 33 L21 33 L21 29 C19 27 17 24.5 17 21Z" fill="#22c55e" opacity="0.85"/>
+              <!-- filament shine -->
+              <circle cx="24" cy="19" r="3.5" fill="#fff" opacity="0.5"/>
+            </g>
+            <!-- base -->
+            <rect x="20" y="33" width="8" height="3" rx="1" fill="#22c55e" opacity="0.6"/>
+            <rect x="21" y="36" width="6" height="2" rx="1" fill="#22c55e" opacity="0.4"/>
+          </svg>
+        </span>
         <span class="sf-card-tag">Передісторія</span>
         <div class="sf-card-title">Як це все почалося</div>
         <div class="sf-card-body">
