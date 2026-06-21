@@ -507,7 +507,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 /* ── S4 TOGGLE SWITCHES ── */
 .s4-toggles {
   position: absolute;
-  right: 48px; top: 50%; transform: translateY(-50%);
+  right: 16px; top: 50%; transform: translateY(-50%);
   z-index: 10;
   display: flex; flex-direction: column; gap: 36px;
 }
@@ -1433,7 +1433,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       back.style.background='linear-gradient(135deg,#f5f3f0,#eae7e2)';
       const bl2=document.createElement('div');
       bl2.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;';
-      bl2.innerHTML='<div style="font:bold 52px Arial;color:rgba(34,197,94,0.55);letter-spacing:-1px;">àbank</div>'
+      bl2.innerHTML='<div style="font:bold 52px Arial;letter-spacing:-1px;"><span style="color:rgba(34,197,94,0.8);">à</span><span style="color:#1a1a1a;">банк</span></div>'
         +'<div style="font:13px Arial;color:rgba(0,0,0,0.2);margin-top:8px;letter-spacing:3px;">BANK MAGAZINE</div>';
       back.appendChild(bl2);
     } else {
