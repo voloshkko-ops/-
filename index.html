@@ -670,7 +670,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .s4-sw-row-pct.hi { color: #22c55e; }
 .s4-sw-row-pct.lo { color: #ef4444; }
 .s4-sw-row-formula { flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px 14px; }
-.s4-sw-row-flabel { font-size: 10px; font-weight: 700; color: #3b82f6; letter-spacing: 0.5px; }
+.s4-sw-row-flabel { font-size: 10px; font-weight: 700; color: #22c55e; letter-spacing: 0.5px; }
 .s4-sw-row-ftext { font-size: 9.5px; color: rgba(255,255,255,.55); font-family: monospace; line-height: 1.4; word-break: break-all; }
 
 /* Floating à letters background */
@@ -1438,86 +1438,81 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }
 
   function drawFormulas(ctx,W,H){
-    // Background
     ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,W,H);
-    // Top accent bar
+
+    // Top gradient bar
     const bar=ctx.createLinearGradient(0,0,W,0);
-    bar.addColorStop(0,'#3b82f6'); bar.addColorStop(1,'#8b5cf6');
+    bar.addColorStop(0,'#22c55e'); bar.addColorStop(1,'#16a34a');
     ctx.fillStyle=bar; ctx.fillRect(0,0,W,6);
 
     // Title
-    ctx.font='bold 30px Arial'; ctx.fillStyle='#f0f6ff';
-    ctx.fillText('Методологія розрахунку',32,54);
-    ctx.font='13px Arial'; ctx.fillStyle='#6b7280';
-    ctx.fillText('SL ASA — формули та логіка • Червень 2026',32,76);
+    ctx.font='bold 28px Arial'; ctx.fillStyle='#f0f6ff';
+    ctx.fillText('Методологія розрахунку',32,50);
+    ctx.font='13px Arial'; ctx.fillStyle='#4b5563';
+    ctx.fillText('SL ASA — формули та логіка • Червень 2026',32,72);
 
-    // helper: draw a formula card
-    function card(y,h,accent,title,lines){
-      // card bg
-      ctx.fillStyle='#161b22';
-      rr(ctx,24,y,W-48,h,10); ctx.fill();
-      ctx.strokeStyle=accent; ctx.lineWidth=1.5;
-      rr(ctx,24,y,W-48,h,10); ctx.stroke();
-      // left accent strip
-      ctx.fillStyle=accent; rr(ctx,24,y,4,h,3); ctx.fill();
+    function card(y,h,accent,title,desc,lines){
+      ctx.beginPath(); rr(ctx,24,y,W-48,h,10);
+      ctx.fillStyle='#161b22'; ctx.fill();
+      ctx.beginPath(); rr(ctx,24,y,W-48,h,10);
+      ctx.strokeStyle=accent+'88'; ctx.lineWidth=1.5; ctx.stroke();
+      // left strip
+      ctx.beginPath(); rr(ctx,24,y,5,h,3);
+      ctx.fillStyle=accent; ctx.fill();
       // title
-      ctx.font='bold 14px Arial'; ctx.fillStyle=accent;
-      ctx.fillText(title,42,y+22);
-      // lines of formula text
-      ctx.font='12px monospace'; ctx.fillStyle='#c9d1d9';
-      lines.forEach((l,i)=>{ ctx.fillText(l,42,y+42+i*17); });
+      ctx.font='bold 13px Arial'; ctx.fillStyle=accent;
+      ctx.fillText(title,40,y+20);
+      // description
+      ctx.font='11px Arial'; ctx.fillStyle='#9ca3af';
+      ctx.fillText(desc,40,y+36);
+      // formula lines
+      ctx.font='11px monospace'; ctx.fillStyle='#d1d5db';
+      lines.forEach((l,i)=>{ ctx.fillText(l,40,y+54+i*16); });
     }
 
-    // Card 1 — Target dialog
-    card(92,110,'#3b82f6','① Визначення цільового діалогу',[
-      'IF( OR(',
-      '  AND(черга>=0,  черга<=5,  очікування<=120);',
-      '  AND(черга>=6,  черга<=10, очікування<=180);',
-      '  AND(черга>=11, черга<=15, очікування<=300);',
-      '  AND(черга>=16, очікування<=420)',
-      ') → 1, інакше → 0',
-    ]);
+    // Card 1 — визначення цільового діалогу
+    card(88,118,'#3b82f6',
+      '① Визначення цільового діалогу',
+      'Діалог вважається цільовим якщо виконується хоча б одна умова:',
+      [
+        'Черга  0–5 хв   →  очікування ≤ 120 сек (2 хв)',
+        'Черга  6–10 хв  →  очікування ≤ 180 сек (3 хв)',
+        'Черга 11–15 хв  →  очікування ≤ 300 сек (5 хв)',
+        'Черга  ≥ 16 хв  →  очікування ≤ 420 сек (7 хв)',
+      ]
+    );
 
-    // Card 2 — SL ASA
-    card(214,176,'#22c55e','② Розрахунок SL ASA (Google Sheets)',[
-      '=ARRAYFORMULA(ЯКЩО(A2:A=""; "";',
-      '  100 * (',
-      '    COUNTIFS(діалоги!C:C; A2:A; D:D;"<=5";  E:E;"<=120")',
-      '  + COUNTIFS(діалоги!C:C; A2:A; D:D;">=6";',
-      '             D:D;"<=10"; E:E;"<=180")',
-      '  + COUNTIFS(діалоги!C:C; A2:A; D:D;">=11";',
-      '             D:D;"<=15"; E:E;"<=300")',
-      '  + COUNTIFS(діалоги!C:C; A2:A; D:D;">=16";  E:E;"<=420")',
-      '  ) / COUNTIF(діалоги!C:C; A2:A)',
-      '))',
-    ]);
+    // Card 2 — розрахунок SL ASA
+    card(218,198,'#22c55e',
+      '② Розрахунок SL ASA (таблиця "результати")',
+      'Кількість цільових діалогів / Загальна кількість діалогів × 100',
+      [
+        '=ARRAYFORMULA( ЯКЩО(A2:A=""; "";',
+        '  100 × (',
+        '    COUNTIFS(діалоги!C; співр.; D;"<=5";  E;"<=120")',
+        '  + COUNTIFS(діалоги!C; співр.; D;">=6";  D;"<=10"; E;"<=180")',
+        '  + COUNTIFS(діалоги!C; співр.; D;">=11"; D;"<=15"; E;"<=300")',
+        '  + COUNTIFS(діалоги!C; співр.; D;">=16"; E;"<=420")',
+        '  ) / COUNTIF(діалоги!C; співр.)',
+        '))',
+      ]
+    );
 
-    // Card 3 — Filter <65%
-    card(402,76,'#ef4444','③ Відбір співробітників нижче порогу',[
-      '=FILTER(',
-      '  результати!A:D;',
-      '  результати!D:D < 65',
-      ')',
-    ]);
+    // Card 3 — відбір нижче 65%
+    card(428,90,'#22c55e',
+      '③ Відбір співробітників нижче порогу 65%',
+      'Збирає всі рядки з таблиці "результати" де SL ASA < 65',
+      [
+        '=FILTER( результати!A:D;  результати!D:D < 65 )',
+      ]
+    );
 
-    // Legend
-    ctx.font='bold 12px Arial'; ctx.fillStyle='#6b7280';
-    ctx.fillText('Де:  C = співробітник   D = черга (хв)   E = очікування (сек)',32,496);
-
-    // threshold badges
-    const badges=[['≤5 хв / 2 хв','#3b82f6'],['≤10 хв / 3 хв','#8b5cf6'],['≤15 хв / 5 хв','#f59e0b'],['≥16 хв / 7 хв','#ef4444']];
-    badges.forEach((b,i)=>{
-      const bx=32+i*138, by=516;
-      ctx.fillStyle=b[1]+'33';
-      rr(ctx,bx,by,128,26,6); ctx.fill();
-      ctx.strokeStyle=b[1]; ctx.lineWidth=1;
-      rr(ctx,bx,by,128,26,6); ctx.stroke();
-      ctx.font='11px Arial'; ctx.fillStyle=b[1];
-      ctx.fillText(b[0],bx+10,by+17);
-    });
+    // Footer note
+    ctx.font='11px Arial'; ctx.fillStyle='#374151';
+    ctx.fillText('C = співробітник  |  D = час черги (хв)  |  E = час очікування (сек)',32,530);
 
     // Page number
-    ctx.fillStyle='#30363d'; ctx.font='13px Arial'; ctx.textAlign='center';
+    ctx.font='13px Arial'; ctx.fillStyle='#374151'; ctx.textAlign='center';
     ctx.fillText('4  із  4',W/2,H-16); ctx.textAlign='left';
   }
 
