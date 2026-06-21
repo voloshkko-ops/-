@@ -1045,7 +1045,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   setInterval(spawnAs3, 8000);
 })();
 
-/* ── MAGAZINE 3D (S4) — loads Three.js on demand ── */
+/* ── MAGAZINE 3D (S4) ── */
 (function(){
   function loadScript(src){
     return new Promise((res,rej)=>{
@@ -1059,19 +1059,31 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const _section=document.getElementById('s4');
   if(!_section) return;
 
-  // Load libs only when s4 is about to be visible
+  // Start loading libs immediately (async, non-blocking)
+  const libsReady=Promise.all([
+    loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js'),
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js')
+  ]).catch(()=>Promise.all([
+    loadScript('https://unpkg.com/three@0.160.0/build/three.min.js'),
+    loadScript('https://unpkg.com/gsap@3.12.2/dist/gsap.min.js')
+  ]));
+
+  let _initDone=false;
+  function tryInit(){
+    if(_initDone) return;
+    libsReady.then(()=>{ _initDone=true; initMag(); }).catch(e=>console.error('S4 libs failed',e));
+  }
+
+  // Init when s4 is near viewport (libs likely ready by then)
   const _preObs=new IntersectionObserver(entries=>{
     if(!entries[0].isIntersecting) return;
     _preObs.disconnect();
-    Promise.all([
-      loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js'),
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js')
-    ]).then(initMag);
-  },{rootMargin:'200px'});
+    tryInit();
+  },{rootMargin:'400px'});
   _preObs.observe(_section);
 
   function initMag(){
-  if (typeof THREE === 'undefined') return;
+  if(typeof THREE==='undefined') return;
 
   const section = document.getElementById('s4');
   const wrap    = document.getElementById('s4-canvas-wrap');
@@ -1232,7 +1244,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   wrap.appendChild(renderer.domElement);
 
   const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x060d06);
+  scene.background=new THREE.Color(0x060d06); // dark green-black, matches CSS
 
   // Face-on camera
   const camera=new THREE.PerspectiveCamera(40,W0/H0,0.01,60);
