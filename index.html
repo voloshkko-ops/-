@@ -1098,6 +1098,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       mainLogo.classList.add('in');
       if (taglineEl) taglineEl.classList.add('in');
       subBlock.classList.add('in');
+      // restart tick animation so it starts from the top immediately
+      const tick = mainLogo.querySelector('.ml-tick');
+      if(tick){ tick.style.animation='none'; void tick.offsetWidth; tick.style.animation=''; }
     }, 200);
     splash.addEventListener('animationend', () => {
       splash.style.display = 'none';
