@@ -1356,18 +1356,9 @@ p:hover, span:hover, li:hover, label:hover {
     rows.push(card);
   });
 
-  // Filter buttons — also scroll to cards
   function scrollToCards() {
     document.getElementById('dchart').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  document.querySelectorAll('#df .rf-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#df .rf-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const f = btn.dataset.f;
-      rows.forEach(r => r.classList.toggle('dimmed', f !== 'all' && r.dataset.tier !== f));
-    });
-  });
 
   const targets = ['dt','ds','df','dleg','donut-wrap'].map(id => document.getElementById(id));
 
@@ -1497,8 +1488,13 @@ p:hover, span:hover, li:hover, label:hover {
   document.querySelectorAll('#df .rf-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const f = btn.dataset.f;
-      if (f === 'all') selectTier(activeSegKey || '');
-      else { selectTier(f); scrollToCards(); }
+      if (f === 'all') {
+        if (activeSegKey) selectTier(activeSegKey);
+        else {
+          rows.forEach(r => r.classList.remove('dimmed'));
+          document.querySelectorAll('#df .rf-btn').forEach(b => b.classList.toggle('active', b.dataset.f==='all'));
+        }
+      } else { selectTier(f); scrollToCards(); }
     });
   });
 
