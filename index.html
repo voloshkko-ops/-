@@ -1054,7 +1054,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   setInterval(spawnAs3, 8000);
 })();
 
-/* ── MAGAZINE (S4) — single centered page, clean flip ── */
+/* ── MAGAZINE (S4) ── */
 (function(){
   const section = document.getElementById('s4');
   const wrap    = document.getElementById('s4-canvas-wrap');
@@ -1064,7 +1064,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   if(dotsEl) dotsEl.classList.add('vis');
 
   function rr(ctx,x,y,w,h,r){
-    if(ctx.roundRect){ ctx.roundRect(x,y,w,h,r); } else { ctx.rect(x,y,w,h); }
+    if(ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h);
   }
   function makePng(fn,cw,ch){
     const c=document.createElement('canvas'); c.width=cw; c.height=ch;
@@ -1073,63 +1073,78 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   const CW=600, CH=840;
 
-  // PAGE 0 — Cover (matches real magazine: logo, photo bg, article box, headline)
-  const cover=makePng((ctx,W,H)=>{
+  // Draw functions (reusable for front + back faces)
+  function drawCover(ctx,W,H){
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    // === LOGO area (white bg) ===
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,110);
-    // à logo
+    // header
+    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,110);
+    // logo — à and банк close together
     ctx.font='bold 72px Arial'; ctx.textBaseline='middle';
-    ctx.fillStyle='#22c55e'; ctx.fillText('à',24,58);
-    ctx.fillStyle='#111'; ctx.fillText('банк',98,58);
+    ctx.fillStyle='#22c55e';
+    const aW=ctx.measureText('à').width;
+    ctx.fillText('à',28,58);
+    ctx.fillStyle='#111';
+    ctx.fillText('банк',28+aW+4,58);   // 4px gap only
     ctx.font='12px Arial'; ctx.fillStyle='#999'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
     ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31  |  abank.ua',W-18,96);
     ctx.textAlign='left';
-    // === PHOTO area (blurry ATM/office) ===
+    // photo bg — blurred bars (office/ATM)
     const g=ctx.createLinearGradient(0,110,W,H*0.70);
-    g.addColorStop(0,'#c5cfc9'); g.addColorStop(0.4,'#8c9896'); g.addColorStop(1,'#4e5a5e');
+    g.addColorStop(0,'#c0cac5'); g.addColorStop(0.35,'#8a9896'); g.addColorStop(1,'#4a5558');
     ctx.fillStyle=g; ctx.fillRect(0,110,W,H*0.70-110);
-    // ATM machine silhouettes
-    [30,148,268,388,508].forEach(bx=>{
-      ctx.fillStyle='rgba(0,0,0,0.10)'; ctx.fillRect(bx,138,95,H*0.70-150);
-      ctx.fillStyle='rgba(80,100,95,0.3)'; ctx.fillRect(bx+10,158,40,26);
-      ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(bx+10,158,40,26);
-    });
-    // overlay gradient
-    const ov=ctx.createLinearGradient(0,110,0,H*0.70);
-    ov.addColorStop(0,'rgba(255,255,255,0.03)'); ov.addColorStop(1,'rgba(0,0,0,0.32)');
-    ctx.fillStyle=ov; ctx.fillRect(0,110,W,H*0.70-110);
-    // === ARTICLE BOX (top-left on photo) ===
-    ctx.fillStyle='rgba(255,255,255,0.95)';
-    ctx.beginPath(); rr(ctx,24,128,210,112,5); ctx.fill();
-    ctx.fillStyle='#111'; ctx.font='bold 17px Arial'; ctx.textBaseline='alphabetic';
-    ctx.fillText('ВИМІРЯНІ ТАРИФИ',34,158);
-    ctx.fillText('НА ПЛАТЕЖІ:',34,180);
-    ctx.fillText('НОВА ЕКОНОМІКА',34,202);
-    ctx.fillStyle='#555'; ctx.font='12px Arial';
-    ctx.fillText('Скільки ви справді заощаджуєте?',34,224);
-    // === WHITE FADE at bottom of photo ===
+    // blurred vertical elements (ATM machines)
+    for(let k=0;k<5;k++){
+      const bx=30+k*115;
+      // dark column
+      ctx.fillStyle='rgba(30,40,38,0.28)'; ctx.fillRect(bx,120,80,H*0.70-130);
+      // light reflection
+      const rg=ctx.createLinearGradient(bx,0,bx+80,0);
+      rg.addColorStop(0,'rgba(255,255,255,0.0)');
+      rg.addColorStop(0.3,'rgba(255,255,255,0.14)');
+      rg.addColorStop(0.7,'rgba(255,255,255,0.06)');
+      rg.addColorStop(1,'rgba(255,255,255,0.0)');
+      ctx.fillStyle=rg; ctx.fillRect(bx,120,80,H*0.70-130);
+      // screen glow
+      ctx.fillStyle='rgba(160,210,190,0.18)'; ctx.fillRect(bx+14,160,48,34);
+      ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(bx+14,160,48,34);
+    }
+    // horizontal floor reflection
+    const fl=ctx.createLinearGradient(0,H*0.62,0,H*0.70);
+    fl.addColorStop(0,'rgba(255,255,255,0)'); fl.addColorStop(1,'rgba(255,255,255,0.12)');
+    ctx.fillStyle=fl; ctx.fillRect(0,H*0.62,W,H*0.70-H*0.62);
+    // dark vignette on photo
+    const vi=ctx.createRadialGradient(W/2,H*0.42,W*0.1,W/2,H*0.42,W*0.8);
+    vi.addColorStop(0,'rgba(0,0,0,0)'); vi.addColorStop(1,'rgba(0,0,0,0.30)');
+    ctx.fillStyle=vi; ctx.fillRect(0,110,W,H*0.70-110);
+    // white fade to bottom
     const bf=ctx.createLinearGradient(0,H*0.50,0,H*0.70);
     bf.addColorStop(0,'rgba(255,255,255,0)'); bf.addColorStop(1,'#fff');
     ctx.fillStyle=bf; ctx.fillRect(0,H*0.50,W,H*0.70-H*0.50);
-    // === HEADLINE (no colon after СТАРШИМ) ===
+    // article box
+    ctx.fillStyle='rgba(255,255,255,0.96)';
+    ctx.beginPath(); rr(ctx,24,126,210,116,5); ctx.fill();
+    ctx.fillStyle='#111'; ctx.font='bold 17px Arial'; ctx.textBaseline='alphabetic';
+    ctx.fillText('ВИМІРЯНІ ТАРИФИ',34,158);
+    ctx.fillText('НА ПЛАТЕЖІ:',34,180);
+    ctx.fillText('НОВА ЕКОНОМІЯ',34,202);  // ЕКОНОМІЯ
+    ctx.fillStyle='#555'; ctx.font='12px Arial';
+    ctx.fillText('Скільки ви справді заощаджуєте?',34,224);
+    // headline
     ctx.fillStyle='#111'; ctx.textAlign='center';
     ctx.font='bold 50px Arial';
     ctx.fillText('ЯК СТАТИ',W/2,H*0.762);
-    ctx.fillText('СТАРШИМ',W/2,H*0.828);   // no colon
+    ctx.fillText('СТАРШИМ',W/2,H*0.828);
     ctx.fillText('ЗМІНИ В БАНКУ?',W/2,H*0.894);
-    // áClub green headline
     ctx.fillStyle='#22c55e'; ctx.font='bold 20px Arial';
-    ctx.fillText('У нас з\'явився канал áClub!',W/2,H*0.934);
-    // === FOOTER ===
+    ctx.fillText("У нас з'явився канал áClub!",W/2,H*0.934);
+    // footer
     ctx.fillStyle='#eee'; ctx.fillRect(0,H-38,W,38);
     ctx.fillStyle='#aaa'; ctx.font='12px Arial';
     ctx.fillText('ЛИПЕНЬ 2026  ВИПУСК №31  |  abank.ua',W/2,H-12);
     ctx.textAlign='left';
-  },CW,CH);
+  }
 
-  // PAGE 1 — Top-5
-  const top5page=makePng((ctx,W,H)=>{
+  function drawTop5(ctx,W,H){
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
     ctx.fillStyle='#facc15'; ctx.fillRect(0,0,W,7);
     ctx.fillStyle='#111'; ctx.font='bold 38px Arial'; ctx.fillText('Наші лідери',32,60);
@@ -1159,10 +1174,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     });
     ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
     ctx.fillText('2  із  3',W/2,H-16); ctx.textAlign='left';
-  },CW,CH);
+  }
 
-  // PAGE 2 — Low SL ASA
-  const lowpage=makePng((ctx,W,H)=>{
+  function drawLow(ctx,W,H){
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
     ctx.fillStyle='#ef4444'; ctx.fillRect(0,0,W,7);
     ctx.fillStyle='#111'; ctx.font='bold 32px Arial'; ctx.fillText('Потребують уваги',32,54);
@@ -1190,17 +1204,27 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     });
     ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
     ctx.fillText('3  із  3',W/2,H-16); ctx.textAlign='left';
-  },CW,CH);
+  }
 
-  const PAGES=[cover, top5page, lowpage];
+  // Generate PNGs
+  const imgCover  = makePng(drawCover, CW,CH);
+  const imgTop5   = makePng(drawTop5,  CW,CH);
+  const imgLow    = makePng(drawLow,   CW,CH);
 
-  // ── Layout: ONE centered page, no left-plate ────────────
-  const bookH=Math.min(Math.round(window.innerHeight*0.76), 540);
-  const bookW=Math.round(bookH*(CW/CH));
+  // Page definitions: [front image, back image]
+  // Back = content of NEXT page (so flip reveals next page content naturally)
+  const PAGE_DATA = [
+    { front: imgCover, back: imgTop5  },
+    { front: imgTop5,  back: imgLow   },
+    { front: imgLow,   back: null     },
+  ];
+
+  // ── Layout ────────────────────────────────────────────────
+  const bookH = Math.min(Math.round(window.innerHeight*0.76), 540);
+  const bookW = Math.round(bookH*(CW/CH));
 
   wrap.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
 
-  // Outer perspective container — exactly one page wide, centered
   const scene=document.createElement('div');
   scene.style.cssText=[
     'position:relative;',
@@ -1208,12 +1232,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     'perspective:2200px;perspective-origin:50% 50%;',
   ].join('');
 
-  // Stack depth effect (pages peeking behind, right edge)
+  // Stack effect (page edges behind)
   for(let k=2;k>=1;k--){
     const stk=document.createElement('div');
     stk.style.cssText=[
-      'position:absolute;',
-      'left:'+(k*4)+'px;top:0;',
+      'position:absolute;left:'+(k*4)+'px;top:0;',
       'width:'+bookW+'px;height:'+bookH+'px;',
       'background:#e8e4de;border-radius:3px;',
       'box-shadow:2px 2px 6px rgba(0,0,0,0.18);',
@@ -1221,39 +1244,54 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     scene.appendChild(stk);
   }
 
-  // Page elements — stacked at same position, top page shows
-  const pageEls=PAGES.map((src,i)=>{
+  // Build page elements
+  const pageEls = PAGE_DATA.map((pd,i)=>{
     const pg=document.createElement('div');
     pg.style.cssText=[
       'position:absolute;left:0;top:0;',
       'width:'+bookW+'px;height:'+bookH+'px;',
       'transform-origin:left center;',
       'transform-style:preserve-3d;',
-      'z-index:'+(20+PAGES.length-i)+';',
+      'z-index:'+(20+PAGE_DATA.length-i)+';',
       'border-radius:3px;',
       'box-shadow:6px 4px 22px rgba(0,0,0,0.30);',
       'cursor:pointer;will-change:transform;',
     ].join('');
 
+    // Front face
     const front=document.createElement('img');
-    front.src=src; front.draggable=false;
+    front.src=pd.front; front.draggable=false;
     front.style.cssText=[
       'position:absolute;inset:0;width:100%;height:100%;',
       'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
       'border-radius:3px;display:block;',
     ].join('');
 
+    // Back face — shows next page content, mirrored (natural book look)
     const back=document.createElement('div');
     back.style.cssText=[
       'position:absolute;inset:0;',
-      'background:linear-gradient(to left,#f2efea,#e5e2dd);',
       'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
-      'transform:rotateY(180deg);border-radius:3px;',
+      'transform:rotateY(180deg);border-radius:3px;overflow:hidden;',
+      'background:#fff;',
     ].join('');
-    const bl=document.createElement('div');
-    bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:bold 30px Arial;color:rgba(34,197,94,0.10);white-space:nowrap;';
-    bl.textContent='àbank';
-    back.appendChild(bl);
+    if(pd.back){
+      // Mirror the next page content on the back (scaleX(-1) corrects the mirror)
+      const bimg=document.createElement('img');
+      bimg.src=pd.back; bimg.draggable=false;
+      bimg.style.cssText=[
+        'position:absolute;inset:0;width:100%;height:100%;',
+        'transform:scaleX(-1);',   // un-mirror so it reads correctly when back is facing camera
+        'display:block;border-radius:3px;',
+      ].join('');
+      back.appendChild(bimg);
+    } else {
+      back.style.background='linear-gradient(to left,#f2efea,#e5e2dd)';
+      const bl=document.createElement('div');
+      bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:bold 30px Arial;color:rgba(34,197,94,0.10);white-space:nowrap;';
+      bl.textContent='àbank';
+      back.appendChild(bl);
+    }
 
     pg.appendChild(front); pg.appendChild(back);
     scene.appendChild(pg);
@@ -1266,14 +1304,24 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   ds.style.cssText='position:absolute;bottom:-14px;left:8%;width:84%;height:14px;background:radial-gradient(ellipse at center,rgba(0,0,0,0.42) 0%,transparent 70%);pointer-events:none;';
   scene.appendChild(ds);
 
-  // Green spine on left edge
+  // Spine
   const sp=document.createElement('div');
-  sp.style.cssText='position:absolute;left:0;top:5%;width:3px;height:90%;background:linear-gradient(to bottom,#22c55e,#16a34a);border-radius:2px 0 0 2px;z-index:99;';
+  sp.style.cssText='position:absolute;left:0;top:5%;width:3px;height:90%;background:linear-gradient(to bottom,#22c55e,#16a34a);border-radius:2px 0 0 2px;z-index:99;pointer-events:none;';
   scene.appendChild(sp);
+
+  // Page-turn shadow overlay (darkens edge during flip for realism)
+  const turnShadow=document.createElement('div');
+  turnShadow.style.cssText=[
+    'position:absolute;inset:0;border-radius:3px;',
+    'background:linear-gradient(to left,rgba(0,0,0,0.18) 0%,transparent 40%);',
+    'pointer-events:none;opacity:0;z-index:98;',
+    'transition:opacity 0.15s;',
+  ].join('');
+  scene.appendChild(turnShadow);
 
   wrap.appendChild(scene);
 
-  // ── Flip state ──────────────────────────────────────────
+  // ── Flip logic ─────────────────────────────────────────────
   let state=0, busy=false;
 
   function updateDots(){
@@ -1281,32 +1329,31 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }
 
   function flipForward(){
-    if(busy||state>=PAGES.length) return;
+    if(busy||state>=PAGE_DATA.length) return;
     busy=true;
     const pg=pageEls[state];
-    // Hide everything else — no peeking through during flip
-    pageEls.forEach((p,j)=>{ if(j!==state) p.style.visibility='hidden'; });
-    pg.style.transition='transform 1.3s cubic-bezier(0.25,0.46,0.45,0.94)';
+    turnShadow.style.opacity='1';
+    pg.style.transition='transform 1.2s cubic-bezier(0.25,0.46,0.45,0.94)';
     pg.style.transform='rotateY(-180deg)';
     pg.style.zIndex=10+state;
     setTimeout(()=>{
-      pageEls.forEach(p=>p.style.visibility='visible');
+      turnShadow.style.opacity='0';
       state++; updateDots(); busy=false;
-    },1320);
+    },1220);
   }
 
   function flipBackward(){
     if(busy||state<=0) return;
     busy=true;
     const pg=pageEls[state-1];
-    pageEls.forEach((p,j)=>{ if(j!==state-1) p.style.visibility='hidden'; });
-    pg.style.transition='transform 1.3s cubic-bezier(0.25,0.46,0.45,0.94)';
+    turnShadow.style.opacity='1';
+    pg.style.transition='transform 1.2s cubic-bezier(0.25,0.46,0.45,0.94)';
     pg.style.transform='rotateY(0deg)';
-    pg.style.zIndex=20+PAGES.length-(state-1);
+    pg.style.zIndex=20+PAGE_DATA.length-(state-1);
     setTimeout(()=>{
-      pageEls.forEach(p=>p.style.visibility='visible');
+      turnShadow.style.opacity='0';
       state--; updateDots(); busy=false;
-    },1320);
+    },1220);
   }
 
   dots.forEach((d,i)=>{
@@ -1322,7 +1369,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   function startAutoPlay(){
     if(autoStarted) return; autoStarted=true;
     setTimeout(()=>flipForward(), 2200);
-    setTimeout(()=>flipForward(), 2200+1400+2500);
+    setTimeout(()=>flipForward(), 2200+1300+2500);
   }
   const obs=new IntersectionObserver(entries=>{
     if(entries[0].isIntersecting){ startAutoPlay(); obs.disconnect(); }
