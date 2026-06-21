@@ -1211,18 +1211,16 @@ p:hover, span:hover, li:hover, label:hover {
 
   // Filter buttons
   let activeFilter = 'all';
-  document.querySelectorAll('.rf-btn').forEach(btn => {
+  document.querySelectorAll('#rf .rf-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.rf-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#rf .rf-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeFilter = btn.dataset.f;
-      let firstMatch = null;
       rows.forEach(r => {
         const match = activeFilter === 'all' || r.dataset.tier === activeFilter;
         r.classList.toggle('dimmed', !match);
-        if(match && !firstMatch) firstMatch = r;
       });
-      if(firstMatch) firstMatch.scrollIntoView({behavior:'smooth', block:'center'});
+      document.getElementById('rchart').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
@@ -1369,6 +1367,7 @@ p:hover, span:hover, li:hover, label:hover {
       btn.classList.add('active');
       const f = btn.dataset.f;
       rows.forEach(r => r.classList.toggle('dimmed', f !== 'all' && r.dataset.tier !== f));
+      scrollToCards();
     });
   });
 
