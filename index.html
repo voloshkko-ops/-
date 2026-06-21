@@ -1536,6 +1536,69 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     setTimeout(()=>glowEl.classList.add('vis'),600);
   }
 
+  // ── Cover particles overlay ────────────────────────────────
+  const partCanvas=document.createElement('canvas');
+  partCanvas.width=bookW; partCanvas.height=bookH;
+  partCanvas.style.cssText=[
+    'position:absolute;left:0;top:0;',
+    'width:'+bookW+'px;height:'+bookH+'px;',
+    'pointer-events:none;z-index:50;border-radius:3px;',
+    'opacity:1;transition:opacity 0.6s;',
+  ].join('');
+  scene.appendChild(partCanvas);
+  const pc=partCanvas.getContext('2d');
+
+  // Generate particles: mix of far (small, faint) and near (larger, brighter)
+  const particles=(()=>{
+    const arr=[];
+    for(let i=0;i<90;i++){
+      const near=Math.random()<0.35; // 35% are "near"
+      arr.push({
+        x: Math.random()*bookW,
+        y: Math.random()*bookH,
+        r: near ? (2.5+Math.random()*3.5) : (0.8+Math.random()*1.6),
+        alpha: near ? (0.35+Math.random()*0.45) : (0.05+Math.random()*0.15),
+        speed: 0.18+Math.random()*0.32,
+        angle: Math.random()*Math.PI*2,
+        drift: (Math.random()-0.5)*0.008,
+        wobble: Math.random()*Math.PI*2,
+        wobbleSpeed: 0.005+Math.random()*0.012,
+        wobbleAmp: 0.4+Math.random()*0.8,
+      });
+    }
+    return arr;
+  })();
+
+  let partAF=null, partVisible=true;
+  function drawParticles(){
+    pc.clearRect(0,0,bookW,bookH);
+    if(!partVisible){ partAF=requestAnimationFrame(drawParticles); return; }
+    particles.forEach(p=>{
+      p.wobble+=p.wobbleSpeed;
+      p.angle+=p.drift;
+      p.x+=Math.cos(p.angle)*p.speed + Math.sin(p.wobble)*p.wobbleAmp*0.3;
+      p.y+=Math.sin(p.angle)*p.speed*0.6 + Math.cos(p.wobble)*p.wobbleAmp*0.2;
+      // wrap around
+      if(p.x<-5) p.x=bookW+5;
+      if(p.x>bookW+5) p.x=-5;
+      if(p.y<-5) p.y=bookH+5;
+      if(p.y>bookH+5) p.y=-5;
+      // glow for near particles
+      if(p.r>2){
+        const g=pc.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3);
+        g.addColorStop(0,`rgba(34,197,94,${p.alpha})`);
+        g.addColorStop(1,'rgba(34,197,94,0)');
+        pc.beginPath(); pc.arc(p.x,p.y,p.r*3,0,Math.PI*2);
+        pc.fillStyle=g; pc.fill();
+      }
+      pc.beginPath(); pc.arc(p.x,p.y,p.r,0,Math.PI*2);
+      pc.fillStyle=`rgba(34,197,94,${p.alpha})`;
+      pc.fill();
+    });
+    partAF=requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
   // ── Flip logic ─────────────────────────────────────────────
   let state=0, busy=false;
 
@@ -1547,6 +1610,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       glowEl.classList.remove('glow-neutral','glow-green','glow-red');
       glowEl.classList.add(GLOW_MAP[state]||'glow-neutral');
     }
+    // particles only visible on cover page
+    partVisible = (state===0);
+    partCanvas.style.opacity = partVisible ? '1' : '0';
   }
 
   function flipForward(){
