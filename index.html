@@ -107,6 +107,13 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     radial-gradient(ellipse 35% 55% at 2%  2%,  rgba(0,50,10,0.3)   0%, transparent 48%),
     #020602;
 }
+#matrix-bg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+  opacity: 0.55;
+}
+#s1 > *:not(#matrix-bg) { position: relative; z-index: 1; }
 #s1::after {
   content:''; position:absolute; inset:-20%; pointer-events:none;
   background: radial-gradient(ellipse 30% 30% at 50% 50%, rgba(26,122,60,0.07) 0%, transparent 70%);
@@ -708,6 +715,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 <!-- MAIN -->
 <div id="main">
   <section id="s1">
+    <canvas id="matrix-bg"></canvas>
     <div class="main-logo" id="main-logo">
       <div class="logo-glow"></div>
       <span class="ml-a-wrap">
@@ -1238,6 +1246,64 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   }
   spawnAs3();
   setInterval(spawnAs3, 8000);
+})();
+
+/* ── MATRIX RAIN (S1 background) ── */
+(function(){
+  const cv=document.getElementById('matrix-bg');
+  if(!cv) return;
+  const ctx=cv.getContext('2d');
+
+  // chars: mix of latin, digits, katakana-style symbols
+  const CHARS='アイウエオカキクケコサシスセソタチツテトナニヌネノ01アBCDEFGHアIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
+  const FONT_SIZE=14;
+  let cols, drops;
+
+  function resize(){
+    cv.width  = cv.offsetWidth  || window.innerWidth;
+    cv.height = cv.offsetHeight || window.innerHeight;
+    cols  = Math.floor(cv.width / FONT_SIZE);
+    drops = Array.from({length:cols}, ()=> -Math.floor(Math.random()*80));
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // brightness per column: some cols brighter (foreground), most dim (background)
+  const bright = Array.from({length:500},(_,i)=> i<500 ? (Math.random()<0.2 ? 1 : Math.random()<0.5 ? 0.45 : 0.18) : 0.18);
+
+  function draw(){
+    // fade trail
+    ctx.fillStyle='rgba(2,6,2,0.22)';
+    ctx.fillRect(0,0,cv.width,cv.height);
+
+    ctx.font=FONT_SIZE+'px monospace';
+
+    for(let i=0;i<cols;i++){
+      const y = drops[i]*FONT_SIZE;
+      const b = bright[i%bright.length];
+      const ch = CHARS[Math.floor(Math.random()*CHARS.length)];
+
+      // head character — brightest
+      ctx.fillStyle=`rgba(180,255,180,${Math.min(b*1.8,1)})`;
+      ctx.fillText(ch, i*FONT_SIZE, y);
+
+      // random flicker on nearby chars
+      if(Math.random()>0.97){
+        ctx.fillStyle=`rgba(34,197,94,${b*0.9})`;
+        ctx.fillText(CHARS[Math.floor(Math.random()*CHARS.length)], i*FONT_SIZE, y-FONT_SIZE);
+      }
+
+      // normal trail
+      ctx.fillStyle=`rgba(34,197,94,${b*0.75})`;
+      ctx.fillText(ch, i*FONT_SIZE, y);
+
+      // reset column when it goes off screen
+      if(y>cv.height && Math.random()>0.975) drops[i]=-Math.floor(Math.random()*30);
+      drops[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
 })();
 
 /* ── MAGAZINE (S4) ── */
