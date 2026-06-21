@@ -1045,7 +1045,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   setInterval(spawnAs3, 8000);
 })();
 
-/* ── MAGAZINE 3D (S4) — CSS 3D flip, no CDN deps ── */
+/* ── MAGAZINE (S4) — CSS 3D book flip ── */
 (function(){
   const section = document.getElementById('s4');
   const wrap    = document.getElementById('s4-canvas-wrap');
@@ -1053,69 +1053,77 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   if(!section||!wrap) return;
   const dots = dotsEl ? Array.from(dotsEl.querySelectorAll('.mdot')) : [];
 
-  // ── Canvas texture helpers ───────────────────────────────
+  // Show dots immediately
+  if(dotsEl) dotsEl.classList.add('vis');
+
   function rr(ctx,x,y,w,h,r){
-    if(ctx.roundRect){ ctx.roundRect(x,y,w,h,r); }
-    else { ctx.rect(x,y,w,h); }
+    if(ctx.roundRect){ ctx.roundRect(x,y,w,h,r); } else { ctx.rect(x,y,w,h); }
   }
   function makePng(fn,cw,ch){
     const c=document.createElement('canvas'); c.width=cw; c.height=ch;
     fn(c.getContext('2d'),cw,ch); return c.toDataURL();
   }
 
+  // High-res canvas, will be scaled via CSS
   const CW=600, CH=840;
 
   // PAGE 0 — Cover
   const cover=makePng((ctx,W,H)=>{
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,76);
+    // header
+    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,80);
     ctx.strokeStyle='#eee'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(0,76); ctx.lineTo(W,76); ctx.stroke();
-    ctx.font='bold 46px Arial'; ctx.textBaseline='middle';
-    ctx.fillStyle='#22c55e'; ctx.fillText('à',30,40);
-    ctx.fillStyle='#111'; ctx.fillText('банк',80,40);
-    ctx.font='11px Arial'; ctx.fillStyle='#999'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
-    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31  |  abank.ua',W-20,60);
+    ctx.beginPath(); ctx.moveTo(0,80); ctx.lineTo(W,80); ctx.stroke();
+    ctx.font='bold 48px Arial'; ctx.textBaseline='middle';
+    ctx.fillStyle='#22c55e'; ctx.fillText('à',32,42);
+    ctx.fillStyle='#111'; ctx.fillText('банк',84,42);
+    ctx.font='12px Arial'; ctx.fillStyle='#999'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
+    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31  |  abank.ua',W-22,64);
     ctx.textAlign='left';
-    const g=ctx.createLinearGradient(0,76,W,H*0.72);
-    g.addColorStop(0,'#bec8c2'); g.addColorStop(0.45,'#869490'); g.addColorStop(1,'#4e5c60');
-    ctx.fillStyle=g; ctx.fillRect(0,76,W,H*0.72-76);
-    [40,155,270,385,500].forEach(bx=>{
-      ctx.fillStyle='rgba(0,0,0,0.09)'; ctx.fillRect(bx,100,90,H*0.72-110);
-      ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(bx+10,120,36,22);
+    // photo
+    const g=ctx.createLinearGradient(0,80,W,H*0.72);
+    g.addColorStop(0,'#c8d2cc'); g.addColorStop(0.45,'#8a9490'); g.addColorStop(1,'#505c60');
+    ctx.fillStyle=g; ctx.fillRect(0,80,W,H*0.72-80);
+    [45,165,285,405,520].forEach(bx=>{
+      ctx.fillStyle='rgba(0,0,0,0.09)'; ctx.fillRect(bx,110,90,H*0.72-120);
+      ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(bx+12,132,34,20);
     });
-    const ov=ctx.createLinearGradient(0,76,0,H*0.72);
-    ov.addColorStop(0,'rgba(255,255,255,0.05)'); ov.addColorStop(1,'rgba(0,0,0,0.25)');
-    ctx.fillStyle=ov; ctx.fillRect(0,76,W,H*0.72-76);
-    ctx.fillStyle='rgba(255,255,255,0.93)';
-    ctx.beginPath(); rr(ctx,26,96,178,84,3); ctx.fill();
-    ctx.fillStyle='#22c55e'; ctx.fillRect(26,96,3,84);
-    ctx.fillStyle='#111'; ctx.font='bold 14px Arial';
-    ctx.fillText('ВИМІРЯНІ ТАРИФИ',34,118); ctx.fillText('НА ПЛАТЕЖІ:',34,136);
-    ctx.fillText('НОВА ЕКОНОМІКА',34,154);
+    const ov=ctx.createLinearGradient(0,80,0,H*0.72);
+    ov.addColorStop(0,'rgba(255,255,255,0.04)'); ov.addColorStop(1,'rgba(0,0,0,0.28)');
+    ctx.fillStyle=ov; ctx.fillRect(0,80,W,H*0.72-80);
+    // article box
+    ctx.fillStyle='rgba(255,255,255,0.94)';
+    ctx.beginPath(); rr(ctx,28,102,186,90,4); ctx.fill();
+    ctx.fillStyle='#22c55e'; ctx.fillRect(28,102,4,90);
+    ctx.fillStyle='#111'; ctx.font='bold 15px Arial';
+    ctx.fillText('ВИМІРЯНІ ТАРИФИ',38,124); ctx.fillText('НА ПЛАТЕЖІ:',38,144);
+    ctx.fillText('НОВА ЕКОНОМІКА',38,164);
     ctx.fillStyle='#555'; ctx.font='11px Arial';
-    ctx.fillText('Скільки ви справді заощаджуєте?',34,172);
+    ctx.fillText('Скільки ви справді заощаджуєте?',38,182);
+    // bottom gradient + headline
     const bg=ctx.createLinearGradient(0,H*0.52,0,H*0.72);
     bg.addColorStop(0,'rgba(255,255,255,0)'); bg.addColorStop(1,'#fff');
     ctx.fillStyle=bg; ctx.fillRect(0,H*0.52,W,H*0.72-H*0.52);
-    ctx.fillStyle='#111'; ctx.textAlign='center'; ctx.font='bold 40px Arial';
-    ctx.fillText('ЯК СТАТИ',W/2,H*0.765); ctx.fillText('СТАРШИМ:',W/2,H*0.825);
-    ctx.fillText('ЗМІНИ В БАНКУ?',W/2,H*0.885);
-    ctx.font='13px Arial'; ctx.fillStyle='#555';
-    ctx.fillText('СТРАТЕГІЇ, УСПІХ ТА ЕВОЛЮЦІЯ ЛІДЕРСТВА',W/2,H*0.928);
-    ctx.fillStyle='#eee'; ctx.fillRect(0,H-36,W,36);
-    ctx.fillStyle='#aaa'; ctx.font='11px Arial';
-    ctx.fillText('ЛИПЕНЬ 2026  ВИПУСК №31  |  abank.ua',W/2,H-12);
+    ctx.fillStyle='#111'; ctx.textAlign='center'; ctx.font='bold 44px Arial';
+    ctx.fillText('ЯК СТАТИ',W/2,H*0.765);
+    ctx.fillText('СТАРШИМ:',W/2,H*0.83);
+    ctx.fillText('ЗМІНИ В БАНКУ?',W/2,H*0.892);
+    ctx.font='14px Arial'; ctx.fillStyle='#555';
+    ctx.fillText('СТРАТЕГІЇ, УСПІХ ТА ЕВОЛЮЦІЯ ЛІДЕРСТВА',W/2,H*0.934);
+    // footer
+    ctx.fillStyle='#eee'; ctx.fillRect(0,H-40,W,40);
+    ctx.fillStyle='#aaa'; ctx.font='12px Arial';
+    ctx.fillText('ЛИПЕНЬ 2026  ВИПУСК №31  |  abank.ua',W/2,H-14);
     ctx.textAlign='left';
   },CW,CH);
 
-  // PAGE 1 — Top-5
+  // PAGE 1 — Top-5 (Наші лідери)
   const top5page=makePng((ctx,W,H)=>{
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#facc15'; ctx.fillRect(0,0,W,6);
-    ctx.fillStyle='#111'; ctx.font='bold 36px Arial'; ctx.fillText('Наші зірочки',30,56);
-    ctx.font='20px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★★★★★',30,84);
-    ctx.fillStyle='#666'; ctx.font='14px Arial'; ctx.fillText('Топ-5 SL ASA • Червень 2026',148,84);
+    ctx.fillStyle='#facc15'; ctx.fillRect(0,0,W,7);
+    ctx.fillStyle='#111'; ctx.font='bold 38px Arial'; ctx.fillText('Наші лідери',32,60);
+    ctx.font='22px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★★★★★',32,92);
+    ctx.fillStyle='#666'; ctx.font='15px Arial'; ctx.fillText('Топ-5 SL ASA • Червень 2026',160,92);
     const top=[
       {n:'Саєнко Карина А.',     p:'100%'},
       {n:'Семенюк Вікторія Л.',  p:'99.49%'},
@@ -1124,110 +1132,148 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       {n:'Козарчук Поліна А.',   p:'96.65%'},
     ];
     top.forEach((e,i)=>{
-      const y=104+i*136, first=i===0;
-      if(first){const gg=ctx.createLinearGradient(30,y,W-30,y+118);gg.addColorStop(0,'#fffbeb');gg.addColorStop(1,'#fef3c7');ctx.fillStyle=gg;}
+      const y=110+i*138, first=i===0;
+      if(first){const gg=ctx.createLinearGradient(32,y,W-32,y+120);gg.addColorStop(0,'#fffbeb');gg.addColorStop(1,'#fef3c7');ctx.fillStyle=gg;}
       else ctx.fillStyle='#fafafa';
-      ctx.beginPath(); rr(ctx,30,y,W-60,118,10); ctx.fill();
-      ctx.strokeStyle=first?'#facc15':'#eee'; ctx.lineWidth=first?2:1;
-      ctx.beginPath(); rr(ctx,30,y,W-60,118,10); ctx.stroke();
-      ctx.font='bold 56px Arial'; ctx.fillStyle='rgba(0,0,0,0.06)';
-      ctx.fillText(i+1,44,y+88);
-      ctx.font='30px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★',110,y+78);
-      ctx.font='bold 21px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,152,y+50);
-      ctx.font='13px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',152,y+74);
-      ctx.font='bold 28px Arial'; ctx.fillStyle='#22c55e';
-      ctx.textAlign='right'; ctx.fillText(e.p,W-46,y+84); ctx.textAlign='left';
+      ctx.beginPath(); rr(ctx,32,y,W-64,120,10); ctx.fill();
+      ctx.strokeStyle=first?'#facc15':'#eee'; ctx.lineWidth=first?2.5:1;
+      ctx.beginPath(); rr(ctx,32,y,W-64,120,10); ctx.stroke();
+      ctx.font='bold 58px Arial'; ctx.fillStyle='rgba(0,0,0,0.05)';
+      ctx.fillText(i+1,46,y+94);
+      ctx.font='32px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★',116,y+80);
+      ctx.font='bold 22px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,162,y+52);
+      ctx.font='14px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',162,y+78);
+      ctx.font='bold 30px Arial'; ctx.fillStyle='#22c55e';
+      ctx.textAlign='right'; ctx.fillText(e.p,W-48,y+90); ctx.textAlign='left';
     });
-    ctx.fillStyle='#ccc'; ctx.font='13px Arial'; ctx.textAlign='center';
-    ctx.fillText('2 / 3',W/2,H-14); ctx.textAlign='left';
+    ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
+    ctx.fillText('2  із  3',W/2,H-16); ctx.textAlign='left';
   },CW,CH);
 
   // PAGE 2 — Low SL ASA
   const lowpage=makePng((ctx,W,H)=>{
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#ef4444'; ctx.fillRect(0,0,W,6);
-    ctx.fillStyle='#111'; ctx.font='bold 30px Arial'; ctx.fillText('Потребують уваги',30,50);
-    ctx.font='14px Arial'; ctx.fillStyle='#888'; ctx.fillText('SL ASA нижче 65% • Червень 2026',30,74);
+    ctx.fillStyle='#ef4444'; ctx.fillRect(0,0,W,7);
+    ctx.fillStyle='#111'; ctx.font='bold 32px Arial'; ctx.fillText('Потребують уваги',32,54);
+    ctx.font='15px Arial'; ctx.fillStyle='#888'; ctx.fillText('SL ASA нижче 65% • Червень 2026',32,80);
     const low=[
-      {n:'Шанюк В.С.',      v:41.72},
-      {n:'Сирота Г.А.',     v:55.23},
-      {n:'Діденко М.С.',    v:57.39},
-      {n:'Литвинова А.О.',  v:59.20},
-      {n:'Дихан М.Р.',      v:64.83},
+      {n:'Шанюк В.С.',     v:41.72},
+      {n:'Сирота Г.А.',    v:55.23},
+      {n:'Діденко М.С.',   v:57.39},
+      {n:'Литвинова А.О.', v:59.20},
+      {n:'Дихан М.Р.',     v:64.83},
     ];
     low.forEach((e,i)=>{
-      const y=96+i*146;
-      ctx.fillStyle='#fdf2f2'; ctx.beginPath(); rr(ctx,30,y,W-60,128,10); ctx.fill();
-      ctx.strokeStyle='#fecaca'; ctx.lineWidth=1;
-      ctx.beginPath(); rr(ctx,30,y,W-60,128,10); ctx.stroke();
-      ctx.font='bold 18px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,48,y+36);
-      ctx.font='13px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',48,y+58);
-      ctx.font='bold 30px Arial'; ctx.fillStyle=e.v<50?'#dc2626':'#ef4444';
-      ctx.textAlign='right'; ctx.fillText(e.v.toFixed(2)+'%',W-46,y+92); ctx.textAlign='left';
-      const bx=48,bw=W-bx-60,bh=12;
-      ctx.fillStyle='#f0e8e8'; ctx.beginPath(); rr(ctx,bx,y+102,bw,bh,6); ctx.fill();
-      ctx.fillStyle='#ef4444'; ctx.beginPath(); rr(ctx,bx,y+102,(e.v/100)*bw,bh,6); ctx.fill();
+      const y=98+i*148;
+      ctx.fillStyle='#fdf2f2';
+      ctx.beginPath(); rr(ctx,32,y,W-64,130,10); ctx.fill();
+      ctx.strokeStyle='#fecaca'; ctx.lineWidth=1.5;
+      ctx.beginPath(); rr(ctx,32,y,W-64,130,10); ctx.stroke();
+      ctx.font='bold 20px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,52,y+38);
+      ctx.font='14px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',52,y+62);
+      ctx.font='bold 32px Arial'; ctx.fillStyle=e.v<50?'#dc2626':'#ef4444';
+      ctx.textAlign='right'; ctx.fillText(e.v.toFixed(2)+'%',W-48,y+96); ctx.textAlign='left';
+      const bx=52,bw=W-bx-64,bh=12;
+      ctx.fillStyle='#f0e8e8'; ctx.beginPath(); rr(ctx,bx,y+108,bw,bh,6); ctx.fill();
+      ctx.fillStyle='#ef4444'; ctx.beginPath(); rr(ctx,bx,y+108,(e.v/100)*bw,bh,6); ctx.fill();
     });
-    ctx.fillStyle='#ccc'; ctx.font='13px Arial'; ctx.textAlign='center';
-    ctx.fillText('3 / 3',W/2,H-14); ctx.textAlign='left';
+    ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
+    ctx.fillText('3  із  3',W/2,H-16); ctx.textAlign='left';
   },CW,CH);
 
   const PAGES=[cover, top5page, lowpage];
 
-  // ── Build CSS magazine ───────────────────────────────────
-  // Container
-  const book=document.createElement('div');
-  book.style.cssText='position:relative;width:'+CW+'px;height:'+CH+'px;perspective:1800px;';
+  // ── Layout ───────────────────────────────────────────────
+  // Book fits in viewport: max 72vh tall, aspect ratio 600:840
+  const bookH=Math.min(Math.round(window.innerHeight*0.72), 520);
+  const bookW=Math.round(bookH*(CW/CH));
 
-  // Right side (stack of pages to flip)
-  // Left side placeholder (shows white back when pages flipped)
+  wrap.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
+
+  // Outer wrapper with perspective
+  const scene=document.createElement('div');
+  scene.style.cssText=[
+    'position:relative;',
+    'width:'+bookW+'px;height:'+bookH+'px;',
+    'perspective:2400px;perspective-origin:50% 50%;',
+  ].join('');
+
+  // "Stack" background pages (visual depth effect, content hidden)
+  for(let k=2;k>=1;k--){
+    const stk=document.createElement('div');
+    stk.style.cssText=[
+      'position:absolute;',
+      'left:'+k*3+'px;top:'+(-k*1)+'px;',
+      'width:'+bookW+'px;height:'+bookH+'px;',
+      'background:#f0ede8;',
+      'border-radius:2px 3px 3px 2px;',
+      'box-shadow:2px 2px 8px rgba(0,0,0,0.15);',
+    ].join('');
+    scene.appendChild(stk);
+  }
+
+  // Left plate — shows after first flip (white back of flipped pages)
   const leftPlate=document.createElement('div');
-  leftPlate.style.cssText='position:absolute;left:0;top:0;width:'+CW+'px;height:'+CH+'px;background:#f8f8f6;border-radius:2px 0 0 2px;box-shadow:-4px 0 18px rgba(0,0,0,0.18);display:none;';
-  book.appendChild(leftPlate);
+  leftPlate.style.cssText=[
+    'position:absolute;left:0;top:0;',
+    'width:'+bookW+'px;height:'+bookH+'px;',
+    'background:linear-gradient(to right,#ece9e4,#f5f3f0);',
+    'border-radius:3px 0 0 3px;',
+    'box-shadow:-6px 0 24px rgba(0,0,0,0.3);',
+    'display:none;',
+  ].join('');
+  scene.appendChild(leftPlate);
 
-  // Green spine
-  const spine=document.createElement('div');
-  spine.style.cssText='position:absolute;left:'+((CW/2)-3)+'px;top:0;width:6px;height:'+CH+'px;background:#22c55e;z-index:20;border-radius:1px;';
-  book.appendChild(spine);
-
-  // Page elements (stacked, last on top)
+  // Page elements
   const pageEls=PAGES.map((src,i)=>{
     const pg=document.createElement('div');
     pg.style.cssText=[
       'position:absolute;left:0;top:0;',
-      'width:'+CW+'px;height:'+CH+'px;',
+      'width:'+bookW+'px;height:'+bookH+'px;',
       'transform-origin:left center;',
       'transform-style:preserve-3d;',
-      'transition:none;',
-      'z-index:'+(10+PAGES.length-i)+';',
-      'border-radius:0 2px 2px 0;',
-      'box-shadow:4px 2px 18px rgba(0,0,0,0.22);',
+      'z-index:'+(20+PAGES.length-i)+';',
+      'border-radius:0 3px 3px 0;',
+      'box-shadow:6px 4px 24px rgba(0,0,0,0.32),1px 0 0 rgba(0,0,0,0.08);',
+      'cursor:pointer;',
     ].join('');
-    // Front face
+    // Front
     const front=document.createElement('img');
     front.src=src; front.draggable=false;
-    front.style.cssText='position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden;border-radius:0 2px 2px 0;';
-    // Back face (white/blank)
+    front.style.cssText=[
+      'position:absolute;inset:0;width:100%;height:100%;',
+      'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
+      'border-radius:0 3px 3px 0;',
+      'display:block;',
+    ].join('');
+    // Back (white)
     const back=document.createElement('div');
-    back.style.cssText='position:absolute;inset:0;background:#f7f7f5;backface-visibility:hidden;transform:rotateY(180deg);border-radius:2px 0 0 2px;';
-    const backLogo=document.createElement('div');
-    backLogo.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:bold 40px Arial;color:rgba(34,197,94,0.15);white-space:nowrap;';
-    backLogo.textContent='àbank';
-    back.appendChild(backLogo);
+    back.style.cssText=[
+      'position:absolute;inset:0;',
+      'background:linear-gradient(to left,#f5f3f0,#ece9e4);',
+      'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
+      'transform:rotateY(180deg);',
+      'border-radius:3px 0 0 3px;',
+    ].join('');
+    const bl=document.createElement('div');
+    bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:bold 36px Arial;color:rgba(34,197,94,0.13);white-space:nowrap;';
+    bl.textContent='àbank';
+    back.appendChild(bl);
     pg.appendChild(front); pg.appendChild(back);
-    book.appendChild(pg);
+    scene.appendChild(pg);
+    // Click to advance
+    pg.addEventListener('click',()=>flipForward());
     return pg;
   });
 
-  // Shadow under book
-  const shadow=document.createElement('div');
-  shadow.style.cssText='position:absolute;bottom:-18px;left:10%;width:80%;height:18px;background:radial-gradient(ellipse,rgba(0,0,0,0.45) 0%,transparent 70%);';
-  book.appendChild(shadow);
+  // Drop shadow
+  const dropshadow=document.createElement('div');
+  dropshadow.style.cssText='position:absolute;bottom:-20px;left:5%;width:90%;height:20px;background:radial-gradient(ellipse at center,rgba(0,0,0,0.5) 0%,transparent 70%);pointer-events:none;';
+  scene.appendChild(dropshadow);
 
-  wrap.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
-  wrap.appendChild(book);
+  wrap.appendChild(scene);
 
-  // ── Flip logic ──────────────────────────────────────────
+  // ── Flip state ────────────────────────────────────────────
   let state=0, busy=false;
 
   function updateDots(){
@@ -1239,24 +1285,27 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     busy=true;
     const pg=pageEls[state];
     leftPlate.style.display='block';
-    pg.style.transition='transform 1.1s cubic-bezier(0.645,0.045,0.355,1.000)';
+    // Flip: page lifts and rotates to left
+    pg.style.transition='transform 1.4s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.7s ease';
     pg.style.transform='rotateY(-180deg)';
-    pg.style.zIndex=5+state;
-    setTimeout(()=>{ state++; updateDots(); busy=false; },1120);
+    pg.style.boxShadow='-6px 4px 24px rgba(0,0,0,0.32)';
+    pg.style.zIndex=10+state;
+    setTimeout(()=>{ state++; updateDots(); busy=false; },1420);
   }
 
   function flipBackward(){
     if(busy||state<=0) return;
     busy=true;
     const pg=pageEls[state-1];
-    pg.style.transition='transform 1.1s cubic-bezier(0.645,0.045,0.355,1.000)';
+    pg.style.transition='transform 1.4s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.7s ease';
     pg.style.transform='rotateY(0deg)';
-    pg.style.zIndex=10+PAGES.length-(state-1);
+    pg.style.boxShadow='6px 4px 24px rgba(0,0,0,0.32),1px 0 0 rgba(0,0,0,0.08)';
+    pg.style.zIndex=20+PAGES.length-(state-1);
     setTimeout(()=>{
       state--;
       if(state===0) leftPlate.style.display='none';
       updateDots(); busy=false;
-    },1120);
+    },1420);
   }
 
   dots.forEach((d,i)=>{
@@ -1267,19 +1316,16 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     });
   });
 
-  // ── Auto-play on scroll into view ──────────────────────
+  // ── Auto-play on scroll ────────────────────────────────
   let autoStarted=false;
   function startAutoPlay(){
-    if(autoStarted) return;
-    autoStarted=true;
-    dotsEl&&dotsEl.classList.add('vis');
-    setTimeout(()=>flipForward(), 2500);
-    setTimeout(()=>flipForward(), 2500+1200+2500);
+    if(autoStarted) return; autoStarted=true;
+    setTimeout(()=>flipForward(), 2200);
+    setTimeout(()=>flipForward(), 2200+1500+2500);
   }
-
   const obs=new IntersectionObserver(entries=>{
     if(entries[0].isIntersecting){ startAutoPlay(); obs.disconnect(); }
-  },{threshold:0.25});
+  },{threshold:0.3});
   obs.observe(section);
 
 })();
