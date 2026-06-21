@@ -734,14 +734,34 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   border-radius: 16px;
   padding: 28px 24px;
   cursor: pointer;
-  transition: border-color .3s, background .3s, transform .3s;
+  transition: border-color .3s, background .3s, box-shadow .3s;
   position: relative;
   overflow: hidden;
 }
+.sf-card:nth-child(1) { animation: cardFloat1 4.2s ease-in-out infinite; }
+.sf-card:nth-child(2) { animation: cardFloat2 3.8s ease-in-out infinite 0.6s; }
+.sf-card:nth-child(3) { animation: cardFloat3 4.6s ease-in-out infinite 1.2s; }
+@keyframes cardFloat1 {
+  0%,100% { transform: translateY(0px) rotate(0deg); }
+  30%     { transform: translateY(-10px) rotate(-0.5deg); }
+  60%     { transform: translateY(-4px) rotate(0.3deg); }
+}
+@keyframes cardFloat2 {
+  0%,100% { transform: translateY(0px) rotate(0deg); }
+  40%     { transform: translateY(-14px) rotate(0.6deg); }
+  70%     { transform: translateY(-5px) rotate(-0.2deg); }
+}
+@keyframes cardFloat3 {
+  0%,100% { transform: translateY(0px) rotate(0deg); }
+  25%     { transform: translateY(-8px) rotate(-0.4deg); }
+  55%     { transform: translateY(-16px) rotate(0.5deg); }
+  80%     { transform: translateY(-6px) rotate(0deg); }
+}
 .sf-card:hover {
-  border-color: rgba(34,197,94,0.4);
-  background: rgba(34,197,94,0.08);
-  transform: translateY(-4px);
+  border-color: rgba(34,197,94,0.5);
+  background: rgba(34,197,94,0.1);
+  box-shadow: 0 0 30px rgba(34,197,94,0.15), 0 12px 40px rgba(0,0,0,0.4);
+  animation-play-state: paused;
 }
 .sf-card-icon {
   font-size: 2rem; margin-bottom: 14px; display: block;
@@ -946,11 +966,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
           Мій друг вирішив зайнятися продажами і скинув мені сайт, який йому зробили. Я подивилась і подумала: «За що він заплатив?» А потім сказала вголос — якби я могла робити сайти, я б тобі зробила в сто разів краще. Після цієї фрази я трохи зупинилась, задумалась… і почала копати тему дизайну. Цей сайт — доказ того, що слова варто підкріплювати справою.
         </div>
       </div>
-    </div>
-    <div class="sf-bottom">
-      <div class="sf-logo"><span>à</span>bank · Презентація</div>
-      <div class="sf-copy">Червень 2026 · Виконано з ♥ та кодом</div>
-      <div class="sf-built">Built with <a href="https://claude.ai" target="_blank">✦ Claude AI</a></div>
     </div>
   </footer>
 </div>
@@ -1639,32 +1654,27 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     const stripeG=ctx.createLinearGradient(0,0,W,0);
     stripeG.addColorStop(0,'#22c55e'); stripeG.addColorStop(1,'#16a34a');
     ctx.fillStyle=stripeG; ctx.fillRect(0,0,W,7);
-    /* header */
-    ctx.fillStyle='#f9fafb'; ctx.fillRect(0,0,W,72);
-    ctx.font='bold 26px Arial'; ctx.fillStyle='#22c55e'; ctx.textBaseline='middle';
-    const aW2=ctx.measureText('à').width;
-    ctx.fillText('à',22,38);
-    ctx.fillStyle='#111'; ctx.fillText('банк',22+aW2+3,38);
+    /* date line only — no logo */
     ctx.font='11px Arial'; ctx.fillStyle='#bbb'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
-    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31',W-18,62);
+    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31',W-18,32);
     ctx.textAlign='left';
 
     /* big quote mark decoration */
     ctx.font='bold 140px Georgia'; ctx.fillStyle='rgba(34,197,94,0.07)';
-    ctx.textBaseline='top'; ctx.fillText('"',W-60,60);
+    ctx.textBaseline='top'; ctx.fillText('"',W-60,20);
 
     /* category tag */
     ctx.fillStyle='#22c55e';
-    ctx.beginPath(); rr(ctx,24,84,140,26,13); ctx.fill();
+    ctx.beginPath(); rr(ctx,24,46,140,26,13); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px Arial'; ctx.textBaseline='middle';
-    ctx.fillText('КАР\'ЄРА & МОТИВАЦІЯ',34,97);
+    ctx.fillText('КАР\'ЄРА & МОТИВАЦІЯ',34,59);
 
     /* headline */
     ctx.fillStyle='#111'; ctx.font='bold 28px Arial'; ctx.textBaseline='alphabetic';
-    ctx.fillText('Чому я можу стати',24,148);
-    ctx.fillText('старшим зміни?',24,182);
+    ctx.fillText('Чому я можу стати',24,108);
+    ctx.fillText('старшим зміни?',24,142);
     /* green underline */
-    ctx.fillStyle='#22c55e'; ctx.fillRect(24,190,W-48,3);
+    ctx.fillStyle='#22c55e'; ctx.fillRect(24,150,W-48,3);
 
     /* lead paragraph */
     ctx.fillStyle='#444'; ctx.font='italic 14px Georgia'; ctx.textBaseline='alphabetic';
@@ -1680,10 +1690,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     }
     const lead='Впевненість у собі народжується з досвіду. Ось чому я вважаю, що готова взяти на себе більше відповідальності.';
     ctx.fillStyle='#22c55e'; ctx.font='italic 14px Georgia';
-    wrap(lead,24,218,W-48,22);
+    wrap(lead,24,178,W-48,22);
 
     /* divider */
-    ctx.fillStyle='#f0f0f0'; ctx.fillRect(24,248,W-48,1);
+    ctx.fillStyle='#f0f0f0'; ctx.fillRect(24,210,W-48,1);
 
     /* body text columns style */
     ctx.fillStyle='#333'; ctx.font='13px Arial';
@@ -1699,7 +1709,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       'Нова посада — можливість розкрити свої',
       'найкращі якості та надихати команду.',
     ];
-    let by=272;
+    let by=232;
     body.forEach(line=>{
       if(line===''){by+=8;return;}
       ctx.fillText(line,24,by); by+=22;
