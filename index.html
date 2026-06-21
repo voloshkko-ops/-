@@ -504,6 +504,107 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 }
 
 
+/* ── S4 TOGGLE SWITCHES ── */
+.s4-toggles {
+  position: absolute;
+  right: 48px; top: 50%; transform: translateY(-50%);
+  z-index: 10;
+  display: flex; flex-direction: column; gap: 36px;
+}
+.s4-toggle-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.s4-toggle-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.45); text-align: center;
+}
+/* Switch outer */
+.s4-sw { display: block; cursor: pointer; position: relative; }
+.s4-sw-inp { display: none; }
+.s4-sw-base {
+  display: block;
+  width: 88px; height: 52px;
+  border-radius: 26px;
+  background: #1a1f1a;
+  box-shadow:
+    inset 4px 4px 10px rgba(0,0,0,.7),
+    inset -3px -3px 8px rgba(60,80,60,.25),
+    0 0 0 2px rgba(34,197,94,0) ;
+  transition: box-shadow .6s ease, background .6s ease;
+  position: relative;
+}
+.s4-sw-inp:checked ~ .s4-sw-base {
+  background: #141a14;
+  box-shadow:
+    inset 4px 4px 10px rgba(0,0,0,.75),
+    inset -3px -3px 8px rgba(34,197,94,.1),
+    0 0 0 2.5px #22c55e,
+    0 0 18px rgba(34,197,94,.55),
+    0 0 40px rgba(34,197,94,.22);
+}
+/* Knob */
+.s4-sw-knob {
+  position: absolute;
+  top: 6px; left: 6px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #3a4038, #1c221c);
+  box-shadow:
+    3px 3px 8px rgba(0,0,0,.7),
+    -1px -1px 4px rgba(80,100,80,.2),
+    inset 1px 1px 3px rgba(255,255,255,.06);
+  transition: transform .6s cubic-bezier(.34,1.56,.64,1), box-shadow .6s ease;
+}
+.s4-sw-inp:checked ~ .s4-sw-base .s4-sw-knob {
+  transform: translateX(36px);
+  box-shadow:
+    2px 2px 6px rgba(0,0,0,.6),
+    -1px -1px 4px rgba(34,197,94,.25),
+    inset 1px 1px 3px rgba(34,197,94,.15),
+    0 0 10px rgba(34,197,94,.3);
+}
+/* Dot indicator */
+.s4-sw-base::before {
+  content: '';
+  position: absolute;
+  top: 10px; left: 14px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239,68,68,.7);
+  transition: background .5s, box-shadow .5s, opacity .5s;
+}
+.s4-sw-inp:checked ~ .s4-sw-base::before {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34,197,94,.9);
+}
+/* Dropdown list */
+.s4-sw-list {
+  width: 220px;
+  max-height: 0; overflow: hidden;
+  transition: max-height .55s cubic-bezier(.4,0,.2,1), opacity .4s ease;
+  opacity: 0;
+  background: rgba(10,18,10,.92);
+  border: 1px solid rgba(34,197,94,.2);
+  border-radius: 10px;
+  backdrop-filter: blur(12px);
+}
+.s4-sw-list.open {
+  max-height: 340px;
+  opacity: 1;
+}
+.s4-sw-list-inner { padding: 10px 0; }
+.s4-sw-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 14px;
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: rgba(255,255,255,.8);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.s4-sw-row:last-child { border-bottom: none; }
+.s4-sw-row-pct { font-weight: 700; }
+.s4-sw-row-pct.hi { color: #22c55e; }
+.s4-sw-row-pct.lo { color: #ef4444; }
+
 /* Floating à letters background */
 .bg-a {
   position: absolute;
@@ -614,6 +715,25 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   <!-- S4: MAGAZINE 3D -->
   <section id="s4">
     <div id="s4-canvas-wrap"></div>
+    <!-- Toggle switches -->
+    <div class="s4-toggles">
+      <div class="s4-toggle-wrap">
+        <div class="s4-toggle-label">Лідери місяця</div>
+        <label class="s4-sw" id="sw-high">
+          <input type="checkbox" class="s4-sw-inp">
+          <span class="s4-sw-base"><span class="s4-sw-knob"></span></span>
+        </label>
+        <div class="s4-sw-list" id="sw-list-high"></div>
+      </div>
+      <div class="s4-toggle-wrap">
+        <div class="s4-toggle-label">Потребують уваги</div>
+        <label class="s4-sw" id="sw-low">
+          <input type="checkbox" class="s4-sw-inp">
+          <span class="s4-sw-base"><span class="s4-sw-knob"></span></span>
+        </label>
+        <div class="s4-sw-list" id="sw-list-low"></div>
+      </div>
+    </div>
     <div id="mag-dots">
       <span class="mdot active" data-page="0" title="Обкладинка"></span>
       <span class="mdot" data-page="1" title="Топ-5"></span>
@@ -1088,34 +1208,67 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     ctx.font='12px Arial'; ctx.fillStyle='#999'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
     ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31  |  abank.ua',W-18,96);
     ctx.textAlign='left';
-    // photo bg — blurred bars (office/ATM)
-    const g=ctx.createLinearGradient(0,110,W,H*0.70);
-    g.addColorStop(0,'#c0cac5'); g.addColorStop(0.35,'#8a9896'); g.addColorStop(1,'#4a5558');
-    ctx.fillStyle=g; ctx.fillRect(0,110,W,H*0.70-110);
-    // blurred vertical elements (ATM machines)
-    for(let k=0;k<5;k++){
-      const bx=30+k*115;
-      // dark column
-      ctx.fillStyle='rgba(30,40,38,0.28)'; ctx.fillRect(bx,120,80,H*0.70-130);
-      // light reflection
-      const rg=ctx.createLinearGradient(bx,0,bx+80,0);
-      rg.addColorStop(0,'rgba(255,255,255,0.0)');
-      rg.addColorStop(0.3,'rgba(255,255,255,0.14)');
-      rg.addColorStop(0.7,'rgba(255,255,255,0.06)');
-      rg.addColorStop(1,'rgba(255,255,255,0.0)');
-      ctx.fillStyle=rg; ctx.fillRect(bx,120,80,H*0.70-130);
-      // screen glow
-      ctx.fillStyle='rgba(160,210,190,0.18)'; ctx.fillRect(bx+14,160,48,34);
-      ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(bx+14,160,48,34);
+    // === PHOTO BG — realistic blurry ATM scene ===
+    const PH0=110, PH1=Math.round(H*0.70);
+    // warm metro wall background
+    const wallG=ctx.createLinearGradient(0,PH0,W,PH1);
+    wallG.addColorStop(0,'#b8a882'); wallG.addColorStop(0.5,'#9e9070'); wallG.addColorStop(1,'#7a6e58');
+    ctx.fillStyle=wallG; ctx.fillRect(0,PH0,W,PH1-PH0);
+    // warm light blobs (ceiling lights)
+    [[W*0.2,PH0+20,80,40,'rgba(255,230,160,0.35)'],[W*0.75,PH0+15,60,35,'rgba(255,220,140,0.28)']].forEach(([x,y,rw,rh,c])=>{
+      const lg=ctx.createRadialGradient(x,y,0,x,y,rw);
+      lg.addColorStop(0,c); lg.addColorStop(1,'rgba(255,200,100,0)');
+      ctx.fillStyle=lg; ctx.ellipse(x,y,rw,rh,0,0,Math.PI*2); ctx.fill();
+    });
+    // blurry background ATMs (left side, out of focus)
+    ctx.fillStyle='rgba(60,52,40,0.55)'; ctx.fillRect(0,PH0+30,110,PH1-PH0-30);
+    const lbg=ctx.createLinearGradient(0,0,110,0);
+    lbg.addColorStop(0,'rgba(255,220,120,0.0)'); lbg.addColorStop(0.6,'rgba(255,220,120,0.12)'); lbg.addColorStop(1,'rgba(255,220,120,0.0)');
+    ctx.fillStyle=lbg; ctx.fillRect(0,PH0+30,110,PH1-PH0-30);
+    // === MAIN ATM (center-right, in focus) ===
+    const ax=W*0.38, aw=W*0.48, atop=PH0+20, abot=PH1-10;
+    // ATM body — dark charcoal
+    ctx.fillStyle='#1e2420'; ctx.beginPath(); rr(ctx,ax,atop,aw,abot-atop,8); ctx.fill();
+    // ATM body highlight
+    const abh=ctx.createLinearGradient(ax,atop,ax+aw,atop);
+    abh.addColorStop(0,'rgba(255,255,255,0.07)'); abh.addColorStop(0.4,'rgba(255,255,255,0.03)'); abh.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=abh; ctx.beginPath(); rr(ctx,ax,atop,aw,abot-atop,8); ctx.fill();
+    // Screen bezel
+    const sx=ax+aw*0.1, sw=aw*0.8, sy=atop+28, sh=Math.round((abot-atop)*0.36);
+    ctx.fillStyle='#0d1510'; ctx.beginPath(); rr(ctx,sx,sy,sw,sh,6); ctx.fill();
+    // Screen glow (àbank interface)
+    const scG=ctx.createLinearGradient(sx,sy,sx,sy+sh);
+    scG.addColorStop(0,'#1a2e24'); scG.addColorStop(1,'#0f1f17');
+    ctx.fillStyle=scG; ctx.beginPath(); rr(ctx,sx+4,sy+4,sw-8,sh-8,4); ctx.fill();
+    // Green àbank logo on screen
+    ctx.fillStyle='#22c55e'; ctx.font='bold 18px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('àbank',sx+sw/2,sy+sh*0.28);
+    // app icons grid on screen
+    const colors=['#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+    for(let r=0;r<2;r++) for(let c2=0;c2<3;c2++){
+      const ix=sx+sw*0.15+c2*(sw*0.23), iy=sy+sh*0.45+r*26;
+      ctx.fillStyle=colors[r*3+c2]+'cc'; ctx.beginPath(); rr(ctx,ix,iy,16,16,3); ctx.fill();
     }
-    // horizontal floor reflection
-    const fl=ctx.createLinearGradient(0,H*0.62,0,H*0.70);
-    fl.addColorStop(0,'rgba(255,255,255,0)'); fl.addColorStop(1,'rgba(255,255,255,0.12)');
-    ctx.fillStyle=fl; ctx.fillRect(0,H*0.62,W,H*0.70-H*0.62);
-    // dark vignette on photo
-    const vi=ctx.createRadialGradient(W/2,H*0.42,W*0.1,W/2,H*0.42,W*0.8);
-    vi.addColorStop(0,'rgba(0,0,0,0)'); vi.addColorStop(1,'rgba(0,0,0,0.30)');
-    ctx.fillStyle=vi; ctx.fillRect(0,110,W,H*0.70-110);
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    // Green 0% promo panel
+    const pp0=atop+Math.round((abot-atop)*0.46), pph=Math.round((abot-atop)*0.28);
+    ctx.fillStyle='#16a34a'; ctx.beginPath(); rr(ctx,ax+4,pp0,aw-8,pph,4); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 38px Arial'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText('0%',ax+16,pp0+pph*0.38);
+    ctx.font='12px Arial'; ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.fillText('при поповненні',ax+16,pp0+pph*0.62);
+    ctx.fillText('карток àbank',ax+16,pp0+pph*0.82);
+    // àbank brand footer on ATM
+    ctx.fillStyle='#111'; ctx.fillRect(ax+4,abot-36,aw-8,32);
+    ctx.fillStyle='#22c55e'; ctx.font='bold 20px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('àbank',ax+aw/2,abot-20);
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    // side chrome
+    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(ax+aw,atop+20,6,abot-atop-40);
+    // vignette
+    const vi=ctx.createRadialGradient(W/2,PH0+(PH1-PH0)*0.5,60,W/2,PH0+(PH1-PH0)*0.5,W*0.75);
+    vi.addColorStop(0,'rgba(0,0,0,0)'); vi.addColorStop(1,'rgba(0,0,0,0.38)');
+    ctx.fillStyle=vi; ctx.fillRect(0,PH0,W,PH1-PH0);
     // white fade to bottom
     const bf=ctx.createLinearGradient(0,H*0.50,0,H*0.70);
     bf.addColorStop(0,'rgba(255,255,255,0)'); bf.addColorStop(1,'#fff');
@@ -1276,15 +1429,13 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       'background:#fff;',
     ].join('');
     if(pd.back){
-      // Mirror the next page content on the back (scaleX(-1) corrects the mirror)
-      const bimg=document.createElement('img');
-      bimg.src=pd.back; bimg.draggable=false;
-      bimg.style.cssText=[
-        'position:absolute;inset:0;width:100%;height:100%;',
-        'transform:scaleX(-1);',   // un-mirror so it reads correctly when back is facing camera
-        'display:block;border-radius:3px;',
-      ].join('');
-      back.appendChild(bimg);
+      // Back face shows plain àbank — no mirror issues
+      back.style.background='linear-gradient(135deg,#f5f3f0,#eae7e2)';
+      const bl2=document.createElement('div');
+      bl2.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;';
+      bl2.innerHTML='<div style="font:bold 52px Arial;color:rgba(34,197,94,0.55);letter-spacing:-1px;">àbank</div>'
+        +'<div style="font:13px Arial;color:rgba(0,0,0,0.2);margin-top:8px;letter-spacing:3px;">BANK MAGAZINE</div>';
+      back.appendChild(bl2);
     } else {
       back.style.background='linear-gradient(to left,#f2efea,#e5e2dd)';
       const bl=document.createElement('div');
@@ -1376,6 +1527,51 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   },{threshold:0.3});
   obs.observe(section);
 
+})();
+
+/* ── S4 TOGGLE SWITCHES LOGIC ── */
+(function(){
+  const HIGH = [
+    {n:'Саєнко Карина А.',     v:'100%'},
+    {n:'Семенюк Вікторія Л.',  v:'99.49%'},
+    {n:'Табачун Анастасія Ю.', v:'97.63%'},
+    {n:'Діденко Вікторія В.',  v:'96.83%'},
+    {n:'Козарчук Поліна А.',   v:'96.65%'},
+    {n:'Приймаченко А.А.',     v:'95.10%'},
+    {n:'Михайлець М.О.',       v:'94.22%'},
+  ];
+  const LOW = [
+    {n:'Шанюк В.С.',     v:'41.72%'},
+    {n:'Сирота Г.А.',    v:'55.23%'},
+    {n:'Діденко М.С.',   v:'57.39%'},
+    {n:'Литвинова А.О.', v:'59.20%'},
+    {n:'Дихан М.Р.',     v:'64.83%'},
+  ];
+
+  function buildList(el, data, cls){
+    const inner = document.createElement('div');
+    inner.className = 's4-sw-list-inner';
+    data.forEach(r=>{
+      const row = document.createElement('div');
+      row.className = 's4-sw-row';
+      row.innerHTML = '<span>'+r.n+'</span><span class="s4-sw-row-pct '+cls+'">'+r.v+'</span>';
+      inner.appendChild(row);
+    });
+    el.appendChild(inner);
+  }
+
+  const listHigh = document.getElementById('sw-list-high');
+  const listLow  = document.getElementById('sw-list-low');
+  if(listHigh) buildList(listHigh, HIGH, 'hi');
+  if(listLow)  buildList(listLow,  LOW,  'lo');
+
+  document.querySelectorAll('.s4-sw-inp').forEach(inp=>{
+    inp.addEventListener('change', function(){
+      const wrap = this.closest('.s4-toggle-wrap');
+      const list = wrap ? wrap.querySelector('.s4-sw-list') : null;
+      if(list) list.classList.toggle('open', this.checked);
+    });
+  });
 })();
 </script>
 </body>
