@@ -857,10 +857,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   <!-- S5: NEON STAR -->
   <section id="s5">
     <canvas id="star-cv"></canvas>
-    <div id="s5-title">
-      <span class="s5-label">àbank</span>
-      <span class="s5-sub">Цінуємо стосунки</span>
-    </div>
   </section>
 </div>
 
@@ -1784,172 +1780,182 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const cv=document.getElementById('star-cv');
   if(!cv) return;
   const ctx=cv.getContext('2d');
-  let W,H,CX,CY;
+  let W,H,CX,CY,R;
   function resize(){
     cv.width=cv.offsetWidth||window.innerWidth;
     cv.height=cv.offsetHeight||window.innerHeight;
     W=cv.width;H=cv.height;CX=W/2;CY=H/2;
+    R=Math.min(W,H)*0.38;
   }
   resize(); window.addEventListener('resize',resize);
-
   const TAU=Math.PI*2;
 
-  // ── Background stars ──
-  const bgStars=Array.from({length:320},()=>({
+  /* background stars */
+  const bgStars=Array.from({length:400},()=>({
     x:Math.random(),y:Math.random(),
-    r:0.4+Math.random()*1.2,
-    a:0.1+Math.random()*0.5,
-    twinkle:Math.random()*TAU,
-    twinkleSpeed:0.01+Math.random()*0.04,
+    r:0.3+Math.random()*1.4,
+    a:0.08+Math.random()*0.55,
+    tw:Math.random()*TAU, tws:0.008+Math.random()*0.035,
   }));
 
-  // ── Disk particles (accretion disk) ──
-  const diskP=Array.from({length:260},()=>{
-    const angle=Math.random()*TAU;
-    const rad=80+Math.random()*180;
-    return {
-      angle,rad,
-      speed:(0.004+Math.random()*0.008)*(Math.random()<0.5?1:-1),
-      size:0.8+Math.random()*2.2,
-      alpha:0.3+Math.random()*0.7,
-      hue:Math.random()<0.15?160:130, // mostly green, some teal
-    };
-  });
+  /* orbital bands — each is an ellipse tilted in 3D (tiltX = perspective squish) */
+  const BANDS=[
+    {rx:R*1.05,ry:R*0.22,rot:0,      speed: 0.006,  lw:22, alpha:0.55, hue:140},
+    {rx:R*0.90,ry:R*0.30,rot:0.6,    speed:-0.009,  lw:14, alpha:0.45, hue:150},
+    {rx:R*1.28,ry:R*0.16,rot:1.2,    speed: 0.004,  lw:30, alpha:0.35, hue:130},
+    {rx:R*0.70,ry:R*0.40,rot:2.1,    speed:-0.012,  lw:10, alpha:0.50, hue:160},
+    {rx:R*1.50,ry:R*0.12,rot:0.3,    speed: 0.0025, lw:40, alpha:0.22, hue:135},
+  ].map(b=>({...b,angle:Math.random()*TAU}));
 
-  // ── Ring particles ──
-  const rings=[
-    {rad:240,count:80,speed:0.002,width:2,alpha:0.35},
-    {rad:310,count:60,speed:-0.0015,width:1.5,alpha:0.2},
-    {rad:380,count:40,speed:0.001,width:1,alpha:0.12},
-  ].map(r=>({...r,angle:0,particles:Array.from({length:r.count},(_,i)=>({
-    a:i/r.count*TAU, jitter:Math.random()*8-4,
-    alpha:r.alpha*(0.5+Math.random()*0.5),
-  }))}));
-
-  // ── Prominences (solar flares) ──
-  const proms=Array.from({length:8},(_,i)=>({
-    baseAngle:i/8*TAU,
-    phaseOffset:Math.random()*TAU,
-    len:60+Math.random()*90,
-    width:4+Math.random()*6,
+  /* disk particles — tiny sparks sweeping with the bands */
+  const sparks=Array.from({length:350},()=>({
+    band:Math.floor(Math.random()*5),
+    phase:Math.random()*TAU,
+    jx:(Math.random()-0.5)*18,
+    jy:(Math.random()-0.5)*6,
+    size:0.8+Math.random()*2.5,
+    alpha:0.3+Math.random()*0.7,
+    speed:0.7+Math.random()*0.8,
   }));
 
-  // ── Embers ──
-  const embers=Array.from({length:120},()=>({
-    angle:Math.random()*TAU,
-    rad:40+Math.random()*220,
-    vy:-0.3-Math.random()*0.8,
-    vx:(Math.random()-0.5)*0.4,
-    life:Math.random(),
-    size:1+Math.random()*2,
-  }));
+  /* embers flying outward */
+  const embers=Array.from({length:160},()=>mkEmber());
+  function mkEmber(){
+    const a=Math.random()*TAU, sp=0.4+Math.random()*1.2;
+    return{x:CX,y:CY,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:Math.random(),size:1+Math.random()*2.2};
+  }
 
   let t=0;
-  function draw(){
-    t+=0.016;
-    ctx.clearRect(0,0,W,H);
+  let last=performance.now();
+  function draw(now){
+    const dt=Math.min((now-last)/16.67,3); last=now;
+    t+=0.012*dt;
 
-    // ── Background stars ──
+    /* fade trail */
+    ctx.fillStyle='rgba(0,0,0,0.18)';
+    ctx.fillRect(0,0,W,H);
+
+    /* background stars */
     bgStars.forEach(s=>{
-      s.twinkle+=s.twinkleSpeed;
-      const a=s.a*(0.6+0.4*Math.sin(s.twinkle));
+      s.tw+=s.tws;
+      const al=s.a*(0.55+0.45*Math.sin(s.tw));
       ctx.beginPath();
       ctx.arc(s.x*W,s.y*H,s.r,0,TAU);
-      ctx.fillStyle=`rgba(180,255,200,${a})`;
+      ctx.fillStyle=`rgba(180,255,210,${al})`;
       ctx.fill();
     });
 
-    // ── Outer glow ──
-    const outerG=ctx.createRadialGradient(CX,CY,120,CX,CY,420);
-    outerG.addColorStop(0,'rgba(34,197,94,0.08)');
-    outerG.addColorStop(0.5,'rgba(0,255,80,0.04)');
-    outerG.addColorStop(1,'transparent');
-    ctx.fillStyle=outerG; ctx.fillRect(0,0,W,H);
+    /* deep outer nebula glow */
+    const nebG=ctx.createRadialGradient(CX,CY,R*0.5,CX,CY,R*2.2);
+    nebG.addColorStop(0,'rgba(0,180,80,0.06)');
+    nebG.addColorStop(0.4,'rgba(0,80,40,0.04)');
+    nebG.addColorStop(1,'transparent');
+    ctx.fillStyle=nebG; ctx.fillRect(0,0,W,H);
 
-    // ── Rings ──
-    rings.forEach(ring=>{
-      ring.angle+=ring.speed;
-      ring.particles.forEach(p=>{
-        const a=p.a+ring.angle;
-        const x=CX+Math.cos(a)*(ring.rad+p.jitter);
-        const y=CY+Math.sin(a)*(ring.rad*0.32+p.jitter*0.3);
+    /* orbital bands */
+    BANDS.forEach((b,bi)=>{
+      b.angle+=b.speed*dt;
+      const pulse=0.85+0.15*Math.sin(t*1.6+bi);
+
+      /* draw as wide ellipse stroke — save/restore for rotation */
+      ctx.save();
+      ctx.translate(CX,CY);
+      ctx.rotate(b.rot);
+
+      /* glow pass — wide + soft */
+      ctx.beginPath();
+      ctx.ellipse(0,0,b.rx*pulse,b.ry*pulse,b.angle,0,TAU);
+      ctx.strokeStyle=`hsla(${b.hue},100%,60%,${b.alpha*0.35*pulse})`;
+      ctx.lineWidth=b.lw*2.5;
+      ctx.stroke();
+
+      /* bright core of band */
+      ctx.beginPath();
+      ctx.ellipse(0,0,b.rx*pulse,b.ry*pulse,b.angle,0,TAU);
+      ctx.strokeStyle=`hsla(${b.hue},100%,78%,${b.alpha*pulse})`;
+      ctx.lineWidth=b.lw*0.35;
+      ctx.stroke();
+
+      ctx.restore();
+
+      /* sparks on this band */
+      sparks.filter(s=>s.band===bi).forEach(s=>{
+        const a=b.angle+s.phase;
+        const bx=Math.cos(a+b.rot)*b.rx*pulse;
+        const by=Math.sin(a+b.rot)*b.ry*pulse;
+        ctx.save();
+        ctx.translate(CX,CY);
+        ctx.rotate(b.rot);
+        const sx=Math.cos(s.phase+b.angle)*(b.rx+s.jx)*pulse;
+        const sy=Math.sin(s.phase+b.angle)*(b.ry+s.jy)*pulse;
+        ctx.restore();
+        const brightness=0.4+0.6*Math.abs(Math.cos(s.phase+b.angle));
         ctx.beginPath();
-        ctx.arc(x,y,ring.width*(0.5+0.5*Math.abs(Math.sin(a))),0,TAU);
-        ctx.fillStyle=`rgba(34,220,100,${p.alpha*(0.7+0.3*Math.sin(t*1.5+a))})`;
+        ctx.arc(CX+bx+s.jx*0.3,CY+by+s.jy*0.3,s.size*brightness,0,TAU);
+        ctx.fillStyle=`hsla(${b.hue+10},100%,75%,${s.alpha*brightness*0.9})`;
         ctx.fill();
       });
     });
 
-    // ── Disk ──
-    diskP.forEach(p=>{
-      p.angle+=p.speed*(1+0.3*Math.sin(t+p.angle));
-      const x=CX+Math.cos(p.angle)*p.rad;
-      const y=CY+Math.sin(p.angle)*p.rad*0.3;
-      const brightness=0.5+0.5*Math.cos(p.angle);
-      ctx.beginPath();
-      ctx.arc(x,y,p.size*brightness,0,TAU);
-      ctx.fillStyle=`hsla(${p.hue},100%,65%,${p.alpha*brightness})`;
-      ctx.fill();
-    });
-
-    // ── Prominences (flares) ──
-    proms.forEach(pr=>{
-      const pulse=0.5+0.5*Math.sin(t*1.8+pr.phaseOffset);
-      const len=pr.len*pulse;
-      const a=pr.baseAngle+t*0.05;
-      const x0=CX+Math.cos(a)*55, y0=CY+Math.sin(a)*55;
-      const cp1x=CX+Math.cos(a+0.4)*(55+len*0.6);
-      const cp1y=CY+Math.sin(a+0.4)*(55+len*0.6);
-      const x1=CX+Math.cos(a+0.2)*(55+len);
-      const y1=CY+Math.sin(a+0.2)*(55+len);
+    /* prominences — curved flares from core */
+    for(let i=0;i<10;i++){
+      const a=i/10*TAU+t*0.08;
+      const pulse=0.3+0.7*Math.abs(Math.sin(t*1.4+i*0.7));
+      const len=R*0.18*pulse*(0.6+0.4*Math.sin(t+i));
+      const x0=CX+Math.cos(a)*R*0.12, y0=CY+Math.sin(a)*R*0.12;
+      const cpx=CX+Math.cos(a+0.45)*(R*0.12+len*0.65);
+      const cpy=CY+Math.sin(a+0.45)*(R*0.12+len*0.65);
+      const x1=CX+Math.cos(a+0.22)*(R*0.12+len);
+      const y1=CY+Math.sin(a+0.22)*(R*0.12+len);
       ctx.beginPath();
       ctx.moveTo(x0,y0);
-      ctx.quadraticCurveTo(cp1x,cp1y,x1,y1);
-      ctx.strokeStyle=`rgba(0,255,100,${0.25*pulse})`;
-      ctx.lineWidth=pr.width*pulse;
+      ctx.quadraticCurveTo(cpx,cpy,x1,y1);
+      ctx.strokeStyle=`rgba(80,255,140,${0.55*pulse})`;
+      ctx.lineWidth=3*pulse;
       ctx.lineCap='round';
       ctx.stroke();
-    });
+    }
 
-    // ── Core shell (atmosphere) ──
-    const shellPulse=0.5+0.5*Math.sin(t*2.15);
-    const shellG=ctx.createRadialGradient(CX,CY,45,CX,CY,90+10*shellPulse);
-    shellG.addColorStop(0,'rgba(0,255,80,0.18)');
-    shellG.addColorStop(0.6,'rgba(34,197,94,0.06)');
-    shellG.addColorStop(1,'transparent');
-    ctx.fillStyle=shellG; ctx.beginPath();
-    ctx.arc(CX,CY,95+10*shellPulse,0,TAU); ctx.fill();
-
-    // ── Core glow layers ──
-    [
-      [60,  'rgba(200,255,220,0.9)'],
-      [42,  'rgba(100,255,150,0.85)'],
-      [28,  'rgba(34,197,94,0.95)'],
-      [14,  'rgba(0,255,80,1)'],
-      [6,   'rgba(255,255,255,1)'],
-    ].forEach(([r,c])=>{
-      const g=ctx.createRadialGradient(CX,CY,0,CX,CY,r*(0.9+0.1*shellPulse));
-      g.addColorStop(0,c); g.addColorStop(1,'transparent');
-      ctx.fillStyle=g; ctx.beginPath();
-      ctx.arc(CX,CY,r*(0.9+0.1*shellPulse),0,TAU); ctx.fill();
-    });
-
-    // ── Embers ──
-    embers.forEach(e=>{
-      e.life+=0.008;
-      if(e.life>1){ e.life=0; e.angle=Math.random()*TAU; e.rad=40+Math.random()*60; }
-      const ex=CX+Math.cos(e.angle)*e.rad+e.vx*e.life*60;
-      const ey=CY+Math.sin(e.angle)*e.rad*0.3+e.vy*e.life*60;
-      const a=Math.max(0,0.8-e.life);
+    /* embers */
+    embers.forEach((e,i)=>{
+      e.life+=0.007*dt;
+      e.x+=e.vx*dt; e.y+=e.vy*dt;
+      if(e.life>1||Math.hypot(e.x-CX,e.y-CY)>R*2){ embers[i]=mkEmber(); return; }
+      const al=Math.max(0,0.85-e.life);
       ctx.beginPath();
-      ctx.arc(ex,ey,e.size*(1-e.life*0.7),0,TAU);
-      ctx.fillStyle=`rgba(100,255,160,${a})`;
+      ctx.arc(e.x,e.y,e.size*(1-e.life*0.6),0,TAU);
+      ctx.fillStyle=`rgba(120,255,170,${al})`;
       ctx.fill();
+    });
+
+    /* core atmosphere shell */
+    const sp=0.5+0.5*Math.sin(t*2.3);
+    const shellR=R*0.18+R*0.04*sp;
+    const shellG=ctx.createRadialGradient(CX,CY,shellR*0.3,CX,CY,shellR*1.8);
+    shellG.addColorStop(0,'rgba(0,255,100,0.22)');
+    shellG.addColorStop(0.5,'rgba(20,200,80,0.08)');
+    shellG.addColorStop(1,'transparent');
+    ctx.fillStyle=shellG;
+    ctx.beginPath(); ctx.arc(CX,CY,shellR*1.8,0,TAU); ctx.fill();
+
+    /* core glow layers — bright white-green center */
+    [
+      [R*0.16,'rgba(160,255,200,0.85)'],
+      [R*0.10,'rgba(80,255,150,0.92)'],
+      [R*0.055,'rgba(0,255,90,1)'],
+      [R*0.025,'rgba(200,255,230,1)'],
+      [R*0.010,'rgba(255,255,255,1)'],
+    ].forEach(([r,c])=>{
+      const rr=r*(0.88+0.12*sp);
+      const g=ctx.createRadialGradient(CX,CY,0,CX,CY,rr);
+      g.addColorStop(0,c); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.arc(CX,CY,rr,0,TAU); ctx.fill();
     });
 
     requestAnimationFrame(draw);
   }
-  draw();
+  requestAnimationFrame(draw);
 })();
 </script>
 </body>
