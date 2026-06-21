@@ -504,6 +504,54 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 }
 
 
+/* ── Magazine glow ring ── */
+#mag-glow {
+  position: absolute;
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 0;
+  transition: box-shadow 1.2s ease, opacity 1s;
+  opacity: 0;
+}
+#mag-glow.vis { opacity: 1; }
+#mag-glow.glow-neutral {
+  box-shadow: 0 0 40px rgba(34,197,94,0.15), 0 0 80px rgba(34,197,94,0.06);
+}
+#mag-glow.glow-green {
+  animation: ringGreen 2.2s ease-in-out infinite;
+}
+#mag-glow.glow-red {
+  animation: ringRed 2.2s ease-in-out infinite;
+}
+@keyframes ringGreen {
+  0%,100% {
+    box-shadow:
+      0 0 30px rgba(34,197,94,0.35),
+      0 0 70px rgba(34,197,94,0.20),
+      0 0 120px rgba(34,197,94,0.10);
+  }
+  50% {
+    box-shadow:
+      0 0 55px rgba(34,197,94,0.70),
+      0 0 110px rgba(34,197,94,0.40),
+      0 0 180px rgba(34,197,94,0.18);
+  }
+}
+@keyframes ringRed {
+  0%,100% {
+    box-shadow:
+      0 0 30px rgba(239,68,68,0.35),
+      0 0 70px rgba(239,68,68,0.20),
+      0 0 120px rgba(239,68,68,0.10);
+  }
+  50% {
+    box-shadow:
+      0 0 55px rgba(239,68,68,0.70),
+      0 0 110px rgba(239,68,68,0.40),
+      0 0 180px rgba(239,68,68,0.18);
+  }
+}
+
 /* ── S4 TOGGLE SWITCHES ── */
 .s4-toggles {
   position: absolute;
@@ -715,6 +763,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   <!-- S4: MAGAZINE 3D -->
   <section id="s4">
     <div id="s4-canvas-wrap"></div>
+    <div id="mag-glow" class="glow-neutral"></div>
     <!-- Toggle switches -->
     <div class="s4-toggles">
       <div class="s4-toggle-wrap">
@@ -1444,58 +1493,75 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       back.appendChild(bl);
     }
 
-    // ── Realistic page curl (bottom-right corner) ──────────────
-    const CS=80; // curl size px
-
-    // Layer 1: soft shadow cast ON the page approaching the fold
-    const cShadPage=document.createElement('div');
-    cShadPage.style.cssText=[
-      'position:absolute;bottom:0;right:0;pointer-events:none;',
-      'width:'+(CS+24)+'px;height:'+(CS+24)+'px;',
-      'background:linear-gradient(135deg,transparent 30%,rgba(0,0,0,0.22) 100%);',
-      'backface-visibility:hidden;z-index:3;',
+    // ── Canvas-drawn realistic page curl (bottom-right) ──────────
+    const CS=96;
+    const curlCanvas=document.createElement('canvas');
+    curlCanvas.width=CS+20; curlCanvas.height=CS+20;
+    curlCanvas.style.cssText=[
+      'position:absolute;bottom:-4px;right:-4px;',
+      'pointer-events:none;z-index:6;',
+      'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
     ].join('');
+    const cc=curlCanvas.getContext('2d');
+    const W=curlCanvas.width, H=curlCanvas.height;
+    const ox=20, oy=20; // origin offset (bottom-right of page is W-ox, H-oy)
 
-    // Layer 2: the "revealed" area — next page showing through the hole
-    // Uses next page's background color (light cream)
-    const cReveal=document.createElement('div');
-    cReveal.style.cssText=[
-      'position:absolute;bottom:0;right:0;pointer-events:none;',
-      'width:'+CS+'px;height:'+CS+'px;',
-      'clip-path:polygon(100% 0%,100% 100%,0% 100%);',
-      'background:linear-gradient(135deg,#b8b4ae 0%,#ccc9c3 35%,#dedad5 100%);',
-      'backface-visibility:hidden;z-index:4;',
-    ].join('');
+    // — shadow under flap cast on the page below
+    cc.save();
+    cc.beginPath();
+    cc.moveTo(W-ox, oy);
+    cc.lineTo(W-ox, H-oy);
+    cc.lineTo(ox,   H-oy);
+    cc.closePath();
+    const shadowGrad=cc.createRadialGradient(W-ox,H-oy,0,W-ox,H-oy,CS*1.1);
+    shadowGrad.addColorStop(0,'rgba(0,0,0,0.45)');
+    shadowGrad.addColorStop(0.5,'rgba(0,0,0,0.18)');
+    shadowGrad.addColorStop(1,'rgba(0,0,0,0)');
+    cc.fillStyle=shadowGrad;
+    cc.filter='blur(6px)';
+    cc.fill();
+    cc.restore();
 
-    // Layer 3: the curl flap — back of the paper, lifted off with perspective
-    const cFlap=document.createElement('div');
-    cFlap.style.cssText=[
-      'position:absolute;bottom:0;right:0;pointer-events:none;',
-      'width:'+CS+'px;height:'+CS+'px;',
-      'clip-path:polygon(100% 0%,100% 100%,0% 100%);',
-      // light on right edge (fold highlight), dark towards inner fold
-      'background:linear-gradient(to top left,#ffffff 0%,#ede9e4 30%,#c8c4be 70%,#a8a49e 100%);',
-      'backface-visibility:hidden;z-index:5;',
-      'transform:perspective(260px) rotateX(22deg) rotateY(-22deg);',
-      'transform-origin:100% 100%;',
-    ].join('');
+    // — revealed underside area (next-page color visible through the hole)
+    cc.save();
+    cc.beginPath();
+    cc.moveTo(W-ox, oy);
+    cc.lineTo(W-ox, H-oy);
+    cc.lineTo(ox,   H-oy);
+    cc.closePath();
+    const revGrad=cc.createLinearGradient(W-ox,oy,ox,H-oy);
+    revGrad.addColorStop(0,'#a8a5a0');
+    revGrad.addColorStop(0.5,'#c9c6c0');
+    revGrad.addColorStop(1,'#dedad5');
+    cc.fillStyle=revGrad;
+    cc.filter='none';
+    cc.fill();
+    cc.restore();
 
-    // Layer 4: hard shadow under the lifted flap (drop shadow on next page)
-    const cFlapShadow=document.createElement('div');
-    cFlapShadow.style.cssText=[
-      'position:absolute;bottom:-4px;right:-4px;pointer-events:none;',
-      'width:'+(CS+8)+'px;height:'+(CS+8)+'px;',
-      'clip-path:polygon(100% 0%,100% 100%,0% 100%);',
-      'background:radial-gradient(ellipse at 100% 100%,rgba(0,0,0,0.38) 0%,transparent 60%);',
-      'backface-visibility:hidden;z-index:3;',
-      'filter:blur(4px);',
-    ].join('');
+    // — the curl flap itself (back of paper folding up)
+    cc.save();
+    cc.beginPath();
+    cc.moveTo(W-ox, oy);
+    cc.lineTo(W-ox, H-oy);
+    cc.lineTo(ox,   H-oy);
+    cc.closePath();
+    const flapGrad=cc.createLinearGradient(ox,H-oy,W-ox,oy);
+    flapGrad.addColorStop(0,'#f8f6f3');
+    flapGrad.addColorStop(0.35,'#eae7e2');
+    flapGrad.addColorStop(0.7,'#cac6c0');
+    flapGrad.addColorStop(1,'#a0 9c96');
+    cc.fillStyle=flapGrad;
+    cc.fill();
+    // fold-line highlight
+    cc.beginPath();
+    cc.moveTo(W-ox, oy+4);
+    cc.lineTo(ox+4, H-oy);
+    cc.strokeStyle='rgba(255,255,255,0.65)';
+    cc.lineWidth=2.5;
+    cc.stroke();
+    cc.restore();
 
-    pg.appendChild(cShadPage);
-    pg.appendChild(cFlapShadow);
-    pg.appendChild(cReveal);
-    pg.appendChild(cFlap);
-
+    pg.appendChild(curlCanvas);
     pg.appendChild(front); pg.appendChild(back);
     scene.appendChild(pg);
     pg.addEventListener('click',()=>{ if(i===state) flipForward(); });
@@ -1524,11 +1590,30 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   wrap.appendChild(scene);
 
+  // ── Glow ring around magazine ───────────────────────────────
+  const glowEl=document.getElementById('mag-glow');
+  if(glowEl){
+    glowEl.style.cssText=[
+      'position:absolute;',
+      'left:calc(50% - '+(bookW/2+28)+'px);',
+      'top:calc(50% - '+(bookH/2+28)+'px);',
+      'width:'+(bookW+56)+'px;height:'+(bookH+56)+'px;',
+    ].join('');
+    setTimeout(()=>glowEl.classList.add('vis'),600);
+  }
+
   // ── Flip logic ─────────────────────────────────────────────
   let state=0, busy=false;
 
+  // page index → glow type: 0=cover(neutral), 1=top5(green), 2=low(red)
+  const GLOW_MAP=['glow-neutral','glow-green','glow-red'];
+
   function updateDots(){
     dots.forEach((d,i)=>d.classList.toggle('active',i===state));
+    if(glowEl){
+      glowEl.classList.remove('glow-neutral','glow-green','glow-red');
+      glowEl.classList.add(GLOW_MAP[state]||'glow-neutral');
+    }
   }
 
   function flipForward(){
@@ -1558,6 +1643,8 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       state--; updateDots(); busy=false;
     },1220);
   }
+
+  updateDots(); // set initial glow state
 
   dots.forEach((d,i)=>{
     d.addEventListener('click',()=>{
