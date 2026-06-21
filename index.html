@@ -862,6 +862,32 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 }
 .sf-built a { color:rgba(34,197,94,0.6); text-decoration:none; transition:color .2s; }
 .sf-built a:hover { color:#22c55e; }
+
+/* ── Global text highlight on hover ── */
+h1,h2,h3,h4,p,span,li,label,
+.tagline,.subtitle-text,.hl,
+.rating-title,.rating-subtitle,
+.sf-card-title,.sf-card-body,.sf-card-label,
+.sf-logo,.sf-copy,.sf-built,
+.s4-toggle-label,.rf-btn,
+.rl-item,.emp-name,.emp-pct {
+  transition: color .2s, text-shadow .2s;
+  cursor: pointer;
+}
+h1:hover,h2:hover,h3:hover,h4:hover {
+  color: #22c55e !important;
+  text-shadow: 0 0 18px rgba(34,197,94,0.5);
+}
+p:hover, span:hover, li:hover, label:hover {
+  color: rgba(255,255,255,1) !important;
+  text-shadow: 0 0 12px rgba(255,255,255,0.25);
+}
+.sf-card-title:hover { color: #22c55e !important; text-shadow: 0 0 14px rgba(34,197,94,0.5); }
+.rating-title:hover  { color: #22c55e !important; text-shadow: 0 0 22px rgba(34,197,94,0.55); }
+.rating-subtitle:hover { color: rgba(255,255,255,0.85) !important; }
+.rl-item:hover { color: #22c55e !important; }
+.s4-toggle-label:hover { color: #22c55e !important; text-shadow: 0 0 10px rgba(34,197,94,0.4); }
+.emp-name:hover,.emp-pct:hover { color: #22c55e !important; }
 </style>
 </head>
 <body>
