@@ -613,8 +613,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   </section>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script>
 (function(){
   const splash    = document.getElementById('splash');
@@ -1047,8 +1045,32 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   setInterval(spawnAs3, 8000);
 })();
 
-/* ── MAGAZINE 3D (S4) ── */
+/* ── MAGAZINE 3D (S4) — loads Three.js on demand ── */
 (function(){
+  function loadScript(src){
+    return new Promise((res,rej)=>{
+      if(document.querySelector('script[src="'+src+'"]')){ res(); return; }
+      const s=document.createElement('script');
+      s.src=src; s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const _section=document.getElementById('s4');
+  if(!_section) return;
+
+  // Load libs only when s4 is about to be visible
+  const _preObs=new IntersectionObserver(entries=>{
+    if(!entries[0].isIntersecting) return;
+    _preObs.disconnect();
+    Promise.all([
+      loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js'),
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js')
+    ]).then(initMag);
+  },{rootMargin:'200px'});
+  _preObs.observe(_section);
+
+  function initMag(){
   if (typeof THREE === 'undefined') return;
 
   const section = document.getElementById('s4');
@@ -1390,7 +1412,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     renderer.render(scene,camera);
   })();
 
-  // ── Start on scroll ────────────────────────────────────────
+  // ── Start on scroll (Three.js already loaded at this point) ─
   const obs=new IntersectionObserver(entries=>{
     if(entries[0].isIntersecting){startAutoPlay();obs.disconnect();}
   },{threshold:0.25});
@@ -1898,6 +1920,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     camera.aspect = W0/H0; camera.updateProjectionMatrix();
     renderer.setSize(W0, H0);
   });
+  } // end initMag
 
 })();
 </script>
