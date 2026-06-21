@@ -1825,8 +1825,8 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
 
     /* author tag */
-    ctx.fillStyle='#111'; ctx.font='bold 14px Arial'; ctx.textBaseline='alphabetic';
-    ctx.fillText('— Ваш кандидат на посаду старшого зміни',24,H-16);
+    ctx.fillStyle='#111'; ctx.font='bold 17px Arial'; ctx.textBaseline='alphabetic';
+    ctx.fillText('— Ваш кандидат на посаду старшого зміни',24,H-20);
 
     /* page indicator */
     ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
@@ -2014,14 +2014,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   function startAutoPlay(){
     if(autoStarted) return; autoStarted=true;
     const GAP=3000, FLIP=720;
-    // forward through all pages
+    // flip forward through all pages once, then stop
     for(let i=0;i<PAGE_DATA.length-1;i++){
       setTimeout(()=>flipForward(), GAP + i*(FLIP+GAP));
-    }
-    // flip back to cover after a pause
-    const fwdDone = GAP + (PAGE_DATA.length-1)*(FLIP+GAP) + 1800;
-    for(let i=PAGE_DATA.length-1;i>0;i--){
-      setTimeout(()=>flipBackward(), fwdDone + (PAGE_DATA.length-1-i)*(FLIP+800));
     }
   }
   const obs=new IntersectionObserver(entries=>{
