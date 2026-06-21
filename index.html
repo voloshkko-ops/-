@@ -1045,349 +1045,220 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   setInterval(spawnAs3, 8000);
 })();
 
-/* ── MAGAZINE 3D (S4) ── */
+/* ── MAGAZINE 3D (S4) — CSS 3D flip, no CDN deps ── */
 (function(){
-  function loadScript(src){
-    return new Promise((res,rej)=>{
-      if(document.querySelector('script[src="'+src+'"]')){ res(); return; }
-      const s=document.createElement('script');
-      s.src=src; s.onload=res; s.onerror=rej;
-      document.head.appendChild(s);
-    });
-  }
-
-  const _section=document.getElementById('s4');
-  if(!_section) return;
-
-  // Start loading libs immediately (async, non-blocking)
-  const libsReady=Promise.all([
-    loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js'),
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js')
-  ]).catch(()=>Promise.all([
-    loadScript('https://unpkg.com/three@0.160.0/build/three.min.js'),
-    loadScript('https://unpkg.com/gsap@3.12.2/dist/gsap.min.js')
-  ]));
-
-  let _initDone=false;
-  function tryInit(){
-    if(_initDone) return;
-    libsReady.then(()=>{ _initDone=true; initMag(); }).catch(e=>console.error('S4 libs failed',e));
-  }
-
-  // Init when s4 is near viewport (libs likely ready by then)
-  const _preObs=new IntersectionObserver(entries=>{
-    if(!entries[0].isIntersecting) return;
-    _preObs.disconnect();
-    tryInit();
-  },{rootMargin:'400px'});
-  _preObs.observe(_section);
-
-  function initMag(){
-  if(typeof THREE==='undefined') return;
-
   const section = document.getElementById('s4');
   const wrap    = document.getElementById('s4-canvas-wrap');
   const dotsEl  = document.getElementById('mag-dots');
-  const dots    = dotsEl ? Array.from(dotsEl.querySelectorAll('.mdot')) : [];
-  if (!wrap) return;
+  if(!section||!wrap) return;
+  const dots = dotsEl ? Array.from(dotsEl.querySelectorAll('.mdot')) : [];
 
-  // ── Texture helpers ──────────────────────────────────────
-  function rr(ctx,x,y,w,h,r){ ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h); }
-  function makeTex(fn,cw=1024,ch=1440){
+  // ── Canvas texture helpers ───────────────────────────────
+  function rr(ctx,x,y,w,h,r){
+    if(ctx.roundRect){ ctx.roundRect(x,y,w,h,r); }
+    else { ctx.rect(x,y,w,h); }
+  }
+  function makePng(fn,cw,ch){
     const c=document.createElement('canvas'); c.width=cw; c.height=ch;
-    fn(c.getContext('2d'),cw,ch);
-    const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+    fn(c.getContext('2d'),cw,ch); return c.toDataURL();
   }
 
-  // ── PAGE 1: Cover ────────────────────────────────────────
-  const texCover = makeTex((ctx,W,H)=>{
+  const CW=600, CH=840;
+
+  // PAGE 0 — Cover
+  const cover=makePng((ctx,W,H)=>{
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    // Header
-    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,128);
-    ctx.strokeStyle='#eee'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(0,128); ctx.lineTo(W,128); ctx.stroke();
-    ctx.font='bold 78px Arial'; ctx.textBaseline='middle';
-    ctx.fillStyle='#22c55e'; ctx.fillText('à',54,66);
-    ctx.fillStyle='#111'; ctx.fillText('банк',140,66);
-    ctx.font='20px Arial'; ctx.fillStyle='#999'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
-    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31  |  abank.ua',W-40,100);
+    ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,76);
+    ctx.strokeStyle='#eee'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,76); ctx.lineTo(W,76); ctx.stroke();
+    ctx.font='bold 46px Arial'; ctx.textBaseline='middle';
+    ctx.fillStyle='#22c55e'; ctx.fillText('à',30,40);
+    ctx.fillStyle='#111'; ctx.fillText('банк',80,40);
+    ctx.font='11px Arial'; ctx.fillStyle='#999'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
+    ctx.fillText('ЛИПЕНЬ 2026  |  ВИПУСК №31  |  abank.ua',W-20,60);
     ctx.textAlign='left';
-    // Photo
-    const g=ctx.createLinearGradient(0,128,W,H*0.72);
+    const g=ctx.createLinearGradient(0,76,W,H*0.72);
     g.addColorStop(0,'#bec8c2'); g.addColorStop(0.45,'#869490'); g.addColorStop(1,'#4e5c60');
-    ctx.fillStyle=g; ctx.fillRect(0,128,W,H*0.72-128);
-    [80,280,480,680,880].forEach(bx=>{
-      ctx.fillStyle='rgba(0,0,0,0.09)'; ctx.fillRect(bx,185,165,H*0.72-205);
-      ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(bx+20,222,62,40);
+    ctx.fillStyle=g; ctx.fillRect(0,76,W,H*0.72-76);
+    [40,155,270,385,500].forEach(bx=>{
+      ctx.fillStyle='rgba(0,0,0,0.09)'; ctx.fillRect(bx,100,90,H*0.72-110);
+      ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(bx+10,120,36,22);
     });
-    const ov=ctx.createLinearGradient(0,128,0,H*0.72);
+    const ov=ctx.createLinearGradient(0,76,0,H*0.72);
     ov.addColorStop(0,'rgba(255,255,255,0.05)'); ov.addColorStop(1,'rgba(0,0,0,0.25)');
-    ctx.fillStyle=ov; ctx.fillRect(0,128,W,H*0.72-128);
-    // Article box
-    ctx.fillStyle='rgba(255,255,255,0.94)';
-    ctx.beginPath(); rr(ctx,48,165,308,144,4); ctx.fill();
-    ctx.fillStyle='#22c55e'; ctx.fillRect(48,165,5,144);
-    ctx.fillStyle='#111'; ctx.font='bold 26px Arial';
-    ctx.fillText('ВИМІРЯНІ ТАРИФИ',65,200); ctx.fillText('НА ПЛАТЕЖІ:',65,232);
-    ctx.fillText('НОВА ЕКОНОМІКА',65,264);
-    ctx.fillStyle='#555'; ctx.font='20px Arial';
-    ctx.fillText('Скільки ви справді заощаджуєте?',65,296);
-    // Bottom headline
+    ctx.fillStyle=ov; ctx.fillRect(0,76,W,H*0.72-76);
+    ctx.fillStyle='rgba(255,255,255,0.93)';
+    ctx.beginPath(); rr(ctx,26,96,178,84,3); ctx.fill();
+    ctx.fillStyle='#22c55e'; ctx.fillRect(26,96,3,84);
+    ctx.fillStyle='#111'; ctx.font='bold 14px Arial';
+    ctx.fillText('ВИМІРЯНІ ТАРИФИ',34,118); ctx.fillText('НА ПЛАТЕЖІ:',34,136);
+    ctx.fillText('НОВА ЕКОНОМІКА',34,154);
+    ctx.fillStyle='#555'; ctx.font='11px Arial';
+    ctx.fillText('Скільки ви справді заощаджуєте?',34,172);
     const bg=ctx.createLinearGradient(0,H*0.52,0,H*0.72);
     bg.addColorStop(0,'rgba(255,255,255,0)'); bg.addColorStop(1,'#fff');
     ctx.fillStyle=bg; ctx.fillRect(0,H*0.52,W,H*0.72-H*0.52);
-    ctx.fillStyle='#111'; ctx.textAlign='center'; ctx.font='bold 68px Arial';
-    ctx.fillText('ЯК СТАТИ',W/2,H*0.765); ctx.fillText('СТАРШИМ:',W/2,H*0.83);
-    ctx.fillText('ЗМІНИ В БАНКУ?',W/2,H*0.893);
-    ctx.font='23px Arial'; ctx.fillStyle='#555';
-    ctx.fillText('СТРАТЕГІЇ, УСПІХ ТА ЕВОЛЮЦІЯ ЛІДЕРСТВА',W/2,H*0.935);
-    // Footer
-    ctx.fillStyle='#eee'; ctx.fillRect(0,H-62,W,62);
-    ctx.fillStyle='#aaa'; ctx.font='20px Arial';
-    ctx.fillText('ЛИПЕНЬ 2026  ВИПУСК №31  |  abank.ua',W/2,H-20);
+    ctx.fillStyle='#111'; ctx.textAlign='center'; ctx.font='bold 40px Arial';
+    ctx.fillText('ЯК СТАТИ',W/2,H*0.765); ctx.fillText('СТАРШИМ:',W/2,H*0.825);
+    ctx.fillText('ЗМІНИ В БАНКУ?',W/2,H*0.885);
+    ctx.font='13px Arial'; ctx.fillStyle='#555';
+    ctx.fillText('СТРАТЕГІЇ, УСПІХ ТА ЕВОЛЮЦІЯ ЛІДЕРСТВА',W/2,H*0.928);
+    ctx.fillStyle='#eee'; ctx.fillRect(0,H-36,W,36);
+    ctx.fillStyle='#aaa'; ctx.font='11px Arial';
+    ctx.fillText('ЛИПЕНЬ 2026  ВИПУСК №31  |  abank.ua',W/2,H-12);
     ctx.textAlign='left';
-  });
+  },CW,CH);
 
-  // ── PAGE 2: Top-5 ────────────────────────────────────────
-  const texTop5 = makeTex((ctx,W,H)=>{
+  // PAGE 1 — Top-5
+  const top5page=makePng((ctx,W,H)=>{
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#facc15'; ctx.fillRect(0,0,W,12);
-    ctx.fillStyle='#111'; ctx.font='bold 62px Arial'; ctx.fillText('Наші зірочки',54,96);
-    ctx.font='32px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★★★★★',54,146);
-    ctx.fillStyle='#666'; ctx.font='25px Arial'; ctx.fillText('Топ-5 SL ASA • Червень 2026',248,146);
+    ctx.fillStyle='#facc15'; ctx.fillRect(0,0,W,6);
+    ctx.fillStyle='#111'; ctx.font='bold 36px Arial'; ctx.fillText('Наші зірочки',30,56);
+    ctx.font='20px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★★★★★',30,84);
+    ctx.fillStyle='#666'; ctx.font='14px Arial'; ctx.fillText('Топ-5 SL ASA • Червень 2026',148,84);
     const top=[
-      {n:'Саєнко Карина Андріївна',     p:'100%'},
-      {n:'Семенюк Вікторія Леонідівна', p:'99.49%'},
-      {n:'Табачун Анастасія Юріївна',   p:'97.63%'},
-      {n:'Діденко Вікторія Вікторівна', p:'96.83%'},
-      {n:'Козарчук Поліна Андріївна',   p:'96.65%'},
+      {n:'Саєнко Карина А.',     p:'100%'},
+      {n:'Семенюк Вікторія Л.',  p:'99.49%'},
+      {n:'Табачун Анастасія Ю.', p:'97.63%'},
+      {n:'Діденко Вікторія В.',  p:'96.83%'},
+      {n:'Козарчук Поліна А.',   p:'96.65%'},
     ];
     top.forEach((e,i)=>{
-      const y=185+i*230, first=i===0;
-      if(first){const gg=ctx.createLinearGradient(54,y,W-54,y+200);gg.addColorStop(0,'#fffbeb');gg.addColorStop(1,'#fef3c7');ctx.fillStyle=gg;}
+      const y=104+i*136, first=i===0;
+      if(first){const gg=ctx.createLinearGradient(30,y,W-30,y+118);gg.addColorStop(0,'#fffbeb');gg.addColorStop(1,'#fef3c7');ctx.fillStyle=gg;}
       else ctx.fillStyle='#fafafa';
-      ctx.beginPath(); rr(ctx,54,y,W-108,200,16); ctx.fill();
-      ctx.strokeStyle=first?'#facc15':'#eee'; ctx.lineWidth=first?3:1;
-      ctx.beginPath(); rr(ctx,54,y,W-108,200,16); ctx.stroke();
-      ctx.font='bold 100px Arial'; ctx.fillStyle=first?'rgba(250,204,21,0.2)':'#f0f0f0';
-      ctx.fillText(i+1,76,y+148);
-      ctx.font=first?'58px Arial':'46px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★',185,y+136);
-      ctx.font='bold '+(first?'36':'32')+'px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,255,y+88);
-      ctx.font='23px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',255,y+130);
-      ctx.font='bold '+(first?'54':'46')+'px Arial'; ctx.fillStyle=first?'#d97706':'#22c55e';
-      ctx.textAlign='right'; ctx.fillText(e.p,W-72,y+154); ctx.textAlign='left';
+      ctx.beginPath(); rr(ctx,30,y,W-60,118,10); ctx.fill();
+      ctx.strokeStyle=first?'#facc15':'#eee'; ctx.lineWidth=first?2:1;
+      ctx.beginPath(); rr(ctx,30,y,W-60,118,10); ctx.stroke();
+      ctx.font='bold 56px Arial'; ctx.fillStyle='rgba(0,0,0,0.06)';
+      ctx.fillText(i+1,44,y+88);
+      ctx.font='30px Arial'; ctx.fillStyle='#facc15'; ctx.fillText('★',110,y+78);
+      ctx.font='bold 21px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,152,y+50);
+      ctx.font='13px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',152,y+74);
+      ctx.font='bold 28px Arial'; ctx.fillStyle='#22c55e';
+      ctx.textAlign='right'; ctx.fillText(e.p,W-46,y+84); ctx.textAlign='left';
     });
-    ctx.fillStyle='#ccc'; ctx.font='22px Arial'; ctx.textAlign='center';
-    ctx.fillText('2',W/2,H-28); ctx.textAlign='left';
-  });
+    ctx.fillStyle='#ccc'; ctx.font='13px Arial'; ctx.textAlign='center';
+    ctx.fillText('2 / 3',W/2,H-14); ctx.textAlign='left';
+  },CW,CH);
 
-  // ── PAGE 3: Low performers (<65%) ────────────────────────
-  const texLow = makeTex((ctx,W,H)=>{
+  // PAGE 2 — Low SL ASA
+  const lowpage=makePng((ctx,W,H)=>{
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#ef4444'; ctx.fillRect(0,0,W,12);
-    ctx.fillStyle='#111'; ctx.font='bold 58px Arial'; ctx.fillText('Потребують уваги',54,96);
-    ctx.fillStyle='#666'; ctx.font='25px Arial'; ctx.fillText('SL ASA нижче 65% • Червень 2026',54,144);
+    ctx.fillStyle='#ef4444'; ctx.fillRect(0,0,W,6);
+    ctx.fillStyle='#111'; ctx.font='bold 30px Arial'; ctx.fillText('Потребують уваги',30,50);
+    ctx.font='14px Arial'; ctx.fillStyle='#888'; ctx.fillText('SL ASA нижче 65% • Червень 2026',30,74);
     const low=[
-      {n:'Шанюк Вікторія Станіславівна', v:41.72},
-      {n:'Сирота Георгій Андрійович',    v:55.23},
-      {n:'Діденко Максим Сергійович',    v:57.39},
-      {n:'Литвинова Анна Олександрівна', v:59.20},
-      {n:'Дихан Микола Ростиславович',   v:64.83},
+      {n:'Шанюк В.С.',      v:41.72},
+      {n:'Сирота Г.А.',     v:55.23},
+      {n:'Діденко М.С.',    v:57.39},
+      {n:'Литвинова А.О.',  v:59.20},
+      {n:'Дихан М.Р.',      v:64.83},
     ];
     low.forEach((e,i)=>{
-      const y=185+i*232;
-      ctx.fillStyle=i%2?'#fff5f5':'#fef2f2';
-      ctx.beginPath(); rr(ctx,54,y,W-108,200,16); ctx.fill();
-      ctx.strokeStyle='rgba(239,68,68,0.18)'; ctx.lineWidth=1;
-      ctx.beginPath(); rr(ctx,54,y,W-108,200,16); ctx.stroke();
-      // Circle warning
-      ctx.fillStyle='rgba(239,68,68,0.12)';
-      ctx.beginPath(); ctx.arc(116,y+100,44,0,Math.PI*2); ctx.fill();
-      ctx.font='bold 50px Arial'; ctx.fillStyle='#ef4444';
-      ctx.textAlign='center'; ctx.fillText('!',116,y+118); ctx.textAlign='left';
-      // Name
-      ctx.font='bold 33px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,182,y+82);
-      ctx.font='22px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA показник',182,y+122);
-      // Value
-      ctx.font='bold 52px Arial'; ctx.fillStyle=e.v<50?'#dc2626':'#ef4444';
-      ctx.textAlign='right'; ctx.fillText(e.v.toFixed(2)+'%',W-72,y+152); ctx.textAlign='left';
-      // Bar
-      const bx=182,bw=W-bx-88,bh=20;
-      ctx.fillStyle='#f0e8e8'; ctx.beginPath(); rr(ctx,bx,y+162,bw,bh,10); ctx.fill();
-      ctx.fillStyle='#ef4444'; ctx.beginPath(); rr(ctx,bx,y+162,(e.v/100)*bw,bh,10); ctx.fill();
+      const y=96+i*146;
+      ctx.fillStyle='#fdf2f2'; ctx.beginPath(); rr(ctx,30,y,W-60,128,10); ctx.fill();
+      ctx.strokeStyle='#fecaca'; ctx.lineWidth=1;
+      ctx.beginPath(); rr(ctx,30,y,W-60,128,10); ctx.stroke();
+      ctx.font='bold 18px Arial'; ctx.fillStyle='#111'; ctx.fillText(e.n,48,y+36);
+      ctx.font='13px Arial'; ctx.fillStyle='#aaa'; ctx.fillText('SL ASA',48,y+58);
+      ctx.font='bold 30px Arial'; ctx.fillStyle=e.v<50?'#dc2626':'#ef4444';
+      ctx.textAlign='right'; ctx.fillText(e.v.toFixed(2)+'%',W-46,y+92); ctx.textAlign='left';
+      const bx=48,bw=W-bx-60,bh=12;
+      ctx.fillStyle='#f0e8e8'; ctx.beginPath(); rr(ctx,bx,y+102,bw,bh,6); ctx.fill();
+      ctx.fillStyle='#ef4444'; ctx.beginPath(); rr(ctx,bx,y+102,(e.v/100)*bw,bh,6); ctx.fill();
     });
-    ctx.fillStyle='#ccc'; ctx.font='22px Arial'; ctx.textAlign='center';
-    ctx.fillText('3',W/2,H-28); ctx.textAlign='left';
+    ctx.fillStyle='#ccc'; ctx.font='13px Arial'; ctx.textAlign='center';
+    ctx.fillText('3 / 3',W/2,H-14); ctx.textAlign='left';
+  },CW,CH);
+
+  const PAGES=[cover, top5page, lowpage];
+
+  // ── Build CSS magazine ───────────────────────────────────
+  // Container
+  const book=document.createElement('div');
+  book.style.cssText='position:relative;width:'+CW+'px;height:'+CH+'px;perspective:1800px;';
+
+  // Right side (stack of pages to flip)
+  // Left side placeholder (shows white back when pages flipped)
+  const leftPlate=document.createElement('div');
+  leftPlate.style.cssText='position:absolute;left:0;top:0;width:'+CW+'px;height:'+CH+'px;background:#f8f8f6;border-radius:2px 0 0 2px;box-shadow:-4px 0 18px rgba(0,0,0,0.18);display:none;';
+  book.appendChild(leftPlate);
+
+  // Green spine
+  const spine=document.createElement('div');
+  spine.style.cssText='position:absolute;left:'+((CW/2)-3)+'px;top:0;width:6px;height:'+CH+'px;background:#22c55e;z-index:20;border-radius:1px;';
+  book.appendChild(spine);
+
+  // Page elements (stacked, last on top)
+  const pageEls=PAGES.map((src,i)=>{
+    const pg=document.createElement('div');
+    pg.style.cssText=[
+      'position:absolute;left:0;top:0;',
+      'width:'+CW+'px;height:'+CH+'px;',
+      'transform-origin:left center;',
+      'transform-style:preserve-3d;',
+      'transition:none;',
+      'z-index:'+(10+PAGES.length-i)+';',
+      'border-radius:0 2px 2px 0;',
+      'box-shadow:4px 2px 18px rgba(0,0,0,0.22);',
+    ].join('');
+    // Front face
+    const front=document.createElement('img');
+    front.src=src; front.draggable=false;
+    front.style.cssText='position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden;border-radius:0 2px 2px 0;';
+    // Back face (white/blank)
+    const back=document.createElement('div');
+    back.style.cssText='position:absolute;inset:0;background:#f7f7f5;backface-visibility:hidden;transform:rotateY(180deg);border-radius:2px 0 0 2px;';
+    const backLogo=document.createElement('div');
+    backLogo.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:bold 40px Arial;color:rgba(34,197,94,0.15);white-space:nowrap;';
+    backLogo.textContent='àbank';
+    back.appendChild(backLogo);
+    pg.appendChild(front); pg.appendChild(back);
+    book.appendChild(pg);
+    return pg;
   });
 
-  // ── Back face (blank, white) ──────────────────────────────
-  const texBlank = makeTex((ctx,W,H)=>{
-    ctx.fillStyle='#f8f8f6'; ctx.fillRect(0,0,W,H);
-    ctx.font='bold 46px Arial'; ctx.fillStyle='rgba(34,197,94,0.1)';
-    ctx.textAlign='center'; ctx.fillText('àbank',W/2,H/2); ctx.textAlign='left';
-  });
+  // Shadow under book
+  const shadow=document.createElement('div');
+  shadow.style.cssText='position:absolute;bottom:-18px;left:10%;width:80%;height:18px;background:radial-gradient(ellipse,rgba(0,0,0,0.45) 0%,transparent 70%);';
+  book.appendChild(shadow);
 
-  const FRONT_TEXTURES = [texCover, texTop5, texLow];
+  wrap.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
+  wrap.appendChild(book);
 
-  // ── THREE.js scene ────────────────────────────────────────
-  let W0=section.offsetWidth||window.innerWidth;
-  let H0=section.offsetHeight||window.innerHeight;
-
-  const renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(W0,H0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.shadowMap.enabled=true;
-  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.1;
-  wrap.appendChild(renderer.domElement);
-
-  const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x060d06); // dark green-black, matches CSS
-
-  // Face-on camera
-  const camera=new THREE.PerspectiveCamera(40,W0/H0,0.01,60);
-  camera.position.set(0,0,5.6);
-  camera.lookAt(0,0,0);
-
-  // ── Lighting ──────────────────────────────────────────────
-  scene.add(new THREE.AmbientLight(0xffffff,0.52));
-  const keyL=new THREE.DirectionalLight(0xfff6ee,1.5);
-  keyL.position.set(3,5,7); keyL.castShadow=true;
-  keyL.shadow.mapSize.setScalar(2048); keyL.shadow.bias=-0.0003;
-  scene.add(keyL);
-  scene.add(Object.assign(new THREE.DirectionalLight(0xd8f0ff,0.5),{position:{x:-5,y:2,z:5}}));
-  scene.add(Object.assign(new THREE.DirectionalLight(0xffffff,0.18),{position:{x:0,y:8,z:3}}));
-
-  // ── Magazine constants ────────────────────────────────────
-  const PW=1.85, PH=2.6, SEGS=48, SEGSV=30;
-
-  // Background plates (white book pages visible through)
-  const plateMat=new THREE.MeshStandardMaterial({color:0xf6f6f4,roughness:0.6,side:THREE.DoubleSide});
-  const plateR=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),plateMat);
-  plateR.position.set(PW/2,0,-0.01); scene.add(plateR);
-  const plateL=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),plateMat);
-  plateL.position.set(-PW/2,0,-0.01); plateL.visible=false; scene.add(plateL);
-
-  // Spine
-  const spineM=new THREE.Mesh(
-    new THREE.BoxGeometry(0.045,PH,0.04),
-    new THREE.MeshStandardMaterial({color:0x22c55e,roughness:0.35})
-  );
-  scene.add(spineM);
-
-  // Subtle drop shadow under magazine
-  const shadowPlane=new THREE.Mesh(
-    new THREE.PlaneGeometry(PW*2.4,PH*1.1),
-    new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.35,depthWrite:false})
-  );
-  shadowPlane.position.set(0,0,-0.02); scene.add(shadowPlane);
-
-  // ── Page meshes ───────────────────────────────────────────
-  const NUM_PAGES=3;
-  const pages=[];
-
-  for(let pi=0;pi<NUM_PAGES;pi++){
-    const geo=new THREE.PlaneGeometry(PW,PH,SEGS,SEGSV);
-    geo.translate(PW/2,0,0); // x: 0..PW (spine at 0, tip at PW)
-    geo.userData.orig=new Float32Array(geo.attributes.position.array);
-
-    const matFront=new THREE.MeshStandardMaterial({map:FRONT_TEXTURES[pi],roughness:0.5,side:THREE.FrontSide});
-    const matBack =new THREE.MeshStandardMaterial({map:texBlank,roughness:0.5,side:THREE.BackSide});
-
-    const mF=new THREE.Mesh(geo,matFront);
-    const mB=new THREE.Mesh(geo,matBack); // shares same geometry!
-
-    const grp=new THREE.Group();
-    grp.add(mF,mB);
-    grp.position.z=0.002*(NUM_PAGES-pi); // slight z-stacking on right side
-    scene.add(grp);
-    pages.push({grp,geo,progress:0,flipped:false});
-  }
-
-  // ── Deformation ───────────────────────────────────────────
-  function deform(geo,progress){
-    const pos=geo.attributes.position;
-    const orig=geo.userData.orig;
-    const LAG=0.52;
-    for(let i=0;i<pos.count;i++){
-      const ox=orig[i*3],  oy=orig[i*3+1]; // ox: 0..PW
-      const u=ox/PW;
-      const s=(1-u)*LAG;
-      const lp=s<1?Math.max(0,Math.min(1,(progress-s)/(1-s))):progress;
-      const a=lp*Math.PI;
-      const newX=ox*Math.cos(a);             // 0..PW → 0 → -PW
-      const newZ=ox*Math.sin(a);             // arch toward viewer
-      const curl=Math.sin(progress*Math.PI)*Math.sin(u*Math.PI)*0.16;
-      pos.setXYZ(i,newX,oy+curl,newZ);
-    }
-    pos.needsUpdate=true;
-    geo.computeVertexNormals();
-  }
-
-  function resetGeo(geo){
-    const pos=geo.attributes.position, orig=geo.userData.orig;
-    for(let i=0;i<pos.count;i++) pos.setXYZ(i,orig[i*3],orig[i*3+1],orig[i*3+2]);
-    pos.needsUpdate=true; geo.computeVertexNormals();
-  }
-
-  function setFullyFlipped(geo){
-    deform(geo,1); // leaves page at x: -PW..0 (left side)
-  }
-
-  // ── State ─────────────────────────────────────────────────
-  // state = number of pages currently on the left (0..NUM_PAGES)
-  let state=0;
-  let busy=false;
-  const proxy={p:0};
+  // ── Flip logic ──────────────────────────────────────────
+  let state=0, busy=false;
 
   function updateDots(){
     dots.forEach((d,i)=>d.classList.toggle('active',i===state));
   }
 
   function flipForward(){
-    if(busy||state>=NUM_PAGES) return;
+    if(busy||state>=PAGES.length) return;
     busy=true;
-    plateL.visible=true;
-    const pg=pages[state];
-    proxy.p=0;
-    if(typeof gsap!=='undefined'){
-      gsap.to(proxy,{p:1,duration:1.3,ease:'power2.inOut',
-        onUpdate:()=>deform(pg.geo,proxy.p),
-        onComplete:()=>{
-          pg.flipped=true;
-          // Re-adjust z of flipped pages so they stack on the left properly
-          pg.grp.position.z=-0.002*(state+1);
-          state++;
-          updateDots();
-          busy=false;
-        }
-      });
-    }
+    const pg=pageEls[state];
+    leftPlate.style.display='block';
+    pg.style.transition='transform 1.1s cubic-bezier(0.645,0.045,0.355,1.000)';
+    pg.style.transform='rotateY(-180deg)';
+    pg.style.zIndex=5+state;
+    setTimeout(()=>{ state++; updateDots(); busy=false; },1120);
   }
 
   function flipBackward(){
     if(busy||state<=0) return;
     busy=true;
-    const pg=pages[state-1];
-    proxy.p=1;
-    if(typeof gsap!=='undefined'){
-      gsap.to(proxy,{p:0,duration:1.3,ease:'power2.inOut',
-        onUpdate:()=>deform(pg.geo,proxy.p),
-        onComplete:()=>{
-          pg.flipped=false;
-          pg.grp.position.z=0.002*(NUM_PAGES-(state-1));
-          state--;
-          if(state===0) plateL.visible=false;
-          updateDots();
-          busy=false;
-        }
-      });
-    }
+    const pg=pageEls[state-1];
+    pg.style.transition='transform 1.1s cubic-bezier(0.645,0.045,0.355,1.000)';
+    pg.style.transform='rotateY(0deg)';
+    pg.style.zIndex=10+PAGES.length-(state-1);
+    setTimeout(()=>{
+      state--;
+      if(state===0) leftPlate.style.display='none';
+      updateDots(); busy=false;
+    },1120);
   }
 
-  // Dot nav
   dots.forEach((d,i)=>{
     d.addEventListener('click',()=>{
       if(busy) return;
@@ -1396,47 +1267,20 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     });
   });
 
-  // ── Auto-play ─────────────────────────────────────────────
+  // ── Auto-play on scroll into view ──────────────────────
   let autoStarted=false;
   function startAutoPlay(){
-    if(autoStarted||typeof gsap==='undefined') return;
+    if(autoStarted) return;
     autoStarted=true;
     dotsEl&&dotsEl.classList.add('vis');
-    const tl=gsap.timeline({delay:0.5});
-    tl.add({},0);
-    // Page 1 (cover) visible 3s
-    tl.add(()=>{},3);
-    // Flip to page 2
-    tl.add(()=>flipForward());
-    tl.add({},1.5);
-    // Page 2 (top-5) visible 3s
-    tl.add({},3);
-    // Flip to page 3
-    tl.add(()=>flipForward());
-    tl.add({},1.5);
-    // Page 3 (low) visible 3s
-    tl.add({},3);
+    setTimeout(()=>flipForward(), 2500);
+    setTimeout(()=>flipForward(), 2500+1200+2500);
   }
 
-  // ── Render loop ────────────────────────────────────────────
-  (function animate(){
-    requestAnimationFrame(animate);
-    renderer.render(scene,camera);
-  })();
-
-  // ── Start on scroll (Three.js already loaded at this point) ─
   const obs=new IntersectionObserver(entries=>{
-    if(entries[0].isIntersecting){startAutoPlay();obs.disconnect();}
+    if(entries[0].isIntersecting){ startAutoPlay(); obs.disconnect(); }
   },{threshold:0.25});
   obs.observe(section);
-
-  window.addEventListener('resize',()=>{
-    W0=section.offsetWidth; H0=section.offsetHeight;
-    camera.aspect=W0/H0; camera.updateProjectionMatrix();
-    renderer.setSize(W0,H0);
-  });
-
-  } // end initMag
 
 })();
 </script>
