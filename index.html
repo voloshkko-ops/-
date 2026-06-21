@@ -1775,234 +1775,244 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   });
 })();
 
-/* ── GARGANTUA BLACK HOLE (S5) ── */
+/* ── PARTICLE SPHERE → TEXT (S5) ── */
 (function(){
   const cv=document.getElementById('star-cv');
   if(!cv) return;
   const ctx=cv.getContext('2d');
-  let W,H,CX,CY,BHR; /* BHR = event horizon radius */
+  let W,H,CX,CY;
   function resize(){
     cv.width=cv.offsetWidth||window.innerWidth;
     cv.height=cv.offsetHeight||window.innerHeight;
     W=cv.width;H=cv.height;CX=W/2;CY=H/2;
-    BHR=Math.min(W,H)*0.10;
+    rebuildTargets();
   }
   resize(); window.addEventListener('resize',resize);
   const TAU=Math.PI*2;
 
-  /* ── mouse ── */
-  let mx=CX,my=CY,mProx=0,proxSmooth=0;
-  cv.parentElement.addEventListener('mousemove',e=>{
-    const r=cv.getBoundingClientRect();
-    mx=e.clientX-r.left; my=e.clientY-r.top;
-    const d=Math.hypot(mx-CX,my-CY);
-    mProx=Math.max(0,1-d/(Math.min(W,H)*0.45));
-  });
-  cv.parentElement.addEventListener('mouseleave',()=>{ mProx=0; });
+  /* ─── CONFIG ─── */
+  const COUNT = 7000;
+  const SPHERE_R = ()=> Math.min(W,H) * 0.28;
 
-  /* ── background stars ── */
-  const bgStars=Array.from({length:700},()=>({
-    x:Math.random(),y:Math.random(),
-    r:0.15+Math.random()*1.2,
-    a:0.04+Math.random()*0.45,
-    tw:Math.random()*TAU,tws:0.003+Math.random()*0.018,
-  }));
-
-  /* ── spark streaks (from previous) ── */
-  function mkSpark(){
-    const a=Math.random()*TAU;
-    return{
-      a, spd:1.0+Math.random()*3.8,
-      dist:(BHR*2.8)+Math.random()*BHR*2,
-      maxDist:120+Math.random()*Math.max(W,H)*0.55,
-      spiral:(Math.random()-0.5)*0.012,
-      len:5+Math.random()*28,
-      size:0.3+Math.random()*1.5,
-      alpha:0.3+Math.random()*0.65,
-      hue:110+Math.floor(Math.random()*65),
+  /* ─── Fibonacci sphere distribution ─── */
+  function fibSphere(i, n, R){
+    const phi = Math.acos(-1 + (2*i)/n);
+    const theta = Math.sqrt(n * Math.PI) * phi;
+    return {
+      x: R * Math.cos(theta) * Math.sin(phi),
+      y: R * Math.sin(theta) * Math.sin(phi),
+      z: R * Math.cos(phi)
     };
   }
-  const sparks=Array.from({length:900},()=>{const s=mkSpark();s.dist=Math.random()*s.maxDist;return s;});
 
-  /* ── gravity waves ── */
-  const gwaves=[]; let waveTimer=0;
-  function spawnWave(){ gwaves.push({r:BHR*1.5,maxR:Math.min(W,H)*(0.3+Math.random()*0.25),spd:0.7+Math.random()}); }
+  /* ─── Sample text pixels ─── */
+  let textTargets = [];
+  function sampleText(){
+    const oc = document.createElement('canvas');
+    oc.width = W; oc.height = H;
+    const ox = oc.getContext('2d');
+    const fs = Math.min(W*0.10, H*0.13, 90);
+    ox.fillStyle = '#fff';
+    ox.font = `700 ${fs}px Inter,sans-serif`;
+    ox.textAlign = 'center'; ox.textBaseline = 'middle';
+    ox.fillText('дякую', CX, H*0.42);
+    ox.fillText('за увагу', CX, H*0.58);
+    const d = ox.getImageData(0,0,W,H).data;
+    const pts = [];
+    const step = 4;
+    for(let y=0;y<H;y+=step)
+      for(let x=0;x<W;x+=step)
+        if(d[(y*W+x)*4+3]>128) pts.push({x,y});
+    return pts;
+  }
 
-  /* ── accretion disk config ── */
-  /* The Interstellar disk: nearly edge-on, inner hot glow, outer fade */
-  /* TILT = y-compression ratio making it look nearly flat/edge-on */
-  const DISK_TILT=0.16; /* 0=flat edge, 1=circle */
-  let diskAngle=0;
+  /* ─── Particles ─── */
+  const px = new Float32Array(COUNT); /* current x */
+  const py = new Float32Array(COUNT);
+  const pz = new Float32Array(COUNT); /* for depth sorting */
+  const sx = new Float32Array(COUNT); /* sphere target */
+  const sy = new Float32Array(COUNT);
+  const sz = new Float32Array(COUNT);
+  const tx = new Float32Array(COUNT); /* text target */
+  const ty = new Float32Array(COUNT);
+  const ex = new Float32Array(COUNT); /* explode target */
+  const ey = new Float32Array(COUNT);
+  const hue= new Uint8Array(COUNT);
 
-  /* disk particles for texture */
-  const diskPts=Array.from({length:800},()=>{
-    const r=BHR*(1.35+Math.random()*3.2);
-    const a=Math.random()*TAU;
-    return{r,a,spd:(0.005+Math.random()*0.012)*(Math.random()<0.5?1:-1),
-      size:0.4+Math.random()*2,alpha:0.3+Math.random()*0.7,
-      hue:110+Math.floor(Math.random()*70)};
+  function buildSphereTargets(){
+    const R = SPHERE_R();
+    for(let i=0;i<COUNT;i++){
+      const p = fibSphere(i, COUNT, R);
+      sx[i]=p.x; sy[i]=p.y; sz[i]=p.z;
+      /* explode: random outward burst */
+      const a1=Math.random()*TAU, a2=Math.random()*Math.PI;
+      const r2=R*(2.5+Math.random()*3);
+      ex[i]=(CX+Math.sin(a2)*Math.cos(a1)*r2)-CX;
+      ey[i]=(CY+Math.cos(a2)*r2*0.6)-CY;
+      hue[i]=110+Math.floor(Math.random()*70);
+    }
+  }
+
+  function buildTextTargets(){
+    const pts = sampleText();
+    if(!pts.length) return;
+    for(let i=0;i<COUNT;i++){
+      const p = pts[i % pts.length];
+      tx[i] = p.x - CX;
+      ty[i] = p.y - CY;
+    }
+    /* shuffle assignment */
+    for(let i=COUNT-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [tx[i],tx[j]]=[tx[j],tx[i]];
+      [ty[i],ty[j]]=[ty[j],ty[i]];
+    }
+  }
+
+  function rebuildTargets(){
+    buildSphereTargets();
+    buildTextTargets();
+    /* init positions on sphere */
+    for(let i=0;i<COUNT;i++){
+      px[i]=sx[i]; py[i]=sy[i]; pz[i]=sz[i];
+    }
+  }
+
+  /* ─── Scroll → progress ─── */
+  let scrollProgress=0, scrollTarget=0;
+  /* progress: 0=sphere, 0.5=exploded, 1=text */
+  const s5el = document.getElementById('s5');
+  s5el.addEventListener('wheel', e=>{
+    e.preventDefault();
+    scrollTarget = Math.max(0, Math.min(1, scrollTarget + e.deltaY*0.0008));
+  }, {passive:false});
+
+  /* touch support */
+  let touchY0=0;
+  s5el.addEventListener('touchstart',e=>{ touchY0=e.touches[0].clientY; },{passive:true});
+  s5el.addEventListener('touchmove',e=>{
+    const dy=touchY0-e.touches[0].clientY; touchY0=e.touches[0].clientY;
+    scrollTarget=Math.max(0,Math.min(1,scrollTarget+dy*0.003));
+  },{passive:true});
+
+  /* ─── Stars background ─── */
+  const bgStars = Array.from({length:400},()=>({
+    x:Math.random(), y:Math.random(),
+    r:0.2+Math.random()*1.1,
+    a:0.04+Math.random()*0.3,
+    tw:Math.random()*TAU, tws:0.003+Math.random()*0.015,
+  }));
+
+  /* ─── Rotation ─── */
+  let rotY=0, rotX=0.12; /* slight tilt */
+  /* mouse drag rotation */
+  let dragging=false, dragX=0, dragY=0, rotYv=0, rotXv=0;
+  s5el.addEventListener('mousedown',e=>{ dragging=true; dragX=e.clientX; dragY=e.clientY; });
+  window.addEventListener('mouseup',()=>{ dragging=false; });
+  window.addEventListener('mousemove',e=>{
+    if(!dragging||scrollProgress>0.3) return;
+    rotYv += (e.clientX-dragX)*0.003; dragX=e.clientX;
+    rotXv += (e.clientY-dragY)*0.001; dragY=e.clientY;
   });
 
-  let t=0,last=performance.now();
+  let t=0, last=performance.now();
 
-  /* ── draw accretion disk (Gargantua style) ── */
-  function drawDisk(bhR,diskRot,pulse){
-    const inner=bhR*1.3, outer=bhR*4.8;
-
-    /* ─ back half (behind BH): draw first, will be covered by BH ─ */
-    ctx.save();
-    /* clip to lower half only (behind = top of screen due to tilt) */
-    ctx.beginPath(); ctx.rect(0,0,W,CY); ctx.clip();
-    _drawDiskFull(bhR,inner,outer,diskRot,pulse,0.7);
-    ctx.restore();
-
-    /* ─ gravitational lensing ghost ring above BH ─ */
-    /* The real magic of Interstellar: top part of disk appears bent OVER the BH */
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0,0,W,CY+bhR*0.5); ctx.clip();
-    /* thin lensed arc drawn above */
-    for(let pass=0;pass<3;pass++){
-      const lensRx=(inner+outer)*0.5*(0.95+pass*0.04);
-      const lensRy=bhR*(0.55-pass*0.08);
-      const lensAlpha=[0.7,0.45,0.22][pass];
-      const lensW=[bhR*0.35,bhR*0.55,bhR*0.9][pass];
-      const g=ctx.createLinearGradient(CX-lensRx,CY,CX+lensRx,CY);
-      g.addColorStop(0,'rgba(0,255,100,0)');
-      g.addColorStop(0.2,`rgba(60,255,130,${lensAlpha*pulse})`);
-      g.addColorStop(0.5,`rgba(140,255,180,${lensAlpha*1.4*pulse})`);
-      g.addColorStop(0.8,`rgba(60,255,130,${lensAlpha*pulse})`);
-      g.addColorStop(1,'rgba(0,255,100,0)');
-      ctx.beginPath();
-      ctx.ellipse(CX,CY-bhR*0.72,lensRx,lensRy,0,Math.PI,TAU);
-      ctx.strokeStyle=g; ctx.lineWidth=lensW; ctx.stroke();
-    }
-    ctx.restore();
-
-    /* ─ front half (in front of BH): draw on top ─ */
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0,CY,W,H); ctx.clip();
-    _drawDiskFull(bhR,inner,outer,diskRot,pulse,1.0);
-    ctx.restore();
+  /* project 3D→2D with simple perspective */
+  function project(x,y,z){
+    const FOV=600;
+    const scale=FOV/(FOV+z);
+    return {x:CX+x*scale, y:CY+y*scale, s:scale};
   }
 
-  function _drawDiskFull(bhR,inner,outer,rot,pulse,alphaMult){
-    /* multi-layer disk with hot inner edge */
-    const layers=[
-      {r1:inner,     r2:inner*1.4, c1:`rgba(200,255,210,${0.95*alphaMult*pulse})`,c2:`rgba(60,255,120,${0.6*alphaMult*pulse})`, lw:bhR*0.55},
-      {r1:inner*1.3, r2:inner*2.2, c1:`rgba(40,255,110,${0.7*alphaMult*pulse})`, c2:`rgba(0,200,80,${0.3*alphaMult*pulse})`,  lw:bhR*0.9},
-      {r1:inner*2.0, r2:outer,     c1:`rgba(0,180,70,${0.45*alphaMult*pulse})`,  c2:'rgba(0,80,30,0)',                          lw:bhR*1.4},
-    ];
-    layers.forEach(l=>{
-      const mid=(l.r1+l.r2)/2;
-      const g=ctx.createRadialGradient(CX,CY,l.r1,CX,CY,l.r2);
-      g.addColorStop(0,l.c1); g.addColorStop(1,l.c2);
-      ctx.beginPath();
-      ctx.ellipse(CX,CY,mid,mid*DISK_TILT,rot,0,TAU);
-      ctx.strokeStyle=g; ctx.lineWidth=l.lw; ctx.stroke();
-    });
+  /* rotate point around Y then X */
+  function rotate(x,y,z,ry,rx){
+    /* rotate Y */
+    const x1=x*Math.cos(ry)+z*Math.sin(ry);
+    const z1=-x*Math.sin(ry)+z*Math.cos(ry);
+    /* rotate X */
+    const y2=y*Math.cos(rx)-z1*Math.sin(rx);
+    const z2=y*Math.sin(rx)+z1*Math.cos(rx);
+    return {x:x1,y:y2,z:z2};
   }
+
+  function easeInOut(t){ return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
 
   function draw(now){
     const dt=Math.min((now-last)/16.67,2.5); last=now;
-    t+=0.013*dt;
-    proxSmooth+=(mProx-proxSmooth)*0.035*dt;
+    t+=0.012*dt;
 
-    const bhR=BHR*(1+proxSmooth*0.22);
-    const diskSpd=(0.003+proxSmooth*0.006)*dt;
-    diskAngle+=diskSpd;
-    const pulse=0.88+0.12*Math.sin(t*2.1);
+    /* smooth scroll */
+    scrollProgress += (scrollTarget-scrollProgress)*0.06*dt;
 
-    /* ── fade trail ── */
-    ctx.fillStyle='rgba(0,0,0,0.19)';
+    /* auto-rotate sphere when not scrolled */
+    const rotFade=Math.max(0,1-scrollProgress*3);
+    rotYv += 0.004*dt*rotFade;
+    rotYv *= 0.96;
+    rotXv *= 0.96;
+    rotY  += rotYv;
+    rotX  += rotXv*rotFade;
+    rotX   = Math.max(-0.5,Math.min(0.5,rotX));
+
+    ctx.fillStyle='rgba(0,0,0,0.25)';
     ctx.fillRect(0,0,W,H);
 
-    /* ── stars ── */
+    /* stars */
     bgStars.forEach(s=>{
       s.tw+=s.tws;
       ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,TAU);
       ctx.fillStyle=`rgba(180,255,200,${s.a*(0.5+0.5*Math.sin(s.tw))})`; ctx.fill();
     });
 
-    /* ── nebula haze ── */
-    const D=Math.max(W,H);
-    const nb=ctx.createRadialGradient(CX,CY,bhR*2,CX,CY,D*0.65);
-    nb.addColorStop(0,'rgba(0,60,25,0.08)'); nb.addColorStop(0.4,'rgba(0,30,12,0.04)'); nb.addColorStop(1,'transparent');
-    ctx.fillStyle=nb; ctx.fillRect(0,0,W,H);
+    /* ── update + draw particles ── */
+    /* phases:
+       0.0–0.4 : sphere → explode  (progress 0→1 maps to p 0→0.4)
+       0.4–1.0 : explode → text    (progress maps to p 0.4→1)
+    */
+    const ph1=Math.min(1,scrollProgress/0.38);   /* 0→1: sphere→explode */
+    const ph2=Math.max(0,(scrollProgress-0.38)/0.62); /* 0→1: explode→text */
+    const ep1=easeInOut(ph1);
+    const ep2=easeInOut(ph2);
 
-    /* ── outer bloom ── */
-    const obloom=ctx.createRadialGradient(CX,CY,bhR*2,CX,CY,D*0.5);
-    obloom.addColorStop(0,`rgba(0,200,80,${0.06+proxSmooth*0.06})`);
-    obloom.addColorStop(0.3,'rgba(0,100,40,0.03)'); obloom.addColorStop(1,'transparent');
-    ctx.fillStyle=obloom; ctx.fillRect(0,0,W,H);
+    /* draw back-to-front using z depth */
+    /* For performance, draw all without sorting (acceptable at this count) */
+    for(let i=0;i<COUNT;i++){
+      /* target on sphere (rotated) */
+      const rot=rotate(sx[i],sy[i],sz[i],rotY,rotX);
 
-    /* ── disk particles (texture over disk bands) ── */
-    diskPts.forEach(p=>{
-      p.a+=p.spd*(1+proxSmooth*0.8)*dt;
-      const x=CX+Math.cos(p.a+diskAngle)*p.r;
-      const y=CY+Math.sin(p.a+diskAngle)*p.r*DISK_TILT;
-      const br=0.4+0.6*Math.abs(Math.cos(p.a));
-      ctx.beginPath(); ctx.arc(x,y,p.size*br,0,TAU);
-      ctx.fillStyle=`hsla(${p.hue},100%,70%,${p.alpha*br*0.75})`; ctx.fill();
-    });
+      /* intermediate: sphere→explode→text */
+      let wx,wy,wz;
+      if(ph2>0.001){
+        /* explode→text */
+        const bx=CX+ex[i]*(1-ep1)+rot.x*ep1-(rot.x*(1));
+        /* just blend directly explode→text */
+        wx = ex[i]*(1-ep2) + tx[i]*ep2;
+        wy = ey[i]*(1-ep2) + ty[i]*ep2;
+        wz = rot.z*(1-ep2);
+      } else {
+        /* sphere→explode */
+        wx = rot.x*(1-ep1) + ex[i]*ep1;
+        wy = rot.y*(1-ep1) + ey[i]*ep1;
+        wz = rot.z*(1-ep1);
+      }
 
-    /* ── Gargantua accretion disk ── */
-    drawDisk(bhR,diskAngle,pulse);
+      const proj=project(wx,wy,wz);
+      const depth=(wz+SPHERE_R()*1.5)/(SPHERE_R()*3);
 
-    /* ── spark streaks ── */
-    const spdM=1+proxSmooth*2;
-    sparks.forEach((s,i)=>{
-      s.dist+=s.spd*spdM*dt; s.a+=s.spiral*dt;
-      /* mouse deflection */
-      const sx=CX+Math.cos(s.a)*s.dist, sy=CY+Math.sin(s.a)*s.dist;
-      const md=Math.hypot(sx-mx,sy-my);
-      if(md<110) s.a+=0.005*(110-md)/110*Math.sign(sx-mx)*dt;
-      if(s.dist>s.maxDist){ sparks[i]=mkSpark(); return; }
-      const p=s.dist/s.maxDist;
-      const al=s.alpha*(p<0.05?p/0.05:p>0.78?(1-p)/0.22:1);
-      if(al<0.01) return;
-      const x1=CX+Math.cos(s.a)*s.dist, y1=CY+Math.sin(s.a)*s.dist;
-      const td=Math.max(3,s.len*(1-p*0.4));
-      const x0=CX+Math.cos(s.a)*(s.dist-td), y0=CY+Math.sin(s.a)*(s.dist-td);
-      const g=ctx.createLinearGradient(x0,y0,x1,y1);
-      g.addColorStop(0,`hsla(${s.hue},100%,65%,0)`);
-      g.addColorStop(1,`hsla(${s.hue},100%,82%,${al})`);
-      ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1);
-      ctx.strokeStyle=g; ctx.lineWidth=s.size*(1-p*0.5); ctx.lineCap='round'; ctx.stroke();
-      ctx.beginPath(); ctx.arc(x1,y1,s.size*0.8,0,TAU);
-      ctx.fillStyle=`hsla(${s.hue+15},100%,88%,${al*0.8})`; ctx.fill();
-    });
+      /* brightness by depth + phase */
+      const textPhase = ph2>0.5?1:0;
+      const bright = textPhase ? 0.85+0.15*Math.sin(t*3+i*0.01) : 0.35+0.65*depth;
+      const alpha  = bright*(0.5+0.5*depth);
+      const size   = proj.s*(0.8+0.5*depth);
 
-    /* ── gravity waves ── */
-    waveTimer+=dt;
-    if(waveTimer>55){ waveTimer=0; if(gwaves.length<10) spawnWave(); }
-    for(let i=gwaves.length-1;i>=0;i--){
-      const w=gwaves[i];
-      w.r+=w.spd*(1+proxSmooth)*dt;
-      const lf=w.r/w.maxR;
-      if(lf>=1){gwaves.splice(i,1);continue;}
-      const al=(1-lf)*(lf<0.08?lf/0.08:1)*0.5;
-      ctx.beginPath(); ctx.ellipse(CX,CY,w.r,w.r*DISK_TILT*2.5,0,0,TAU);
-      ctx.strokeStyle=`rgba(80,255,150,${al})`; ctx.lineWidth=2*(1-lf); ctx.stroke();
+      /* color: sphere=blue-purple, text=green */
+      const c = ph2>0.6 ?
+        `hsla(${hue[i]},100%,72%,${alpha})` :
+        `hsla(${230+hue[i]*0.3},80%,${55+depth*30}%,${alpha})`;
+
+      ctx.beginPath();
+      ctx.arc(proj.x,proj.y,Math.max(0.4,size*0.7),0,TAU);
+      ctx.fillStyle=c; ctx.fill();
     }
-
-    /* ── BLACK HOLE ── */
-    /* event horizon shadow/lensing edge */
-    const lenG=ctx.createRadialGradient(CX,CY,bhR*0.82,CX,CY,bhR*1.35);
-    lenG.addColorStop(0,'rgba(0,0,0,1)');
-    lenG.addColorStop(0.65,'rgba(0,0,0,0.96)');
-    lenG.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=lenG; ctx.beginPath(); ctx.arc(CX,CY,bhR*1.35,0,TAU); ctx.fill();
-    /* hard black core */
-    ctx.beginPath(); ctx.arc(CX,CY,bhR*0.88,0,TAU); ctx.fillStyle='#000'; ctx.fill();
-    /* photon ring */
-    const phR=bhR*1.08+bhR*0.04*Math.sin(t*2.5);
-    ctx.beginPath(); ctx.arc(CX,CY,phR,0,TAU);
-    ctx.strokeStyle=`rgba(160,255,180,${0.8+proxSmooth*0.2})`; ctx.lineWidth=1.5+Math.sin(t*2.5)*0.5; ctx.stroke();
-    /* inner glow rim */
-    const rimG=ctx.createRadialGradient(CX,CY,bhR*0.9,CX,CY,bhR*1.3);
-    rimG.addColorStop(0,`rgba(0,255,100,${0.35+proxSmooth*0.2})`);
-    rimG.addColorStop(0.5,'rgba(0,180,70,0.08)'); rimG.addColorStop(1,'transparent');
-    ctx.fillStyle=rimG; ctx.beginPath(); ctx.arc(CX,CY,bhR*1.3,0,TAU); ctx.fill();
 
     requestAnimationFrame(draw);
   }
