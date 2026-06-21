@@ -513,13 +513,20 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 }
 .mdot:hover { background: rgba(255,255,255,.5); transform: scale(1.2); }
 .mdot.active {
-  background: #22c55e; transform: scale(1.4);
+  background: #22c55e;
   box-shadow: 0 0 0 4px rgba(34,197,94,.25), 0 0 12px rgba(34,197,94,.5);
-  animation: dotpulse 1.8s ease-in-out infinite;
+  animation: dotjump 0.5s cubic-bezier(0.36,0.07,0.19,0.97) 1, dotpulse 1.8s ease-in-out infinite 0.5s;
+}
+@keyframes dotjump {
+  0%   { transform: scale(1) translateY(0); }
+  20%  { transform: scale(1.5) translateY(-8px); }
+  50%  { transform: scale(0.9) translateY(4px); }
+  70%  { transform: scale(1.3) translateY(-3px); }
+  100% { transform: scale(1.4) translateY(0); }
 }
 @keyframes dotpulse {
-  0%,100% { box-shadow: 0 0 0 3px rgba(34,197,94,.25), 0 0 10px rgba(34,197,94,.4); }
-  50%      { box-shadow: 0 0 0 6px rgba(34,197,94,.12), 0 0 20px rgba(34,197,94,.6); }
+  0%,100% { transform: scale(1.4); box-shadow: 0 0 0 3px rgba(34,197,94,.25), 0 0 10px rgba(34,197,94,.4); }
+  50%      { transform: scale(1.5); box-shadow: 0 0 0 6px rgba(34,197,94,.12), 0 0 20px rgba(34,197,94,.6); }
 }
 
 
@@ -1940,19 +1947,20 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       'border-radius:3px;display:block;',
     ].join('');
 
-    // Back face
+    // Back face — shows actual next page content
     const back=document.createElement('div');
     back.style.cssText=[
       'position:absolute;inset:0;',
       'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
       'transform:rotateY(180deg);border-radius:3px;overflow:hidden;',
-      'background:linear-gradient(135deg,#f5f3f0,#eae7e2);',
+      'background:#f5f3f0;',
     ].join('');
-    const bl=document.createElement('div');
-    bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;';
-    bl.innerHTML='<div style="font:bold 52px Arial;letter-spacing:-1px;"><span style="color:rgba(34,197,94,0.8);">à</span><span style="color:#1a1a1a;">банк</span></div>'
-      +'<div style="font:13px Arial;color:rgba(0,0,0,0.2);margin-top:8px;letter-spacing:3px;">BANK MAGAZINE</div>';
-    back.appendChild(bl);
+    if(pd.back){
+      const backImg=document.createElement('img');
+      backImg.src=pd.back; backImg.draggable=false;
+      backImg.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block;transform:scaleX(-1);';
+      back.appendChild(backImg);
+    }
 
     pg.appendChild(front); pg.appendChild(back);
     scene.appendChild(pg);
@@ -2004,7 +2012,16 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   const GLOW_MAP=['glow-neutral','glow-green','glow-red'];
 
   function updateDots(){
-    dots.forEach((d,i)=>d.classList.toggle('active',i===state));
+    dots.forEach((d,i)=>{
+      const wasActive=d.classList.contains('active');
+      const isActive=i===state;
+      d.classList.toggle('active',isActive);
+      if(isActive && !wasActive){
+        // restart jump animation
+        d.style.animation='none'; void d.offsetWidth;
+        d.style.animation='';
+      }
+    });
     if(glowEl){
       glowEl.classList.remove('glow-neutral','glow-green','glow-red');
       glowEl.classList.add(GLOW_MAP[state]||'glow-neutral');
