@@ -1823,18 +1823,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     ctx.fillStyle='#1a5c30'; ctx.font='italic bold 14px Georgia';
     wrap('«Готова вести команду до спільного результату — кожен день, у кожній зміні.»',28,by+40,W-50,22);
 
-    /* motivational strip */
-    const stripY=H-110;
-    const stripG2=ctx.createLinearGradient(0,stripY,W,stripY);
-    stripG2.addColorStop(0,'rgba(34,197,94,0.08)'); stripG2.addColorStop(0.5,'rgba(34,197,94,0.18)'); stripG2.addColorStop(1,'rgba(34,197,94,0.08)');
-    ctx.fillStyle=stripG2; ctx.beginPath(); rr(ctx,16,stripY,W-32,62,8); ctx.fill();
-    ctx.strokeStyle='rgba(34,197,94,0.3)'; ctx.lineWidth=1; ctx.beginPath(); rr(ctx,16,stripY,W-32,62,8); ctx.stroke();
-    ctx.font='bold 18px Arial'; ctx.textBaseline='middle'; ctx.textAlign='center'; ctx.fillStyle='#22c55e';
-    ctx.fillText('🌟  Зростаю · Навчаюсь · Веду команду  🌟',W/2,stripY+31);
-    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
 
     /* author tag */
-    ctx.fillStyle='#22c55e'; ctx.font='bold 14px Arial'; ctx.textBaseline='alphabetic';
+    ctx.fillStyle='#111'; ctx.font='bold 14px Arial'; ctx.textBaseline='alphabetic';
     ctx.fillText('— Ваш кандидат на посаду старшого зміни',24,H-16);
 
     /* page indicator */
