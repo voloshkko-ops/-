@@ -1658,12 +1658,12 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     ctx.beginPath(); rr(ctx,24,126,210,116,5); ctx.fill();
     ctx.fillStyle='#22c55e'; ctx.font='bold 11px Arial'; ctx.textBaseline='alphabetic';
     ctx.fillText('КАР\'ЄРА',34,148);
-    ctx.fillStyle='#111'; ctx.font='bold 16px Arial';
-    ctx.fillText('ЧОМУ Я МОЖУ',34,168);
-    ctx.fillText('СТАТИ СТАРШИМ',34,188);
-    ctx.fillText('ЗМІНИ?',34,208);
+    ctx.fillStyle='#111'; ctx.font='bold 14px Arial';
+    ctx.fillText('Організація та планування',34,168);
+    ctx.fillText('графіків, моніторинг і',34,186);
+    ctx.fillText('своєчасне виявлення збоїв',34,204);
     ctx.fillStyle='#555'; ctx.font='12px Arial';
-    ctx.fillText('Читайте ексклюзивно →',34,228);
+    ctx.fillText('Читайте ексклюзивно →',34,224);
     // headline
     ctx.fillStyle='#111'; ctx.textAlign='center';
     ctx.font='bold 50px Arial';
@@ -1904,104 +1904,81 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   ];
 
   // ── Layout ────────────────────────────────────────────────
-  const bookH = Math.min(Math.round(window.innerHeight*0.74), 520);
+  const bookH = Math.min(Math.round(window.innerHeight*0.76), 540);
   const bookW = Math.round(bookH*(CW/CH));
   const FLIP_MS = 700;
 
   wrap.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
 
-  // Two-page spread: scene is 2 pages wide
   const scene=document.createElement('div');
   scene.style.cssText=[
     'position:relative;',
-    'width:'+(2*bookW)+'px;height:'+bookH+'px;',
-    'perspective:2800px;perspective-origin:50% 50%;',
-  ].join('');
-
-  // ── RIGHT PANEL (static right page of the spread) ──────────
-  const rightPanel=document.createElement('div');
-  rightPanel.style.cssText=[
-    'position:absolute;left:'+bookW+'px;top:0;',
     'width:'+bookW+'px;height:'+bookH+'px;',
-    'border-radius:0 4px 4px 0;overflow:hidden;',
-    'background:#f5f3f0;',
-    'box-shadow:4px 4px 22px rgba(0,0,0,0.28);',
+    'perspective:2200px;perspective-origin:50% 50%;',
   ].join('');
-  const rightImg=document.createElement('img');
-  rightImg.draggable=false;
-  rightImg.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block;';
-  rightImg.src=PAGE_DATA[0].back||'';
-  rightPanel.appendChild(rightImg);
-  // spine shadow on left edge of right panel
-  const spRShad=document.createElement('div');
-  spRShad.style.cssText='position:absolute;left:0;top:0;width:18px;height:100%;background:linear-gradient(to right,rgba(0,0,0,0.18),transparent);pointer-events:none;z-index:2;';
-  rightPanel.appendChild(spRShad);
-  scene.appendChild(rightPanel);
 
-  // ── LEFT PAGES (stack, all at left:0) ─────────────────────
+  // Build page elements
   const pageEls = PAGE_DATA.map((pd,i)=>{
     const pg=document.createElement('div');
     pg.style.cssText=[
       'position:absolute;left:0;top:0;',
       'width:'+bookW+'px;height:'+bookH+'px;',
-      'transform-origin:right center;',
+      'transform-origin:left center;',
       'transform-style:preserve-3d;',
       'z-index:'+(20+PAGE_DATA.length-i)+';',
-      'border-radius:4px 0 0 4px;',
-      'box-shadow:-4px 0 18px rgba(0,0,0,0.22);',
+      'border-radius:3px;',
+      'box-shadow:6px 4px 22px rgba(0,0,0,0.30);',
       'cursor:pointer;will-change:transform;',
     ].join('');
 
-    // Front face — the page content
+    // Front face
     const front=document.createElement('img');
     front.src=pd.front; front.draggable=false;
     front.style.cssText=[
       'position:absolute;inset:0;width:100%;height:100%;',
       'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
-      'border-radius:4px 0 0 4px;display:block;',
+      'border-radius:3px;display:block;',
     ].join('');
 
-    // Back face — plain paper (right panel shows actual content)
+    // Back face
     const back=document.createElement('div');
     back.style.cssText=[
       'position:absolute;inset:0;',
       'backface-visibility:hidden;-webkit-backface-visibility:hidden;',
-      'transform:rotateY(180deg);',
-      'border-radius:0 4px 4px 0;',
-      'background:linear-gradient(135deg,#edeae5,#e2deda);',
+      'transform:rotateY(180deg);border-radius:3px;overflow:hidden;',
+      'background:linear-gradient(135deg,#f5f3f0,#eae7e2);',
     ].join('');
-    const backMark=document.createElement('div');
-    backMark.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:bold 48px Arial;color:rgba(34,197,94,0.08);';
-    backMark.textContent='à';
-    back.appendChild(backMark);
+    const bl=document.createElement('div');
+    bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;';
+    bl.innerHTML='<div style="font:bold 52px Arial;letter-spacing:-1px;"><span style="color:rgba(34,197,94,0.8);">à</span><span style="color:#1a1a1a;">банк</span></div>'
+      +'<div style="font:13px Arial;color:rgba(0,0,0,0.2);margin-top:8px;letter-spacing:3px;">BANK MAGAZINE</div>';
+    back.appendChild(bl);
 
     pg.appendChild(front); pg.appendChild(back);
     scene.appendChild(pg);
     pg.addEventListener('click',(e)=>{
-      const r=pg.getBoundingClientRect();
-      if(e.clientX>r.left+r.width*0.5) flipForward();
-      else flipBackward();
+      const half=pg.getBoundingClientRect().left+bookW/2;
+      if(e.clientX>=half){ if(i===state) flipForward(); }
+      else { flipBackward(); }
     });
     return pg;
   });
 
-  // Drop shadow under the spread
+  // Drop shadow
   const ds=document.createElement('div');
-  ds.style.cssText='position:absolute;bottom:-14px;left:4%;width:92%;height:14px;background:radial-gradient(ellipse at center,rgba(0,0,0,0.40) 0%,transparent 70%);pointer-events:none;';
+  ds.style.cssText='position:absolute;bottom:-14px;left:8%;width:84%;height:14px;background:radial-gradient(ellipse at center,rgba(0,0,0,0.42) 0%,transparent 70%);pointer-events:none;';
   scene.appendChild(ds);
 
-  // Spine (center line between left and right pages)
+  // Spine
   const sp=document.createElement('div');
-  sp.style.cssText='position:absolute;left:'+(bookW-2)+'px;top:3%;width:4px;height:94%;background:linear-gradient(to bottom,#22c55e,#16a34a);border-radius:2px;z-index:100;pointer-events:none;';
+  sp.style.cssText='position:absolute;left:0;top:5%;width:3px;height:90%;background:linear-gradient(to bottom,#22c55e,#16a34a);border-radius:2px 0 0 2px;z-index:99;pointer-events:none;';
   scene.appendChild(sp);
 
-  // Page-turn shadow on left side
+  // Page-turn shadow overlay
   const turnShadow=document.createElement('div');
   turnShadow.style.cssText=[
-    'position:absolute;left:0;top:0;',
-    'width:'+bookW+'px;height:'+bookH+'px;',
-    'border-radius:4px 0 0 4px;',
-    'background:linear-gradient(to right,rgba(0,0,0,0.16) 0%,transparent 50%);',
+    'position:absolute;inset:0;border-radius:3px;',
+    'background:linear-gradient(to left,rgba(0,0,0,0.18) 0%,transparent 40%);',
     'pointer-events:none;opacity:0;z-index:98;',
     'transition:opacity 0.15s;',
   ].join('');
@@ -2009,14 +1986,14 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   wrap.appendChild(scene);
 
-  // ── Glow ring around full spread ───────────────────────────
+  // ── Glow ring around magazine ───────────────────────────────
   const glowEl=document.getElementById('mag-glow');
   if(glowEl){
     glowEl.style.cssText=[
       'position:absolute;',
-      'left:calc(50% - '+(bookW+28)+'px);',
+      'left:calc(50% - '+(bookW/2+28)+'px);',
       'top:calc(50% - '+(bookH/2+28)+'px);',
-      'width:'+(2*bookW+56)+'px;height:'+(bookH+56)+'px;',
+      'width:'+(bookW+56)+'px;height:'+(bookH+56)+'px;',
     ].join('');
     setTimeout(()=>glowEl.classList.add('vis'),600);
   }
@@ -2026,15 +2003,8 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   const GLOW_MAP=['glow-neutral','glow-green','glow-red'];
 
-  function updateRightPanel(){
-    const src=(state<PAGE_DATA.length)?(PAGE_DATA[state].back||''):'';
-    if(src){ rightImg.src=src; rightImg.style.display='block'; }
-    else { rightImg.style.display='none'; rightPanel.style.background='linear-gradient(135deg,#edeae5,#e2deda)'; }
-  }
-
   function updateDots(){
     dots.forEach((d,i)=>d.classList.toggle('active',i===state));
-    updateRightPanel();
     if(glowEl){
       glowEl.classList.remove('glow-neutral','glow-green','glow-red');
       glowEl.classList.add(GLOW_MAP[state]||'glow-neutral');
@@ -2047,7 +2017,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     const pg=pageEls[state];
     turnShadow.style.opacity='1';
     pg.style.transition='transform '+FLIP_MS+'ms cubic-bezier(0.25,0.46,0.45,0.94)';
-    pg.style.transform='rotateY(180deg)';
+    pg.style.transform='rotateY(-180deg)';
     pg.style.zIndex=10+state;
     setTimeout(()=>{
       turnShadow.style.opacity='0';
@@ -2081,7 +2051,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
         if(target>state){
           const pg=pageEls[state];
           pg.style.transition='transform '+FLIP_MS+'ms cubic-bezier(0.25,0.46,0.45,0.94)';
-          pg.style.transform='rotateY(180deg)';
+          pg.style.transform='rotateY(-180deg)';
           pg.style.zIndex=10+state;
           setTimeout(()=>{ state++; step(); },FLIP_MS+20);
         } else {
