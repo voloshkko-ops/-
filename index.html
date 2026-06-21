@@ -602,6 +602,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   z-index: 10;
   display: flex; flex-direction: column; gap: 36px;
 }
+@media (max-width: 768px) {
+  .s4-toggles { display: none; }
+}
 .s4-toggle-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .s4-toggle-label {
   font-family: 'Inter', sans-serif;
@@ -2039,7 +2042,7 @@ p:hover, span:hover, li:hover, label:hover {
   let autoStarted=false;
   function startAutoPlay(){
     if(autoStarted) return; autoStarted=true;
-    const GAP=3000, FLIP=720;
+    const GAP=2000, FLIP=700;
     // flip forward through all pages once, then stop
     for(let i=0;i<PAGE_DATA.length-1;i++){
       setTimeout(()=>flipForward(), GAP + i*(FLIP+GAP));
