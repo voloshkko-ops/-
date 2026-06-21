@@ -669,9 +669,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 .s4-sw-row-pct { font-weight: 700; }
 .s4-sw-row-pct.hi { color: #22c55e; }
 .s4-sw-row-pct.lo { color: #ef4444; }
-.s4-sw-row-formula { flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px 14px; }
-.s4-sw-row-flabel { font-size: 10px; font-weight: 700; color: #22c55e; letter-spacing: 0.5px; }
-.s4-sw-row-ftext { font-size: 9.5px; color: rgba(255,255,255,.55); font-family: monospace; line-height: 1.4; word-break: break-all; }
 
 /* Floating à letters background */
 .bg-a {
@@ -802,20 +799,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
         </label>
         <div class="s4-sw-list" id="sw-list-low"></div>
       </div>
-      <div class="s4-toggle-wrap">
-        <div class="s4-toggle-label">Формули SL ASA</div>
-        <label class="s4-sw" id="sw-form">
-          <input type="checkbox" class="s4-sw-inp">
-          <span class="s4-sw-base"><span class="s4-sw-knob"></span></span>
-        </label>
-        <div class="s4-sw-list" id="sw-list-form"></div>
-      </div>
     </div>
     <div id="mag-dots">
       <span class="mdot active" data-page="0" title="Обкладинка"></span>
       <span class="mdot" data-page="1" title="Топ-5"></span>
       <span class="mdot" data-page="2" title="Потребують уваги"></span>
-      <span class="mdot" data-page="3" title="Методологія"></span>
     </div>
   </section>
 </div>
@@ -1404,7 +1392,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       ctx.textAlign='right'; ctx.fillText(e.p,W-48,y+90); ctx.textAlign='left';
     });
     ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
-    ctx.fillText('2  із  4',W/2,H-16); ctx.textAlign='left';
+    ctx.fillText('2  із  3',W/2,H-16); ctx.textAlign='left';
   }
 
   function drawLow(ctx,W,H){
@@ -1434,100 +1422,18 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
       ctx.fillStyle='#ef4444'; ctx.beginPath(); rr(ctx,bx,y+108,(e.v/100)*bw,bh,6); ctx.fill();
     });
     ctx.fillStyle='#ddd'; ctx.font='13px Arial'; ctx.textAlign='center';
-    ctx.fillText('3  із  4',W/2,H-16); ctx.textAlign='left';
-  }
-
-  function drawFormulas(ctx,W,H){
-    ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,W,H);
-
-    // Top gradient bar
-    const bar=ctx.createLinearGradient(0,0,W,0);
-    bar.addColorStop(0,'#22c55e'); bar.addColorStop(1,'#16a34a');
-    ctx.fillStyle=bar; ctx.fillRect(0,0,W,6);
-
-    // Title
-    ctx.font='bold 28px Arial'; ctx.fillStyle='#f0f6ff';
-    ctx.fillText('Методологія розрахунку',32,50);
-    ctx.font='13px Arial'; ctx.fillStyle='#4b5563';
-    ctx.fillText('SL ASA — формули та логіка • Червень 2026',32,72);
-
-    function card(y,h,accent,title,desc,lines){
-      ctx.beginPath(); rr(ctx,24,y,W-48,h,10);
-      ctx.fillStyle='#161b22'; ctx.fill();
-      ctx.beginPath(); rr(ctx,24,y,W-48,h,10);
-      ctx.strokeStyle=accent+'88'; ctx.lineWidth=1.5; ctx.stroke();
-      // left strip
-      ctx.beginPath(); rr(ctx,24,y,5,h,3);
-      ctx.fillStyle=accent; ctx.fill();
-      // title
-      ctx.font='bold 13px Arial'; ctx.fillStyle=accent;
-      ctx.fillText(title,40,y+20);
-      // description
-      ctx.font='11px Arial'; ctx.fillStyle='#9ca3af';
-      ctx.fillText(desc,40,y+36);
-      // formula lines
-      ctx.font='11px monospace'; ctx.fillStyle='#d1d5db';
-      lines.forEach((l,i)=>{ ctx.fillText(l,40,y+54+i*16); });
-    }
-
-    // Card 1 — визначення цільового діалогу
-    card(88,118,'#3b82f6',
-      '① Визначення цільового діалогу',
-      'Діалог вважається цільовим якщо виконується хоча б одна умова:',
-      [
-        'Черга  0–5 хв   →  очікування ≤ 120 сек (2 хв)',
-        'Черга  6–10 хв  →  очікування ≤ 180 сек (3 хв)',
-        'Черга 11–15 хв  →  очікування ≤ 300 сек (5 хв)',
-        'Черга  ≥ 16 хв  →  очікування ≤ 420 сек (7 хв)',
-      ]
-    );
-
-    // Card 2 — розрахунок SL ASA
-    card(218,198,'#22c55e',
-      '② Розрахунок SL ASA (таблиця "результати")',
-      'Кількість цільових діалогів / Загальна кількість діалогів × 100',
-      [
-        '=ARRAYFORMULA( ЯКЩО(A2:A=""; "";',
-        '  100 × (',
-        '    COUNTIFS(діалоги!C; співр.; D;"<=5";  E;"<=120")',
-        '  + COUNTIFS(діалоги!C; співр.; D;">=6";  D;"<=10"; E;"<=180")',
-        '  + COUNTIFS(діалоги!C; співр.; D;">=11"; D;"<=15"; E;"<=300")',
-        '  + COUNTIFS(діалоги!C; співр.; D;">=16"; E;"<=420")',
-        '  ) / COUNTIF(діалоги!C; співр.)',
-        '))',
-      ]
-    );
-
-    // Card 3 — відбір нижче 65%
-    card(428,90,'#22c55e',
-      '③ Відбір співробітників нижче порогу 65%',
-      'Збирає всі рядки з таблиці "результати" де SL ASA < 65',
-      [
-        '=FILTER( результати!A:D;  результати!D:D < 65 )',
-      ]
-    );
-
-    // Footer note
-    ctx.font='11px Arial'; ctx.fillStyle='#374151';
-    ctx.fillText('C = співробітник  |  D = час черги (хв)  |  E = час очікування (сек)',32,530);
-
-    // Page number
-    ctx.font='13px Arial'; ctx.fillStyle='#374151'; ctx.textAlign='center';
-    ctx.fillText('4  із  4',W/2,H-16); ctx.textAlign='left';
+    ctx.fillText('3  із  3',W/2,H-16); ctx.textAlign='left';
   }
 
   // Generate PNGs
-  const imgCover    = makePng(drawCover,    CW,CH);
-  const imgTop5     = makePng(drawTop5,     CW,CH);
-  const imgLow      = makePng(drawLow,      CW,CH);
-  const imgFormulas = makePng(drawFormulas, CW,CH);
+  const imgCover = makePng(drawCover, CW,CH);
+  const imgTop5  = makePng(drawTop5,  CW,CH);
+  const imgLow   = makePng(drawLow,   CW,CH);
 
-  // Page definitions: [front image, back image]
   const PAGE_DATA = [
-    { front: imgCover,    back: imgTop5     },
-    { front: imgTop5,     back: imgLow      },
-    { front: imgLow,      back: imgFormulas },
-    { front: imgFormulas, back: null        },
+    { front: imgCover, back: imgTop5 },
+    { front: imgTop5,  back: imgLow  },
+    { front: imgLow,   back: null    },
   ];
 
   // ── Layout ────────────────────────────────────────────────
@@ -1633,8 +1539,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
   // ── Flip logic ─────────────────────────────────────────────
   let state=0, busy=false;
 
-  // page index → glow type: 0=cover(neutral), 1=top5(green), 2=low(red), 3=formulas(blue)
-  const GLOW_MAP=['glow-neutral','glow-green','glow-red','glow-blue'];
+  const GLOW_MAP=['glow-neutral','glow-green','glow-red'];
 
   function updateDots(){
     dots.forEach((d,i)=>d.classList.toggle('active',i===state));
@@ -1676,9 +1581,27 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
   dots.forEach((d,i)=>{
     d.addEventListener('click',()=>{
-      if(busy) return;
-      if(i>state) flipForward();
-      else if(i<state) flipBackward();
+      if(busy||i===state) return;
+      // jump directly: flip pages one-by-one quickly until reaching target
+      const target=i;
+      function step(){
+        if(state===target){ busy=false; updateDots(); return; }
+        busy=true;
+        if(target>state){
+          const pg=pageEls[state];
+          pg.style.transition='transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+          pg.style.transform='rotateY(-180deg)';
+          pg.style.zIndex=10+state;
+          setTimeout(()=>{ state++; step(); },560);
+        } else {
+          const pg=pageEls[state-1];
+          pg.style.transition='transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+          pg.style.transform='rotateY(0deg)';
+          pg.style.zIndex=20+PAGE_DATA.length-(state-1);
+          setTimeout(()=>{ state--; step(); },560);
+        }
+      }
+      step();
     });
   });
 
@@ -1727,31 +1650,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:#000; }
     el.appendChild(inner);
   }
 
-  const FORMULAS = [
-    {label:'① Цільовий діалог', text:'IF(OR(AND(черга 0-5, очік≤120s); AND(6-10, ≤180s); AND(11-15, ≤300s); AND(≥16, ≤420s)) → 1, інакше 0'},
-    {label:'② SL ASA (Sheets)', text:'=ARRAYFORMULA(100*(COUNTIFS(...≤5хв,≤120s)+COUNTIFS(...6-10хв,≤180s)+COUNTIFS(...11-15хв,≤300s)+COUNTIFS(...≥16хв,≤420s))/COUNTIF(...))'},
-    {label:'③ Відбір < 65%',    text:'=FILTER(результати!A:D; результати!D:D < 65)'},
-  ];
-
-  function buildFormList(el, data){
-    const inner = document.createElement('div');
-    inner.className = 's4-sw-list-inner';
-    data.forEach(r=>{
-      const row = document.createElement('div');
-      row.className = 's4-sw-row s4-sw-row-formula';
-      row.innerHTML = '<span class="s4-sw-row-flabel">'+r.label+'</span>'
-        +'<span class="s4-sw-row-ftext">'+r.text+'</span>';
-      inner.appendChild(row);
-    });
-    el.appendChild(inner);
-  }
-
   const listHigh = document.getElementById('sw-list-high');
   const listLow  = document.getElementById('sw-list-low');
-  const listForm = document.getElementById('sw-list-form');
   if(listHigh) buildList(listHigh, HIGH, 'hi');
   if(listLow)  buildList(listLow,  LOW,  'lo');
-  if(listForm) buildFormList(listForm, FORMULAS);
 
   document.querySelectorAll('.s4-sw-inp').forEach(inp=>{
     inp.addEventListener('change', function(){
